@@ -1,0 +1,197 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Lecture notes for Numerical Methods for Partial Differential Equations
+%
+% Chapter 1: Introduction
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% !TeX root = NumPDE_Lecture_notes.tex
+
+\section{Introduction} \label{s:1}
+
+The overall aim of this module is to show how computers
+can be used to solve various mathematical problems for partial
+differential equations (PDEs). This involves both theoretical and
+practical components. The theoretical part is an introduction to
+the most commonly used numerical methods for solving PDEs. Here we
+will discuss how and why these methods work. In the practical
+part, we will use R and C++ to demonstrate how the numerical methods
+discussed in the theoretical part can be implemented in practice.
+
+We will discuss numerical methods for
+parabolic (the heat equation), elliptic (the Laplace and Poisson
+equations) and hyperbolic (the wave equation) PDEs. 
+
+There are of course many good textbooks on the subject. Three that we
+will refer to from time to time are:
+\begin{enumerate}
+
+\item{} RL Burden \& JD Faires, {\it Numerical Analysis}
+(6th ed.), Brooks/Cole Publishing Company, 1997;
+
+\item{} WF Ames,
+{\it Numerical Methods for Partial Differential Equations}, Academic
+Press, 1977;
+
+\item{} WH Press,
+{\it Numerical Recipes: the Art of Scientific Computing}, CUP, 2007.
+
+\end{enumerate}
+
+Below are some facts from Calculus that are used throughout this course.
+
+\begin{theorem}[Taylor's theorem for functions of one variable]
+Let $f\in C^{n+1}$ in the neighbourhood of the
+point $x_{0}$ (i.e. $f$ is continuous and has continuous
+derivatives of all orders up to the $(n+1)$th order). Then, for all
+$x$ in this neighbourhood,
+\[
+f(x)=T_{n}+R_{n}
+\]
+where $T_{n}$ in the $n$th Taylor polynomial
+\[
+T_{n}=f(x_{0})+(x-x_{0})f^{\prime}(x_{0})+
+\frac{(x-x_{0})^{2}}{2!}f^{\prime\prime}(x_{0})+ \dots+
+\frac{(x-x_{0})^{n}}{n!}f^{(n)}(x_{0})
+\]
+and $R_{n}$ is the remainder term:
+\[
+R_{n}=\frac{(x-x_{0})^{n+1}}{(n+1)!}f^{(n+1)}(\xi)
+\]
+for some point $\xi$ between $x_{0}$ and $x$ 
+%($\xi$ can be written
+%as $\xi=x_{0}+\theta (x-x_{0})$ where $0< \theta<1$). 
+\end{theorem}
+
+\begin{example}
+Let us obtain the Taylor series expansion of
+$f(x)=\sin x$ about the point $x_{0}=0$.
+We have
+\begin{gather*}
+f(0)=0, ~~~~ f^{\prime}(0)=\cos x\vert_{x=0}=1, ~~~~
+f^{\prime\prime}(0)=-\sin x\vert_{x=0}=0, \\
+f^{\prime\prime\prime}(0)=-\cos x\vert_{x=0}=-1, ~~~~
+{\rm etc.}
+\end{gather*}
+Hence,
+\[
+\sin x=x-\frac{x^{3}}{3!}+\frac{x^{5}}{5!}-\dots=
+\sum_{n=1}^{\infty}(-1)^{n-1}\frac{x^{2n-1}}{(2n-1)!}.
+\]
+If we restrict our attention to the $n$th Taylor polynomial for
+$\sin x$, then the remainder term $R_{n}$ can be estimated using the
+fact that $f^{(n+1)}(\xi)$ is equal to
+either $\pm\sin x$ or $\pm\cos x$ depending on $n$. In both cases
+$\vert f^{(n+1)}(\xi)\vert\leq 1$. Hence, we obtain
+\[
+\vert R_{n}\vert \leq\frac{\vert x-x_{0}\vert^{n+1}}{(n+1)!}.
+\]
+\end{example}
+
+\begin{definition} Let $\lim\limits_{x\to 0}g(x)=0$ and
+$\lim\limits_{x\to 0}f(x)=f_{0}$. If there exists
+a positive constant $K$ such that
+\[
+\vert f(x)-f_{0}\vert   \leq K \vert g(x)\vert,
+\]
+at least when $x$ is sufficiently close to zero, we write
+\[
+f(x)=f_{0}+O(g(x))
+\]
+as $x\to 0$.
+\end{definition}
+
+\begin{example}
+The function $f(x)=\sin(x)/x$ converges to 1 as fast
+as $x^{2}$ converges to zero (as $x\to 0$). To show this,
+it suffices to consider the second Taylor polynomial for $\sin(x)$:
+\[
+\sin(x)=x-{x^{3} \over 3!}\cos(\xi)
+\]
+where $\xi$ is some number between 0 and $x$. We have
+\[
+\left\vert \frac{\sin x}{x} -1 \right\vert = \frac{\vert x
+\vert^{2}}{3!}\vert \cos(\xi)\vert \leq \frac{x^{2}}{3!}=\frac{x^{2}}{6} \ \ \
+\Rightarrow \ \ \ \ \frac{\sin x}{x}=1+O(x^{2}).
+\]
+Here we used the fact that $\vert\cos(\xi)\vert\leq 1$ for all $\xi$.
+\end{example}
+
+\begin{lemma}[Properties of $O(x^n)$]
+We have
+\begin{enumerate}
+
+\item $O(x^n)+O(x^m)=O(x^l)$ \ \ for $n,m \geq 0$ \ \ and \ \ $l=\min\{n,m\}$.
+
+\item $O(x^n)O(x^m)=O(x^{n+m})$ \ \ for \ \ $n,m \geq 0$.
+
+\item $x^m O(x^n)=O(x^{n+m})$ \ \ for $n \geq 0$ \ \ and \ \ $n+m \geq 0$.
+\end{enumerate}
+\end{lemma}
+
+\noindent
+For example,
+\[
+O(x^2)+O(x^3)=O(x^2), \quad
+O(x^2)O(x^3)=O(x^5), \quad
+x^{-2}O(x^3)=O(x).
+\]
+
+\pagebreak[2]
+
+\begin{theorem}[Taylor's theorem for functions of two variables]
+Suppose that $f(x, y)$ and all its partial derivatives of order less
+than or equal to $(n+1)$ are continuous in
+$D=\{ (x, y) \ \vert \ a< x< b, \ c< y< d \}$, and let $(x_{0}, y_{0})\in D$.
+For every $(x, y)\in D$, there exist $\xi$ between $x$ and $x_{0}$ and $\mu$
+between $y$ and $y_{0}$ such that
+$$
+f(x, y)=T_{n}(x, y)+R_{n}(x, y)
+$$
+where
+\begin{eqnarray}
+T_{n}(x, y) &=& f(x_{0}, y_{0})+
+\left[(x-x_{0})\frac{\partial f}{\partial x}(x_{0}, y_{0})+
+(y-y_{0})\frac{\partial f}{\partial y}(x_{0}, y_{0})\right] \nonumber \\
+&& + \left[\frac{(x-x_{0})^{2}}{2}\frac{\partial^{2} f}{\partial x^{2}}(x_{0}, y_{0})+
+(x-x_{0})(y-y_{0})\frac{\partial^{2} f}{\partial x\partial y}(x_{0}, y_{0})\right.\\
+&&\qquad\qquad\qquad+\left.
+\frac{(y-y_{0})^{2}}{2}\frac{\partial^{2} f}{\partial y^{2}}(x_{0}, y_{0})
+\right] + .... \nonumber \\
+&& + \left[\frac{1}{n!}\sum_{j=0}^{n}
+\left(
+\begin{array}{c}
+n \\
+ j
+\end{array}
+\right)
+(x-x_{0})^{n-j}(y-y_{0})^{j}
+\frac{\partial^{n} f}{\partial x^{n-j}\partial y^{j}}(x_{0}, y_{0})\right] \nonumber
+\end{eqnarray}
+and
+\[
+R_{n}(x, y)=
+\frac{1}{(n+1)!}\sum_{j=0}^{n+1}
+\left(
+\begin{array}{c}
+n+1 \\
+ j
+\end{array}
+\right)
+(x-x_{0})^{n+1-j}(y-y_{0})^{j}
+\frac{\partial^{n+1} f}{\partial x^{n+1-j}\partial y^{j}}(\xi, \mu) .
+\]
+Here
+\[
+\left(
+\begin{array}{c}
+n \\
+ j
+\end{array}
+\right)=\frac{n!}{j!(n-j)!}
+\]
+are binomial coefficients.
+$T_{n}(x, y)$ is called the {\it n-th Taylor polynomial in
+two variables} and $R_{n}(x, y)$ is the remainder term.
+\end{theorem}

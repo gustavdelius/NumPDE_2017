@@ -1,0 +1,807 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Lecture notes for Numerical Methods for Partial Differential Equations
+%
+% Chapter 4: Hyperbolic PDEs
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% !TeX root = NumPDE_Lecture_notes.tex
+
+\section{Hyperbolic partial differential equations}
+
+
+\subsection{Wave equation}
+
+ 
+We will illustrate the finite-difference
+method for hyperbolic PDEs with the linear wave equation
+\begin{equation}
+\frac{\pr^{2} u}{\pr t^{2}}(x,t) - \alpha^{2}\frac{\pr^{2} u}{\pr
+x^{2}}(x,t)=F(x,t), \quad a<x< b, \quad 0<t<T,   \label{1}
+\end{equation}
+subject to the boundary conditions
+\begin{equation}
+u(a, t) = u(b, t)=0 \quad \hbox{for} \quad t\in[0,T],   \label{2}
+\end{equation}
+and initial conditions
+\begin{eqnarray}
+&&u(x, 0) = f(x), \label{3} \\
+&&\frac{\pr u}{\pr t}(x,0)=g(x)  \quad \hbox{for} \quad x\in[a,b],
+\label{4}
+\end{eqnarray}
+where $f(x)$ and $g(x)$ are given functions.
+
+   
+First we choose integers $N$ and $M$ and
+let $h=(b-a)/N$, $\tau=T/M$. Then we define the mesh points
+$(x_{k}, t_{j})$:
+\[
+x_{k}=a+hk \quad(k=0,1,\dots,N), \quad t_{j}=\tau j
+\quad(j=0,1,\dots,M).
+\]
+We approximate the second partial derivatives with respect to $t$
+and $x$ at interior grid points using the central difference
+formulas
+\begin{eqnarray}
+&&\frac{\pr^{2} u}{\pr t^{2}}(x_{k},t_{j})=
+\frac{u(x_{k},t_{j+1})-2u(x_{k},t_{j})+u(x_{k},t_{j-1})}{\tau^{2}}-
+\frac{\tau^{2}}{12}\frac{\pr^{4} u}{\pr t^{4}}(x_{k}, \mu_{j}), \nonumber \\
+&&\frac{\pr^{2} u}{\pr x^{2}}(x_{k},t_{j})= \frac{u(x_{k+1},
+t_{j})-2u(x_{k},t_{j})-u(x_{k-1}, t_{j})}{h^{2}}-
+\frac{h^{2}}{12}\frac{\pr^{4} u}{\pr x^{4}}(\xi_{k}, t_{j}),
+\nonumber
+\end{eqnarray}
+where $\mu_{j}\in(t_{j-1},t_{j+1})$ and
+$\xi_{k}\in(x_{k-1},x_{k+1})$.
+
+   
+With these formulas, we approximate the
+wave equation (\ref{1}) at the interior mesh points $(x_{k},
+t_{j})$ for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots$ by the
+difference equation
+\begin{equation}
+\frac{w_{k,j+1}-2w_{kj}+w_{k,j-1}}{\tau^{2}}-\alpha^{2}
+\frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=F_{kj}, \label{5}
+\end{equation}
+where $w_{kj}$ approximates $u(x_{k},t_{j})$ (i.e. $w_{kj}\approx
+u(x_{k},t_{j})$).
+
+    The local truncation error of the
+difference equation (\ref{5}) is
+\[
+\tau_{ij}=\frac{\tau^{2}}{12}\frac{\pr^{4} u}{\pr t^{4}}(x_{k},
+\mu_{j})-\alpha^2 \frac{h^{2}}{12}\frac{\pr^{4} u}{\pr
+x^{4}}(\xi_{k}, t_{j})=O(\tau^{2}+h^{2}).
+\]
+Let
+\[
+\gamma\equiv\frac{\alpha\tau}{h}.
+\]
+Then equation (\ref{5}) can be written as
+\begin{equation}
+w_{k,j+1}=2\left(1-\gamma^{2}\right)w_{kj}+
+\gamma^{2}\left(w_{k+1, j}+w_{k-1,j}\right)-w_{k,j-1}+\tau^2
+F_{kj} , \label{6}
+\end{equation}
+for each $k=1, 2, \dots, N-1$ and $j=1, 2, \dots$. The boundary
+conditions (\ref{2}) imply that
+\begin{equation}
+w_{0,j}=w_{N,j}=0 \quad \hbox{for each} \quad j=1, 2, \dots,
+\label{7}
+\end{equation}
+and the initial condition (\ref{3}) yields
+\begin{equation}
+w_{k,0}=f(x_{k}) \quad \hbox{for each} \quad i=1, 2, \dots, N-1.
+\label{8}
+\end{equation}
+Equation (\ref{5}) can be written in the matrix form
+\begin{equation}
+{\bf w}^{(j+1)}=A{\bf w}^{(j)}-{\bf w}^{(j-1)}+{\bf F}^{(j)},
+\label{9}
+\end{equation}
+where
+\begin{gather}
+A=\left[
+\begin{array}{cccccc}
+2(1-\gamma^{2}) &\gamma^{2} &0      &\dots  &\dots &0 \\
+\gamma^{2} &2(1-\gamma^{2}) &\gamma^{2} &\ddots  &     &\vdots \\
+0      &\gamma^{2} &2(1-\gamma^{2}) &\gamma^{2} &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &\gamma^{2} \\
+0      &\dots  &\dots  &0      &\gamma^{2} &2(1-\gamma^{2})
+\end{array}\right], \\
+{\bf w}^{(j)}=\left[
+\begin{array}{c}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N-1,j}
+\end{array}\right], \quad
+{\bf F}^{(j)}=\left[
+\begin{array}{c}
+\tau^2 F_{1,j} \\
+\tau^2 F_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+\tau^2 F_{N-1,j}
+\end{array}\right].
+\label{77}
+\end{gather}
+It is clear from Eq. (\ref{9}) that the $(j+1)$-st time step
+requires the values from the $j$-th and $(j-1)$-st time steps. For
+example, to compute $w_{k,2}$, we need values of $w_{k,0}$ and
+$w_{k,1}$ for $k=1, 2, \dots, N-1$. The values of $w_{k,0}$ are
+given by Eq. (\ref{8}), but values of $w_{k,1}$ must be obtained
+from the other initial condition (\ref{4}).
+
+The simplest way to approximate the initial
+condition (\ref{4}) is to replace $\pr u/\pr t$ by the
+forward-difference formula
+\[
+\frac{\pr u}{\pr
+t}(x_{k},0)=\frac{u(x_{k},t_{1})-u(x_{k},0)}{\tau}-
+\frac{\tau}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k}, \mu), \quad 0<\mu
+< \tau.
+\]
+It follows that
+\[
+u(x_{k},t_{1})=u(x_{k},0)+\tau \frac{\pr u}{\pr t}(x_{k},0)+
+\frac{\tau^{2}}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k}, \mu)=
+f(x_{k})+\tau g(x_{k})+ \frac{\tau^{2}}{2}\frac{\pr^{2} u}{\pr
+t^{2}}(x_{k}, \mu).
+\]
+Hence,
+\begin{equation}
+w_{k,1}=f(x_{k})+\tau g(x_{k}). \label{10}
+\end{equation}
+However, this equation has local truncation error of order
+$O(\tau)$. A better approximation to $u(x_{k},t_{1})$ can be
+obtained as follows. Expanding $u(x_{k},t_{1})$ in Taylor's series
+in $t$ at $(x_{k},0)$, we obtain
+\begin{equation}
+\frac{u(x_{k},t_{1})-u(x_{k},0)}{\tau}=\frac{\pr u}{\pr
+t}(x_{k},0)+ \frac{\tau}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k},0)+
+\frac{\tau^{2}}{6}\frac{\pr^{3} u}{\pr t^{3}}(x_{k}, \mu)
+\label{11}
+\end{equation}
+for some $\mu\in(0,t_{1})$. Suppose that the wave equation also
+holds on the initial line, i.e.
+\[
+\frac{\pr^{2} u}{\pr t^{2}}(x_{k},0) - \alpha^{2}\frac{\pr^{2}
+u}{\pr x^{2}}(x_{k},0)=0 \quad \hbox{for} \quad k=0,1, \dots, N.
+\]
+Then
+\[
+\frac{\pr^{2} u}{\pr t^{2}}(x_{k},0) = \alpha^{2}\frac{\pr^{2}
+u}{\pr x^{2}}(x_{k},0)+F((x_{k},0)=
+\alpha^{2}f^{\prime\prime}(x_{k})+F(x_{k},0).
+\]
+This equation and Eq. (\ref{11}) yield
+\[
+u(x_{k},t_{1})=f(x_{k})+\tau g(x_{k})+
+\frac{\tau^{2}}{2}\left[\alpha^{2}f^{\prime\prime}(x_{k})+F(x_{k},0)\right]+
+\frac{\tau^{3}}{6}\frac{\pr^{3} u}{\pr t^{3}}(x_{k}, \mu).
+\]
+Hence,
+\begin{equation}
+w_{k,1}=f(x_{k})+\tau g(x_{k})+
+\frac{\tau^{2}}{2}\left[\alpha^{2}f^{\prime\prime}(x_{k})+F(x_{k},0)\right].
+\label{12}
+\end{equation}
+This is an approximation with local truncation error $O(\tau^{2})$
+for each $k=1, 2, \dots, N-1$. If $f^{\prime\prime}(x_{k})$ is not
+readily available, we can use the central difference formula to
+approximate it.
+   
+The finite-difference method described
+above is explicit and has local truncation error
+$O(\tau^{2}+h^{2})$. Now we will investigate the stability of the
+method. To do this, we employ the Fourier method. Since the
+difference equation (\ref{5}) is linear, the perturbation $z_{kj}$
+satisfies the equation
+\[
+\frac{z_{k,j+1}-2z_{kj}+z_{k,j-1}}{\tau^{2}}-\alpha^{2}
+\frac{z_{k+1, j}-2z_{kj}-z_{k-1,j}}{h^{2}}=0, 
+\]
+for $k=1,2, \dots,N-1, j=1,2, \dots$,
+which is a homogeneous version of Eq. (\ref{5}). Substituting
+$z_{k,j}=\rho_{q}^{j}e^{iqx_{k}}$ into this equation, we obtain
+\[
+e^{iqx_{k}}\left(\rho_{q}^{j+1}-2\rho_{q}^{j}+\rho_{q}^{j-1}\right)-
+\gamma^{2}\rho_{q}^{j}
+\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)=0
+\]
+or
+\begin{multline*}
+\rho_{q}^{2}-2\rho_{q}\left[1+
+\frac{\gamma^{2}}{2}\left(e^{iqh}-2+e^{-iqh}\right)\right]+1=0\\
+\Rightarrow \quad \rho_{q}^{2}-2\rho_{q}\left[1-
+2\gamma^{2}\sin^{2} \frac{qh}{2}\right]+1=0.
+\end{multline*}
+Thus, $\rho_{q}$ is a root of the quadratic equation
+\[
+\rho_{q}^{2}-2a\rho_{q}+1=0, \quad a\equiv 1- 2\gamma^{2}\sin^{2}
+\frac{qh}{2}.
+\]
+Its roots are $\rho^{\pm}_{q}=a\pm\sqrt{a^{2}-1}$, so that the
+product of the roots is equal to 1 ($\rho_{q}^{+}\rho_{q}^{-}=1$).
+It follows that the stability condition $\vert\rho_{q}\vert \leq
+1$ can be satisfied only if $\vert\rho_{q}^{+}\vert
+=\vert\rho_{q}^{-}\vert = 1$. This means that the roots must be
+complex conjugate. Hence, we must have
+\[
+a^{2}-1\leq 0 \quad \hbox{or} \quad \left\vert 1-
+2\gamma^{2}\sin^{2}\frac{qh}{2}\right\vert \leq 1  \quad
+\Rightarrow \quad -1\leq 1- 2\gamma^{2}\sin^{2}\frac{qh}{2}.
+\]
+The last inequality is satisfied for all $q$ if $\gamma\leq 1$. It
+can be shown that if $\gamma=1$, then for certain modes $q$ (e.g.
+for $q$ such that $qh=\pi$), the above quadratic equation has a
+double root $\rho_{q}$, which results in a week instability: in
+the limit $\tau\to 0$, their amplitudes grow linearly in $j$.
+Therefore, the stability condition is
+\[
+\gamma <1 \quad \hbox{or} \quad \alpha\tau < h.
+\]
+Thus, the above explicit finite-difference method is conditionally
+stable.
+
+
+   
+To obtain an {\it unconditionally} stable
+method, we consider the difference equation in which the second
+derivative with respect to $x$ is approximated by the central
+difference formula averaged over the three time steps: $j+1$, $j$
+and $j-1$.
+
+    Let
+\[
+\delta_{x}^2 w_{kj}=w_{k+1,j}-2w_{k,j}+w_{k-1,j}.
+\]
+Consider the difference equation
+\begin{equation}
+w_{k,j+1}-2w_{kj}+w_{k,j-1}-\gamma^{2} \left[\sigma \delta_{x}^2
+w_{k,j+1}+(1-2\sigma)\delta_{x}^2 w_{k,j} +\sigma \delta_{x}^2
+w_{k,j-1}\right]=\tau^2 F_{kj}, \label{15}
+\end{equation}
+where $\sigma$ is an arbitrary number such that $0\leq \sigma\leq
+1/2$. It can be shown that local truncation error of Eq.
+(\ref{15}) is $O(\tau^{2}+h^{2})$. Now we will try to choose
+$\sigma$ such that the implicit method given by Eq. (\ref{15}) is
+unconditionally stable.
+
+    We will investigate the stability of the
+method by the Fourier method. The perturbation
+$z_{kj}$ satisfies the equation
+\[
+z_{k,j+1}-2z_{kj}+z_{k,j-1}-\gamma^{2} \left[\sigma \delta_{x}^2
+z_{k,j+1}+(1-2\sigma)\delta_{x}^2 z_{k,j} +\sigma \delta_{x}^2
+z_{k,j-1}\right]=0, 
+\]
+for  $k=1,2, \dots, N-1, j=1,2, \dots$.
+This is the homogeneous version of Eq. (\ref{15}). Substituting
+$z_{k,j}=\rho_{q}^{j}e^{iqx_{k}}$ into this equation, we obtain
+\begin{multline*}
+e^{iqx_{k}}\left(\rho_{q}^{j+1}-2\rho_{q}^{j}+\rho_{q}^{j-1}\right)\\-
+\gamma^{2}\left[\sigma\rho_{q}^{j+1}+(1-2\sigma)\rho_{q}^{j}+\sigma\rho_{q}^{j-1}\right]
+\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)=0
+\end{multline*}
+or
+\[
+\left(\rho_{q}^{2}-2\rho_{q}+1\right)+
+4\gamma^{2}\sin^{2}\frac{qh}{2}\left[\sigma\rho_{q}^{2}+(1-2\sigma)\rho_{q}+\sigma\right]=0.
+\]
+Hence, $\rho_{q}$ satisfies the quadratic equation
+\begin{equation}
+\rho_{q}^{2}-2a\rho_{q}+1=0, \label{16}
+\end{equation}
+where
+\[
+a\equiv
+\frac{1-2\gamma^{2}(1-2\sigma)\sin^{2}\frac{qh}{2}}{1+4\gamma^{2}\sigma\sin^{2}\frac{qh}{2}}.
+\]
+Again, the method can be stable only if Eq. (\ref{16}) has complex
+conjugate roots. This implies that
+\begin{multline*}
+a^{2}-1<0 \quad \Rightarrow \quad \left\vert
+\frac{1-2\gamma^{2}(1-2\sigma)\sin^{2}\frac{qh}{2}}{1+4\gamma^{2}\sigma\sin^{2}\frac{qh}{2}}
+\right\vert \leq 1 \\ 
+\Rightarrow \quad -1\leq
+\frac{1-2\gamma^{2}(1-2\sigma)\sin^{2}\frac{qh}{2}}{1+4\gamma^{2}\sigma\sin^{2}\frac{qh}{2}}.
+\end{multline*}
+The last inequality is equivalent to
+\[
+2-2\gamma^{2}(1-2\sigma)\sin^{2}\frac{qh}{2}+4\gamma^{2}\sigma\sin^{2}\frac{qh}{2}\geq
+0
+\]
+or
+\[
+1-\gamma^{2}(1-4\sigma)\sin^{2}\frac{qh}{2}\geq 0.
+\]
+Evidently, if $\sigma \geq 1/4$, this inequality is satisfied for
+all $q$, irrespective of the value of $\gamma$. Thus, if
+$\sigma\in[1/4,1/2]$, then the above implicit method is
+unconditionally stable.
+
+
+
+\subsection{Hyperbolic systems of first-order
+partial differential equations}
+
+\vskip 0.3cm
+ 
+Since the equations of physics (e.g., fluid mechanics) are
+based upon conservation laws, it convenient to use a form of the equations,
+called the {\it divergence form} (or {\it flux-conservative} form, or
+{\it conservation-law} form).
+A system of equations
+\begin{equation}
+{\bf U}_{t} + \left[{\bf F}({\bf U})\right]_{x} =0, \label{p1}
+\end{equation}
+where ${\bf U}(x,t)$ is a vector function with $n$ components and ${\bf F}$ is a
+(in general, nonlinear) vector function (with $n$ components) of the vector
+${\bf U}$, is called a system of conservation laws.
+
+\vskip 0.3cm
+ 
+The wave equation
+\begin{equation}
+\frac{\pr^{2} u}{\pr t^{2}}(x,t) - \alpha^{2}\frac{\pr^{2} u}{\pr x^{2}}(x,t)=0  \label{p2}
+\end{equation}
+can be easily written in the conservative form (\ref{p1}). Indeed, if
+\[
+r=\alpha u_{x} \quad {\rm and} \quad s=u_{t},
+\]
+then Eq. (\ref{p2}) is equivalent to the system:
+\begin{equation}
+\frac{\pr}{\pr t}
+\left(
+\begin{array}{c}
+r \\
+s
+\end{array}
+\right) +
+\frac{\pr}{\pr x}
+\left(
+\begin{array}{c}
+-\alpha s \\
+-\alpha r
+\end{array}
+\right)=0, \label{p3}
+\end{equation}
+which has the form of Eq. (\ref{p1}).
+
+\vskip 0.3cm
+ 
+In what follows we will discuss only the pure initial value problem
+(putting aside problems with boundary conditions).
+
+ 
+ 
+{\bf Methods with error $O(\tau +h^2)$.} First we consider the simplest case of Eq. (\ref{p1}) when ${\bf U}$ has only
+one component. Namely, we start with the scalar equation
+\begin{equation}
+u_{t} + \alpha u_{x} =0, \label{p4}
+\end{equation}
+where $\alpha$ is a constant. Use the forward-difference formula
+for $u_{t}$ and the central difference formula for $u_{x}$, we obtain
+the following finite-difference approximation of Eq. (\ref{p4}):
+\begin{equation}
+\frac{w_{k,j+1}-w_{k,j}}{\tau} + \alpha \frac{w_{k+1,j}-w_{k-1,j}}{2h} =0, \label{p5}
+\end{equation}
+where $w_{k,j}$ denotes the discrete approximation to $u(x_{k},t_{j})$, $\tau$ and $h$
+are the step sizes in $t$ and $x$, respectively. Equation (\ref{p5})
+represent an explicit method whose local truncation error is $O(\tau+h^2)$.
+
+ 
+ 
+To find out whether this method is stable, we use the Fourier method. The error
+(perturbation) $z_{k,j}$ satisfies the same equation as Eq. (\ref{p5}). And we look
+for a solution in the form $z_{k,j}=\rho^{j}_{q}e^{iqx_{k}}$ where $q\in{\mathbb R}$.
+Substitution of $z_{k,j}$ in Eq. (\ref{p5}) yields
+\[
+\rho_{q}-1+\frac{\gamma}{2}\left(e^{iqh}-e^{-iqh}\right)=0
+\]
+or
+\[
+\rho_{q}=1-i\gamma\sin(qh),
+\]
+where $\gamma=\alpha\tau/h$. Evidently,
+\[
+\vert\rho_{q}\vert^2=1+\gamma^2\sin^2(qh) >1 .
+\]
+for all $q$ for which $\sin(qh)\neq 0$. Therefore,
+the method is unconditionally unstable.
+
+
+
+   
+It turns out that a stable method can be obtained simply by replacing $u_{k,j}$ in the forward-difference formula for
+the time derivative
+\[
+u_{t}\approx \frac{u_{k,j+1}-u_{k,j}}{\tau}
+\]
+by its average
+\[
+\frac{1}{2}\left(u_{k+1,j}+u_{k-1,j}\right).
+\]
+This transforms Eq. (\ref{p5}) to
+\[
+\frac{1}{\tau}\left(w_{k,j+1}-\frac{1}{2}[w_{k+1,j}+w_{k-1,j}]\right) + \alpha \frac{w_{k+1,j}-w_{k-1,j}}{2h} =0,
+\]
+or, equivalently,
+\begin{equation}
+w_{k,j+1}=\frac{1}{2}[w_{k+1,j}+w_{k-1,j}] - \frac{\gamma}{2}\left[w_{k+1,j}-w_{k-1,j}\right] . \label{p6}
+\end{equation}
+Equation (\ref{p6}) is called the {\it Lax} scheme.
+Let us now investigate its stability. Substitution of $z_{k,j}=\rho^{j}_{q}e^{iqx_{k}}$ leads to
+\[
+\rho_{q}=\frac{1}{2}\left(e^{iqh}+e^{-iqh}\right)
+-\frac{\gamma}{2}\left(e^{iqh}-e^{-iqh}\right) \quad \Rightarrow \quad
+\rho_{q}=\cos(qh)-i\gamma\sin(qh).
+\]
+If follows that
+\[
+\vert\rho_{q}\vert^2=\cos^2(qh)+\gamma^2\sin^2(qh) \quad \Leftrightarrow \quad
+\vert\rho_{q}\vert^2=1+(\gamma^2-1)\sin^2(qh).
+\]
+The stability condition $\vert \rho_{q}\vert\leq 1$ leads to the requirement
+\begin{equation}
+\gamma \leq 1 \quad {\rm or} \quad \tau \leq \frac{h}{\alpha}. \label{p7}
+\end{equation}
+This inequality is called the {\it Courant} stability criterion. The surprising result that the above simple modification
+can stabilize an unconditionally stable method can be explained as follows. First, we can rewrite
+Eq. (\ref{p6}) as
+\begin{equation}
+\frac{w_{k,j+1}-w_{k,j}}{\tau}+
+ \alpha\frac{w_{k+1,j}-w_{k-1,j}}{2h}= \frac{h^2}{2\tau}\frac{w_{k+1,j}-2w_{k,j}+w_{k-1,j}}{h^2}. \label{p8}
+\end{equation}
+If the term on the right side of this equation was zero, we would have the unconditionally unstable
+method (\ref{p5}). For small $\tau$ and $h$ the difference equation (\ref{p8}) approximates
+the equation
+\begin{equation}
+u_{t}+\alpha u_{x}=\frac{h^2}{2\tau}u_{xx}. \label{p9}
+\end{equation}
+Thus, effectively we have added a diffusion (or dissipation) term
+to the equation, and this made the new method stable. The Lax scheme is said to have
+{\it numerical dissipation} or {\it numerical viscosity}.
+
+ 
+ 
+When we have a system of equations rather than a scalar equation, the stability analysis becomes
+slightly more complicated. As an example, consider the wave equation written in the form  (\ref{p3}).
+The Lax scheme for Eq. (\ref{p3}) is
+\begin{eqnarray}
+&&r_{k,j+1}=\frac{1}{2}[r_{k+1,j}+r_{k-1,j}] + \frac{\gamma}{2}\left[s_{k+1,j}-s_{k-1,j}\right], \nonumber \\
+&&s_{k,j+1}=\frac{1}{2}[s_{k+1,j}+s_{k-1,j}] +
+\frac{\gamma}{2}\left[r_{k+1,j}-r_{k-1,j}\right], \label{p10}
+\end{eqnarray}
+where $r_{kj}$ and $s_{kj}$ denote approximations to $r(x_{k},t_{j})$ and $s(x_{k},t_{j})$, respectively.
+To investigate the stability of (\ref{p10}), we assume that
+\begin{equation}
+\left(
+\begin{array}{c}
+r_{kj} \\
+s_{kj}
+\end{array}
+\right)=\rho_{q}^{j}e^{iqx_{k}}
+\left(
+\begin{array}{c}
+r^{(0)} \\
+s^{(0)}
+\end{array}
+\right), \label{p11}
+\end{equation}
+where $r^{(0)}$ and $s^{(0)}$ are constants.
+Substituting this in Eq. (\ref{p10}), we obtain
+\begin{equation}
+\left(
+\begin{array}{cc}
+\cos(qh)-\rho_{q} &i\gamma\sin(qh) \\
+i\gamma\sin(qh)   &\cos(qh)-\rho_{q}
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+r^{(0)} \\
+s^{(0)}
+\end{array}
+\right)=0. \nonumber
+\end{equation}
+This system has a nonzero solution only if the determinant of the matrix on the left side
+is zero. This gives us
+\[
+(\cos(qh)-\rho_{q})^2+\gamma^2\sin^2(qh)=0 \quad \Rightarrow \quad
+\rho_{q}=\cos(qh)\pm i\gamma\sin(qh).
+\]
+The stability condition is that both roots satisfy the inequality $\vert\rho_{q}\vert\leq 1$, which again
+leads us to the Courant condition (\ref{p7}).
+
+
+ 
+ 
+For the system of conservation laws (\ref{p1}), the Lax
+method is given by
+\begin{equation}
+{\bf U}_{k,j+1}=\frac{1}{2}\left({\bf U}_{k+1,j}+{\bf U}_{k-1,j}\right) -\frac{\tau}{2h}
+\left[{\bf F}({\bf U}_{k+1,j})-{\bf F}({\bf U}_{k-1,j})\right]. \label{ppp1}
+\end{equation}
+Here ${\bf U}_{k,j}\approx {\bf U}(x_{k},t_{j})$.
+
+
+
+ 
+ 
+\textbf{Methods with error $O(\tau^2 +h^2$).} All the schemes
+discussed above have local truncation error $O(\tau+h^2)$. It is
+desirable to have a method whose truncation error is quadratic both
+in space and time. We will discuss two such methods. First of them
+is called the `leapfrog' method in which we use the
+central-difference formula for derivatives in both $x$ and $t$. For
+Eq. (\ref{p4}), this method is given by
+\begin{equation}
+\frac{w_{k,j+1}-w_{k,j-1}}{2\tau} + \alpha\frac{w_{k+1,j}-w_{k-1,j}}{2h}=0 . \label{p12}
+\end{equation}
+The standard stability analysis yields the following equation for $\rho_{q}$:
+\[
+\rho^2_{q}+2i\gamma\sin(qh)\rho_{q}-1=0.
+\]
+It follows that
+\[
+\rho_{q}=-i\gamma\sin(qh)\pm\sqrt{1-\gamma^2\sin^2(qh)}.
+\]
+If the Courant condition (\ref{p7}) is satisfied, i.e. $\gamma\leq 1$, then
+$\vert \rho_{q}\vert=1$, and the method is stable. If $\gamma > 1$, then
+for $q$ such that $\sin(qh)=1$, we have
+\[
+\rho_{q}=-i\gamma\pm i \sqrt{\gamma^2-1}.
+\]
+For the second root (with `minus' sign), we obtain
+\[
+\vert\rho_{q}\vert=\gamma+\sqrt{\gamma^2-1} > 1.
+\]
+Therefore, the Courant condition is the necessary and sufficient condition for stability of the
+`leapfrog' method.
+
+
+ 
+ 
+For the system of conservation laws (\ref{p1}), the `leapfrog' method is given by
+\begin{equation}
+\frac{{\bf U}_{k,j+1}-{\bf U}_{k,j-1}}{2\tau} +
+\frac{{\bf F}({\bf U}_{k+1,j})-{\bf F}({\bf U}_{k-1,j})}{2h} =0. \label{p13}
+\end{equation}
+Here ${\bf U}_{k,j}\approx {\bf U}(x_{k},t_{j})$.
+Note that in order to use Eq. (\ref{p12}) or Eq. (\ref{p13}), one needs to know
+$w_{k,0}$ and $w_{k,1}$ (or ${\bf U}_{k,0}$ and ${\bf U}_{k,1}$).
+
+ 
+ 
+The other method is called the two-step Lax-Wendroff scheme. First, we compute
+intermediate values $w_{k+\frac{1}{2},j+\frac{1}{2}}$ at the half timesteps
+$t_{j+\frac{1}{2}}$ and the half mesh point $x_{k+\frac{1}{2}}$ using the Lax method:
+\begin{equation}
+w_{k+\frac{1}{2},j+\frac{1}{2}}=\frac{1}{2}\left[w_{k+1,j}+w_{k,j}\right] -
+\frac{\gamma}{2}\left[w_{k+1,j}-w_{k,j}\right]. \label{p14}
+\end{equation}
+Then, we compute the updated values using the equation:
+\begin{equation}
+w_{k,j+1}=w_{k,j}-
+\gamma\left[w_{k+\frac{1}{2},j+\frac{1}{2}}-w_{k-\frac{1}{2},j+\frac{1}{2}}\right]. \label{p15}
+\end{equation}
+Substituting (\ref{p14}) in (\ref{p15}), we can rewrite the method in the form:
+\[\begin{split}
+w_{k,j+1}=w_{k,j}-
+\gamma&\left[
+\frac{1}{2}  \left(w_{k+1,j}+w_{k,j}\right)-
+\frac{\gamma}{2}\left(w_{k+1,j}-w_{k,j}\right)
+\right.\\
+&\left.-\frac{1}{2}\left(w_{k,j}+w_{k-1,j}\right)+
+\frac{\gamma}{2}\left(w_{k,j}-w_{k-1,j}\right)\right].
+\end{split}\]
+or, equivalently,
+\begin{equation}
+w_{k,j+1}=w_{k,j}-
+\gamma\left[\frac{1}{2}\left(w_{k+1,j}-w_{k-1,j}\right)-
+\frac{\gamma}{2}\left(w_{k+1,j}-2w_{k,j}+w_{k-1,j}\right)\right]. \label{p16}
+\end{equation}
+One can show that the local truncation error of Eq. (\ref{p16}) is $O(\tau^2+h^2)$ (prove it!). The stability
+analysis leads to
+\[
+\rho_{q}=1-i\gamma\sin(qh)-\gamma^2[1-\cos(qh)].
+\]
+It follows that
+\[
+\vert\rho_{q}\vert^2=1-\gamma^2(1-\gamma^2)[1-\cos(qh)]^2.
+\]
+Again, the stability condition is satisfied provided that $\gamma\leq 1$, i.e.
+if the Courant condition (\ref{p7}) holds.
+
+ 
+ 
+For the system of conservation laws (\ref{p1}), the Lax-Wendroff scheme has the form
+\begin{eqnarray}
+&&{\bf U}_{k+\frac{1}{2},j+\frac{1}{2}}=\frac{1}{2}\left[{\bf U}_{k+1,j}+{\bf U}_{k,j}\right] -
+\frac{\tau}{2h}\left[{\bf F}({\bf U}_{k+1,j})-{\bf F}({\bf U}_{k,j})\right], \nonumber \\
+&&{\bf U}_{k,j+1}={\bf U}_{k,j}-
+\frac{\tau}{h}\left[{\bf F}({\bf U}_{k+\frac{1}{2},j+\frac{1}{2}})-
+{\bf F}({\bf U}_{k-\frac{1}{2},j+\frac{1}{2}})\right]. \label{p17}
+\end{eqnarray}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\setcounter{equation}{0}
+\renewcommand{\theequation}{A.\arabic{equation}}
+
+\section{Appendix A}
+
+ 
+We want to show that if $u\in C^{4}(D)$ (where $D=\{(x,y)\, \vert \ 0<x<1, \ 0<y<1 \, \}$)
+is the exact solution of the boundary-value
+problem (\ref{gg1}), (\ref{gg2}) and $w_{ij}$ ($i,j=1,2, \dots,N-1$) satisfy Eq. (\ref{gg5}), then
+\[
+\left\vert w_{ij}-u(x_{i}, y_{j})\right\vert \leq Ah^{2},
+\]
+where $A$ is independent of $h$.
+
+\vskip 0.3cm
+ 
+{\bf Solution.} To solve this problem, we need first to prove 2 auxiliary propositions.
+
+\vskip 0.3cm
+ 
+{\bf Proposition 1.} {\it Let $v_{ij}$ for $i,j=0,1\dots, N$ be a set of real numbers satisfying
+the inequality}
+\begin{equation}
+v_{i+1,j}+v_{i-1,j}+v_{i,j+1}+v_{i,j-1}-4v_{i,j}\geq 0, \label{21}
+\end{equation}
+for all
+$i,j=1,2,\dots,N-1$ {\it (i.e at all internal mesh points). Then
+the maximum of $v_{ij}$ is attained at least at one of the boundary points.}
+
+ 
+ 
+{\bf Proof.} Assume that the above statement is not true, i.e. that the maximum is attained at
+an internal point (there may be several such points). Let $(m,n)$ be a point at which the maximum is attained and
+which corresponds to the maximum value of $m$, i.e.
+\[
+v_{m,n}=\max_{0\leq i,j\leq N}v_{ij} \quad \hbox{and} \quad
+v_{m,n}>v_{m+1,n}.
+\]
+Then,
+\begin{equation}
+v_{m+1,n}-v_{m,n}+(v_{m-1,n}-v_{m,n})+(v_{m,n+1}-v_{m,n})
++(v_{m,n-1}-v_{m,n})\leq v_{m+1,n}-v_{m,n}<0. \label{22}
+\end{equation}
+Evidently, (\ref{22}) is in contradiction with (\ref{21}). Thus, our assumption is wrong, which proves
+the proposition.
+
+ 
+ 
+{\bf Proposition 2.} {\it Let $v_{ij}$ for $i,j=0,1\dots, N$ be a set of real numbers satisfying
+the inequality}
+\begin{equation}
+v_{i+1,j}+v_{i-1,j}+v_{i,j+1}+v_{i,j-1}-4v_{i,j}\leq 0, \label{23}
+\end{equation}
+for all
+$i,j=1,2,\dots,N-1$ {\it (i.e at all internal mesh points). Then
+the minimum of $v_{ij}$ is attained at least at one of the boundary points.}
+
+    {\bf Proof.} Assume that the above
+statement is not true, i.e. that the minimum is attained at an
+internal point (there may be several such points). Let $(m,n)$ be
+a point at which the minimum is attained and which corresponds to
+the minimum value of $m$, i.e.
+\[
+v_{m,n}=\min_{0\leq i,j\leq N}v_{ij} \quad \hbox{and} \quad
+v_{m,n}<v_{m-1,n}.
+\]
+Then we have
+\begin{equation}
+v_{m+1,n}-v_{m,n}+(v_{m-1,n}-v_{m,n})+(v_{m,n+1}-v_{m,n})
++(v_{m,n-1}-v_{m,n})\geq v_{m-1,n}-v_{m,n}>0. \label{24}
+\end{equation}
+Evidently, (\ref{24}) contradicts inequality (\ref{23}). So, our assumption is wrong, which proves
+the proposition.
+
+ 
+ 
+Now we are ready to prove the original statement. If $z_{ij}=w_{ij}-u_{ij}$, then, it follows from Eq. (\ref{g5}) that
+\[
+z_{i+1,j}+z_{i-1,j}+z_{i,j+1}+z_{i,j-1}-4z_{i,j}=h^{2}f(x_{j},y_{j})
+-u_{i+1,j}-u_{i-1,j}-u_{i,j+1}-u_{i,j-1}+4u_{i,j},
+\]
+where $u_{ij}\equiv u(x_{i}, y_{j})$. Comparing the right hand side of this equation
+with the definition of local truncation error $\tau_{ij}(h)$, we find that
+\begin{equation}
+z_{i+1,j}+z_{i-1,j}+z_{i,j+1}+z_{i,j-1}-4z_{i,j}=-h^{2}\tau_{ij}(h). \label{29}
+\end{equation}
+Let $R={\rm diam}\, {\cal D}/2=\sqrt{2}/2$. We define the auxiliary function $Q(x, y)$ by the formula
+\[
+Q(x, y)=\frac{1}{4}\left[R^{2}-\left(x-\frac{1}{2}\right)^{2}
+-\left(y-\frac{1}{2}\right)^{2}\right]E,
+\]
+where
+\[
+E\equiv \max_{1\leq i,j\leq N-1}\vert\tau_{ij}(h)\vert
+\]
+is the maximum truncation error. $Q$ is a quadratic polynomial in $x$ and $y$, and therefore
+\begin{equation}
+Q_{i+1,j}+Q_{i-1,j}+Q_{i,j+1}+Q_{i,j-1}-4Q_{i,j}=
+h^{2}\left(\frac{\pr^{2}Q}{\pr x^{2}}+\frac{\pr^{2}Q}{\pr x^{2}}\right)\Biggm\vert_{x=x_{i}, y=y_{j}}=
+-h^{2}E, \label{30}
+\end{equation}
+where $Q_{ij}\equiv Q(x_{i}, y_{j})$.
+
+ 
+ 
+Let $v_{ij}=z_{ij}-Q_{ij}$. Then, according to (\ref{29}) and (\ref{30})
+\[
+v_{i+1,j}+v_{i-1,j}+v_{i,j+1}+v_{i,j-1}-4v_{i,j}=h^{2}(E-\tau_{ij})\geq 0. \label{31}
+\]
+By Proposition 1, maximum of $v_{ij}$ is attained on the boundary. But on the boundary, we have
+\[
+v_{ij}=z_{ij}-Q_{ij}=-Q_{ij}\leq 0.
+\]
+Thus,
+\[
+z_{ij}\leq Q_{ij} \quad \hbox{for} \quad i,j=0,1,\dots, N.
+\]
+
+
+ 
+ 
+Similarly, if $v_{ij}=z_{ij}+Q_{ij}$, then, according to (\ref{29}) and (\ref{30})
+\[
+v_{i+1,j}+v_{i-1,j}+v_{i,j+1}+v_{i,j-1}-4v_{i,j}=h^{2}(-E-\tau_{ij})\leq 0.
+\]
+By Proposition 2, minimum of $v_{ij}$ is attained on the boundary. But on the boundary, we have
+\[
+v_{ij}=z_{ij}+Q_{ij}=Q_{ij}\geq 0.
+\]
+Hence,
+\[
+-Q_{ij}\leq z_{ij} \quad \hbox{for} \quad i,j=0,1,\dots, N.
+\]
+Thus,
+\[
+-Q_{ij}\leq z_{ij}\leq Q_{ij} \quad \Rightarrow \quad \vert z_{ij}\vert \leq \vert Q_{ij}\vert
+\quad \Rightarrow \quad \max_{0\leq i,j\leq N}\vert z_{ij}\vert \leq
+\max_{0\leq i,j\leq N}\vert Q_{ij}\vert=\frac{R^{2}}{4}E
+\]
+It can be shown that
+\[
+\tau_{ij}(h)=\frac{h^{2}}{24}\left[\frac{\pr^{4} u}{\pr x^{4}}(\xi^{+}_{i},y_{j})+
+\frac{\pr^{4} u}{\pr x^{4}}(\xi^{-}_{i},y_{j})
++\frac{\pr^{4} u}{\pr y^{4}}(x_{i},\mu^{+}_{j})+
+\frac{\pr^{4} u}{\pr y^{4}}(x_{i},\mu^{-}_{j})\right].
+\]
+Let $M=\max\{M_{1}, M_{2}\}$ where
+\[
+M_{1}=\max_{(x,y)\in{\cal D}} \left\vert \frac{\pr^{4}u}{\pr x^{4}}\right\vert, \quad
+M_{2}=\max_{(x,y)\in{\cal D}} \left\vert \frac{\pr^{4}u}{\pr y^{4}}\right\vert.
+\]
+Then
+\[
+E=\max_{0\leq i,j\leq N}\vert \tau_{ij}(h)\vert\leq \frac{Mh^{2}}{6}.
+\]
+Finally, we obtain
+\[
+\max_{0\leq i,j\leq N}\vert z_{ij}\vert \leq \frac{R^{2}M}{24}h^{2}.
+\]
+
+
+
+
+
+

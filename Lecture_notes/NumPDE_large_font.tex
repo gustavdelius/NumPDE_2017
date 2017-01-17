@@ -1,0 +1,58 @@
+% Produces large-font version of lecture notes by typesetting it for a5 paper
+\documentclass[11pt, a5paper]{article}
+\textwidth 13cm
+\setlength{\oddsidemargin}{-15mm}
+\setlength{\evensidemargin}{-15mm}
+\textheight 19cm
+\setlength{\headheight}{-2\baselineskip}
+\setlength{\headsep}{-2\baselineskip}
+ 
+ 
+\input{frontmatter}
+
+\begin{document}
+
+{\Large
+\centerline{\bf Department of Mathematics -- University of York}
+\vskip 0.5cm
+
+\hrule \vspace*{10mm}
+
+
+\centerline{\bf Numerical Methods for PDEs}
+
+\medskip
+\centerline{\bf Lecture Notes
+\footnote{These lecture notes were written by Kostia Ilin and edited by
+Gustav Delius and Richard Southwell.}}
+\bigskip
+
+\centerline{\bf Spring 2017}
+}
+\vspace*{10mm}
+
+\hrule
+\vspace*{5mm}
+
+ 
+{\bf Module coordinators:} 
+
+Gustav Delius, Rooms G/110 and RCH/328, {\tt gustav.delius@york.ac.uk}
+
+Richard Southwell, Room RCH/333, {\tt richard.southwell@york.ac.uk}
+
+\tableofcontents
+
+\include{chapter1}
+
+\include{chapter2_1-2}
+\include{chapter2_3-4}
+\include{chapter2_5-7}
+\include{chapter2_8-9}
+
+
+\include{chapter3}
+
+\include{chapter4}
+
+\end{document}

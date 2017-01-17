@@ -1,0 +1,679 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Lecture notes for Numerical Methods for Partial Differential Equations
+%
+% Chapter 2: Parabolic PDEs
+%   Sections 8 and 9
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% !TeX root = NumPDE_Lecture_notes.tex
+
+\subsection{Nonlinear heat equation}
+
+Consider the nonlinear heat equation in the form
+\begin{equation}
+\frac{\pr u}{\pr t} =\frac{\pr }{\pr x}\left(K(x,t,u)
+\frac{\pr u}{\pr x}\right)+f(x,t,u),  \quad 0<x< L, \quad t>0, \label{e15}
+\end{equation}
+subject to the initial and boundary conditions
+\begin{eqnarray}
+&&u(x, 0) = u_{0}(x), \label{e16} \\
+&&u(0,t)=0, \quad u(L,t)=0.   \label{e17}
+\end{eqnarray}
+To develop a finite-difference approximation for (\ref{e15}), we need
+a finite-difference formula for
+\[
+\frac{d }{d x}\left(Q(x)
+\frac{d g}{\pr x}\right).
+\]
+Let
+\[
+x_{k\pm\frac{1}{2}}=x_{k}\pm \frac{h}{2} \quad {\rm and} \quad
+G(x)=Q(x)\frac{d g}{\pr x}.
+\]
+Then, on using central difference formula for derivative, we obtain
+\[\begin{split}
+\frac{dG}{dx}(x_{k})&=\frac{G(x_{k+\frac{1}{2}})-G(x_{k-\frac{1}{2}})}{h}+O(h^2)\\&=
+\frac{1}{h}\left(
+Q(x_{k+\frac{1}{2}})\frac{dg}{dx}(x_{k+\frac{1}{2}})
+-Q(x_{k-\frac{1}{2}})\frac{dg}{dx}(x_{k-\frac{1}{2}})\right)+O(h^2).
+\end{split}\]
+Applying central difference formulae $g^{\prime}(x_{k\pm\frac{1}{2}})$, we find that
+\[
+\frac{dg}{dx}(x_{k+\frac{1}{2}})=\frac{g(x_{k+1})-g(x_{k})}{h}+O(h^2), \quad
+\frac{dg}{dx}(x_{k-\frac{1}{2}})=\frac{g(x_{k})-g(x_{k-1})}{h}+O(h^2).
+\]
+It follows that
+\begin{equation}\begin{split}
+\frac{d }{d x}\left(Q(x)
+\frac{d g}{\pr x}\right)\biggm\vert_{x=x_{k}}=&\frac{1}{h^2}
+\left(Q(x_{k+\frac{1}{2}})\left[g(x_{k+1})-g(x_{k})\right]\right.\\&-
+\left.Q(x_{k-\frac{1}{2}})\left[g(x_{k})-g(x_{k-1})\right]\right) +O(h).\label{e18}
+\end{split}\end{equation}
+In fact, the error of formula (\ref{e18}) is $O(h^2)$ rather than $O(h)$. This can be verified
+by expanding all functions in (\ref{e18}) in Taylor's series at point $x_{k}$.
+
+\vskip 3mm
+ 
+Note that within the error of $O(h^2)$ the quantities
+$Q(x_{k\pm\frac{1}{2}})$ in Eq. (\ref{e18}) can be replaced by
+\[
+\frac{1}{2}\left[Q(x_{k})+Q(x_{k\pm 1})\right].
+\]
+With the help of the forward difference formula for $u_{t}$ and Eq. (\ref{e18}), we construct the following
+finite-difference approximation for Eq. (\ref{e15}):
+\begin{multline}
+\frac{w_{k,j+1}-w_{kj}}{\tau}-
+\frac{1}{h^2}
+\left(\varkappa_{k+\frac{1}{2},j}\left[w_{k+1,j}-w_{k,j}\right]-
+\varkappa_{k-\frac{1}{2},j}\left[w_{k,j}-w_{k-1,j}\right]\right)\\=
+f(x_{k},t_{j},w_{kj}),\label{e19}
+\end{multline}
+where
+\[
+\varkappa_{k\pm\frac{1}{2},j}\equiv \frac{1}{2}\left[K(x_{k},t_{j},w_{kj})+
+K(x_{k\pm 1},t_{j},w_{k\pm 1,j})\right].
+\]
+The local truncation error of the difference equation (\ref{e19})
+is $O(\tau+h^2)$. The difference method (\ref{e19}) is explicit.
+As we already know, explicit methods for linear problems are only
+conditionally stable. In nonlinear problem, {\it stability depends
+not only on the form of the finite difference equations but also generally
+upon the solution being obtained}, i.e.
+equation may be stable for some values of $t$ and not for others. This fact
+leads to a strong restriction on the step size in time which, in turn, makes
+the method inefficient.
+
+\vskip 3mm
+ 
+As was previously observed, implicit
+methods for linear problems have certain stability advantages. It is therefore
+natural to turn to implicit methods in seeking to avoid the restrictions
+on the time step. We will discuss only the method which is obtained from
+(\ref{e19}) by replacing the forward-difference formula for $u_t$
+with the backward-difference formula. This yields the implicit formula:
+\begin{multline}
+\frac{w_{k,j}-w_{k,j-1}}{\tau}-
+\frac{1}{h^2}
+\left(\varkappa_{k+\frac{1}{2},j}\left[w_{k+1,j}-w_{k,j}\right]-
+\varkappa_{k-\frac{1}{2},j}\left[w_{k,j}-w_{k-1,j}\right]\right)
+\\=f(x_{k},t_{j},w_{kj}),\label{e20}
+\end{multline}
+whose local truncation error is $O(\tau+h^2)$.
+We can write it in the vector form as
+\begin{equation}
+A\left({\bf w}_{j}\right){\bf w}_{j}={\bf w}_{j-1}+\tau {\bf F}_{j} \quad \hbox{for} \quad j=1,2,\dots, \label{e21}
+\end{equation}
+where
+\[
+{\bf w}_{j}=\left[
+\begin{array}{c}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N-1,j}
+\end{array}\right], \quad
+{\bf F}_{j}=
+\left[
+\begin{array}{c}
+f(x_{1},t_{j},w_{1,j}) \\
+f(x_{2},t_{j},w_{2,j}) \\
+\vdots \\
+\vdots \\
+\vdots \\
+f(x_{N-1},t_{j},w_{N-1,j})
+\end{array}\right]
+\]
+and
+\begin{eqnarray}
+&&A=\left[
+\begin{array}{cccccc}
+a_{1} & b_{1} &0      &\dots  &\dots &0 \\
+b_{1} &a_{2} &b_{2} &\ddots  &     &\vdots \\
+0      &b_{2} &a_{3} &b_{3} &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &b_{N-2} \\
+0      &\dots  &\dots  &0      &b_{N-2} &a_{N-1}
+\end{array}\right] \nonumber \\
+&&a_{k}=1+\frac{\tau}{h^2}(\varkappa_{k+\frac{1}{2},j}+\varkappa_{k-\frac{1}{2},j}), \quad
+b_{k}=-\frac{\tau}{h^2}\varkappa_{k+\frac{1}{2},j}.
+\nonumber
+\end{eqnarray}
+Equations (\ref{e20}) and (\ref{e21}) represent
+the system of nonlinear algebraic equations which is difficult to solve.
+We can simplify Eq. (\ref{e21}) by replacing $\varkappa_{k\pm \frac{1}{2},j}$ with
+$\varkappa_{k\pm \frac{1}{2},j-1}$ and $f(x_{k},t_{j},w_{kj})$ with
+$f(x_{k},t_{j-1},w_{k,j-1})$. This results in the formula
+\[
+A\left({\bf w}_{j-1}\right){\bf w}_{j}={\bf w}_{j-1}+\tau {\bf F}_{j-1} \quad \hbox{for} \quad j=1,2,\dots,
+\]
+or, equivalently,
+\begin{multline}
+\frac{w_{k,j}-w_{k,j-1}}{\tau}- \frac{1}{h^2}
+\left(\varkappa_{k+\frac{1}{2},j-1}\left[w_{k+1,j}-w_{k,j}\right]-
+\varkappa_{k-\frac{1}{2},j-1}\left[w_{k,j}-w_{k-1,j}\right]\right)
+\\=f(x_{k},t_{j-1},w_{k,j-1}).\label{ee21}
+\end{multline}
+Equations (\ref{ee21}) are linear in $w_{k-1,j}$, $w_{k,j}$ and $w_{k+1,j}$
+and can be solved by the double-sweep method. The local truncation error
+of Eq. (\ref{ee21}) is $O(\tau+h^2)$. However, practical computations show that the
+real accuracy of numerical solutions obtained using Eq. (\ref{ee21}) is
+considerably lower that the accuracy achieved by using
+the iterative methods of solving the nonlinear equations (\ref{e20}).
+We will describe two iterative methods.
+
+  
+ 
+The first is called the \textbf{method of successive approximations}. In this method,
+we compute a sequence of numbers $w_{kj}^{(s)}$ ($s=0,1,\dots$) at each time step.
+As an initial approximation, we take the solution at the previous time step:
+\[
+w_{kj}^{(0)}=w_{k,j-1}.
+\]
+Then, successive approximations are computed using the formula
+\begin{multline}
+w_{k,j}^{(s)}-
+\frac{\tau}{h^2}
+\left(\varkappa_{k+\frac{1}{2},j}^{(s-1)}\left[w_{k+1,j}^{(s)}-w_{k,j}^{(s)}\right]-
+\varkappa_{k-\frac{1}{2},j}^{(s-1)}\left[w_{k,j}^{(s)}-w_{k-1,j}^{(s)}\right]\right)
+\\=w_{k,j-1}+\tau f(x_{k},t_{j},w_{kj}^{(s-1)}), \label{e22}
+\end{multline}
+or, in vector form,
+\[
+{\bf w}_{j}^{(0)}={\bf w}_{j-1}, \quad
+A\left({\bf w}_{j}^{(s-1)}\right){\bf w}_{j}^{(s)}={\bf w}_{j-1}+\tau {\bf F}_{j}^{(s-1)}
+\]
+for $s=1,2,\dots$
+If we perform only one iteration, this method is equivalent to the
+`linear' method (\ref{ee21}). If successive approximations converge
+to the solution $w_{k,j}$ of the nonlinear system (\ref{e20}) (note that it may diverge),
+then the convergence is linear, i.e.
+\[
+\Vert {\bf w}_{j}^{(s)}-{\bf w}_{j}\Vert=O\left(\Vert {\bf w}_{j}^{(s-1)}-{\bf w}_{j}\Vert
+\right) \quad {\rm as} \quad s\to\infty.
+\]
+Here ${\bf w}_{j}^{(s)}=(w_{1,j}^{(s)},w_{2,j}^{(s)},\dots ,w_{N-1,j}^{(s)})$ and
+${\bf w}_{j}=(w_{1,j},w_{2,j},\dots ,w_{N-1,j})$ are $N-1$-dimensional vectors,
+$\Vert \cdot \Vert$ is any vector norm and ${\bf w}_{j}$ represents the exact solution
+of the nonlinear system (\ref{e20}).
+
+  
+ 
+The other method is the {\bf Newton method}. Suppose that
+we have  a system of nonlinear equations
+\begin{equation}
+\Phi_{i}(x_{1}, x_{2},\dots,x_{n})=0, \quad i=1,2,\dots, n,\label{e23}
+\end{equation}
+for $n$ unknowns $x_{1}, x_{2},\dots,x_{n}$. In the Newton method, we compute a sequence
+of approximations ${\bf x}^{(s)}$ ($s=0,1,2,\dots$) to the solution
+${\bf x}^{(s)}=(x_{1}, x_{2},\dots,x_{n})$ of equations (\ref{e23}) using the formula
+\begin{equation}
+{\bf x}^{(s)}={\bf x}^{(s-1)}+{\bf r}^{(s)},\label{e24}
+\end{equation}
+where ${\bf r}^{(s)}$ is the solution of the linear system
+\begin{equation}
+J\left({\bf x}^{(s-1)}\right){\bf r}^{(s)}=-{\boldsymbol{\Phi}}\left({\bf x}^{(s-1)}\right) \label{e25}
+\end{equation}
+with
+\begin{equation}
+J({\bf x})=\left(
+\begin{array}{cccc}
+\frac{\pr \Phi_{1}}{\pr x_{1}} &\frac{\pr \Phi_{1}}{\pr x_{2}} &\dots &\frac{\pr \Phi_{1}}{\pr x_{n}} \\
+\frac{\pr \Phi_{2}}{\pr x_{1}} &\frac{\pr \Phi_{2}}{\pr x_{2}} &\dots &\frac{\pr \Phi_{2}}{\pr x_{n}} \\
+\vdots &\vdots &   &\vdots \\
+\frac{\pr \Phi_{n}}{\pr x_{1}} &\frac{\pr \Phi_{n}}{\pr x_{2}} &\dots &\frac{\pr \Phi_{n}}{\pr x_{n}}
+\end{array}\right).  \label{e26}
+\end{equation}
+The sequence of approximations generated by the Newton method converges if
+the initial approximation ${\bf x}^{(0)}$ is sufficiently close to the solution, and
+the convergence is quadratic
+\[
+\Vert {\bf x}^{(s)}-{\bf x}\Vert=O\left(\Vert {\bf x}^{(s-1)}-{\bf x}\Vert^2
+\right) \quad {\rm as} \quad s\to\infty.
+\]
+Applying the Newton method to the nonlinear equations (\ref{e20}), we obtain
+the equations
+\begin{equation}
+w_{kj}^{(s)}=w_{kj}^{(s-1)}+r_{kj}^{(s)},\label{e27}
+\end{equation}
+where $r_{kj}^{(s)}$ is the solution of the linear system
+\begin{eqnarray}
+&&r_{k+1,j}^{(s)}\left[\varkappa_{k+\frac{1}{2},j}^{(s-1)}+
+\frac{\pr \varkappa_{k+\frac{1}{2},j}^{(s-1)}}{\pr w_{k+1,j}^{(s-1)}}
+\left(w_{k+1,j}^{(s-1)}-w_{k,j}^{(s-1)}\right)\right] \nonumber \\
+&&-r_{k,j}^{(s)}\Biggl[\frac{h^2}{\tau}+\varkappa_{k+\frac{1}{2},j}^{(s-1)}
++\varkappa_{k-\frac{1}{2},j}^{(s-1)}-
+\frac{\pr \varkappa_{k+\frac{1}{2},j}^{(s-1)}}{\pr w_{k,j}^{(s-1)}}
+\left(w_{k+1,j}^{(s-1)}-w_{k,j}^{(s-1)}\right)+  \nonumber \\
+&&+
+\frac{\pr \varkappa_{k-\frac{1}{2},j}^{(s-1)}}{\pr w_{k,j}^{(s-1)}}
+\left(w_{k,j}^{(s-1)}-w_{k-1,j}^{(s-1)}\right)
+-h^2\frac{\pr f(x_{k},t_{j},w^{(s-1)}_{kj})}{\pr w_{k,j}^{(s-1)}}
+\Biggr]+ \nonumber \\
+&&+
+r_{k-1,j}^{(s)}\left[\varkappa_{k-\frac{1}{2},j}^{(s-1)}+
+\frac{\pr \varkappa_{k-\frac{1}{2},j}^{(s-1)}}{\pr w_{k-1,j}^{(s-1)}}
+\left(w_{k,j}^{(s-1)}-w_{k-1,j}^{(s-1)}\right)\right]= \nonumber \\
+&&=
+\frac{h^2}{\tau}\left(w_{k,j}^{(s-1)}-w_{k,j-1}\right)-
+\varkappa_{k+\frac{1}{2},j}^{(s-1)}\left[w_{k+1,j}^{(s-1)}-w_{k,j}^{(s-1)}\right]+  \nonumber \\
+&&\quad\quad +
+\varkappa_{k-\frac{1}{2},j}^{(s-1)}\left[w_{k,j}^{(s-1)}-w_{k-1,j}^{(s-1)}\right]
+-h^2f(x_{k},t_{j},w_{kj}^{(s-1)}).\label{e28}
+\end{eqnarray}
+Equations (\ref{e28}) look very complicated, but can be solved by the double sweep method.
+In general, the method based on equations (\ref{e27})--(\ref{e28}) produces sequences
+that converge much faster than corresponding sequences for the method
+of successive approximations.
+
+
+  
+ 
+Note that if $K=const$ in Eq. (\ref{e15}), then Eq. (\ref{e28}) reduces to
+\begin{eqnarray}\label{e29}
+&&-\gamma r_{k-1,j}^{(s)}
+-\gamma r_{k+1,j}^{(s)}+\left(1+2\gamma - \tau \frac{\pr f(x_{k},t_{j},w_{kj}^{(s-1)})}{\pr w_{kj}^{(s-1)}}\right)r_{k,j}^{(s)}=  \\
+&&=-(1+2\gamma)w_{kj}^{(s-1)}+\gamma(w_{k+1,j}^{(s-1)}+w_{k-1,j}^{(s-1)})+\tau f(x_{k},t_{j},w_{kj}^{(s-1)})+w_{k,j-1}  \nonumber 
+\end{eqnarray}
+where $\gamma=K\tau/h^2$.
+
+
+
+\subsection{Two-dimensional heat equation.}
+
+Consider the two-dimensional heat equation
+\begin{equation}
+\frac{\partial u}{\partial t}=K\left(\frac{\partial^{2}u}{\partial
+x^{2}} +\frac{\partial^{2}u}{\partial y^{2}}\right)+f(x,y,t) \label{f1}
+\end{equation}
+to be solved for $0 < t < T$ and in a connected region ${\cal D}$ of
+the $(x, y)$ plane. Let $S$ be the boundary of ${\cal D}$. We
+suppose that
+\begin{equation}
+u(x, y, t) = g(x, y, t) \quad {\rm on} \quad S \label{f2}
+\end{equation}
+and
+\begin{equation}
+u(x, y, 0) = u_{0}(x, y), \label{f3}
+\end{equation}
+where $g(x, y, t)$ and $ u_{0}(x, y)$ are given functions.
+In what follows, ${\cal D}$ is the rectangle (the general domain
+will be treated later):
+\[
+{\cal D}=\{(x,y) \, \vert \, 0\leq x\leq L_{1}, \ 0\leq y\leq L_{2}  \, \}.
+\]
+We choose positive integers $N_{1}$, $N_{2}$ and
+$M$ and define the grid points
+\[
+(x_{k},y_{j},t_{n})=(kh_{1},jh_{2}, \tau n)
+\]
+for $k=0,1,\dots, N_{1}, \ \ j=0,1,\dots, N_{2}, \ \ n=0,1,\dots, M$,
+where
+\[
+h_{1}=\frac{L_{1}}{N_{1}}, \quad h_{2}=\frac{L_{2}}{N_{2}}, \quad
+\tau=\frac{T}{M}.
+\]
+Let $w_{kj}^{n}$ be the discrete approximation to
+$u_{kj}^n\equiv u(x_{k},y_{j},t_{n})$. Employing the central
+difference formula for $u_{xx}$ and $u_{yy}$
+and the two-point forward-difference formula for $u_tt$, we
+obtain the following difference equation
+\begin{equation}
+\frac{w_{kj}^{n+1}-w_{kj}^{n}}{\tau} -K\left(\frac{\delta_{x}^2}{h_{1}^2}
++\frac{\delta_{y}^2}{h_{2}^2}\right)w_{kj}^{n}=f_{kj}^n, \label{f4}
+\end{equation}
+where $f_{kj}^n\equiv f(x_{k},y_{j},t_{n})$ and
+\[
+\delta_{x}^2w_{kj}^{n}=w_{k+1,j}^{n}-2w_{kj}^{n}+w_{k-1,j}^{n}, \quad
+\delta_{y}^2w_{kj}^{n}=w_{k,j+1}^{n}-2w_{kj}^{n}+w_{k,j-1}^{n}.
+\]
+Equation (\ref{f4})
+is a straightforward generalisation of the explicit forward difference
+scheme for the one-dimensional heat equation. We will discuss only
+the case of homogeneous (zero) boundary conditions when function
+$g(x,y,t)$ in Eq. (\ref{f2}) is identically zero. (A problem with
+non-zero boundary conditions can be reduced to the problem with
+zero conditions in the same manner as it was done for the one-dimensional
+heat equation.) Then, we have
+\begin{equation}
+w_{0,j}^{n}=w^{n}_{N_{1},j}=0 \quad
+(j=0,1,\dots, N_{2}), \quad
+w^{n}_{k,0}=w^{n}_{k,N_{2}}=0 \quad
+(k=0,1,\dots, N_{1}), \label{f5}
+\end{equation}
+and
+\begin{equation}
+w^{0}_{k,j}=u_{0}(x_{k},y_{j}). \label{f6}
+\end{equation}
+Since the forward difference formula for $u_t$ has the truncation error
+$O(\tau)$ and the central
+difference formulae for
+$u_{xx}$ and $u_{yy}$ have errors $O(h_{1}^2)$ and $O(h_{2}^2)$, respectively, the
+local truncation error of Eq. (\ref{f4}) is $O(\tau+h_{1}^2+h_{2}^2)$.
+
+\vskip 0.3cm  
+The stability of the method (\ref{f4}) can be studied using the Fourier method.
+Let $w^{n}_{k,j}$ and $\tilde{w}^{n}_{k,j}$ be two solutions of Eqs. (\ref{f4})
+and (\ref{f5}) corresponding to slightly different initial conditions and
+let $z^{n}_{k,j}=w^{n}_{k,j}-\tilde{w}^{n}_{k,j}$ be
+the perturbation at the grid point $(x_{k}, y_{j}, t_{n})$ for each
+$k=0,1,2, \dots, N_{1}$,
+$j=0,1,2, \dots, N_{2}$ and $n=0,1, \dots,M$.
+Then $z^{n}_{kj}$ satisfies the difference equation
+\begin{equation}
+\frac{z_{kj}^{n+1}-z_{kj}^{n}}{\tau} -K\left(\frac{\delta_{x}^2}{h_{1}^2}
++\frac{\delta_{y}^2}{h_{2}^2}\right)z_{kj}^{n}=0, \label{f7}
+\end{equation}
+which is the homogeneous version of Eq. (\ref{f4}).
+We seek a particular solution of
+(\ref{f7}) in the form
+\begin{equation}
+z^{n}_{k,j}=\rho^{n}e^{iqx_{k}+ipy_{j}}. \label{f8}
+\end{equation}
+for $q,p\in{\mathbb R}$ and $n=0,1,\dots$
+The finite-difference method is stable with respect to
+initial condition, if
+\[
+\vert\rho\vert\leq 1 \quad {\rm for \ all } \quad q,p\in{\mathbb R}.
+\]
+Substituting (\ref{f8}) in (\ref{f7}), we obtain
+\begin{multline*}
+e^{iqx_{k}+ipy_{j}}\left(\rho^{n+1}-\rho^{n}\right) -
+\frac{K\tau}{h_{1}^2}\rho^{n}e^{ipy_{j}}
+\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)\\
+-\frac{K\tau}{h_{2}^2}\rho^{n}e^{iqx_{k}}
+\left(e^{ipy_{j+1}}-2e^{ipy_{j}}+e^{ipy_{j-1}}\right)=0
+\end{multline*}
+or, equivalently,
+\[
+\rho-1-\frac{K\tau}{h_{1}^2}
+\left(e^{iqh_{1}}-2+e^{-iqh_{1}}\right)-
+\frac{K\tau}{h_{2}^2}\left(e^{iph_{2}}-2+e^{-iph_{2}}\right)=0.
+\]
+Since
+\[
+e^{iqh_{1}}-2+e^{-iqh_{1}}=-4\sin^{2} \frac{qh_{1}}{2}, \quad
+e^{iph_{2}}-2+e^{-iph_{2}}=-4\sin^{2} \frac{ph_{2}}{2},
+\]
+we obtain
+\[
+\rho=1-4\gamma_{1}\sin^{2} \frac{qh_{1}}{2}
+-4\gamma_{2}\sin^{2} \frac{ph_{2}}{2}.
+\]
+where
+\[
+\gamma_{1}=\frac{K\tau}{h_{1}^2}, \quad
+\gamma_{2}=\frac{K\tau}{h_{2}^2}.
+\]
+It follows that $\vert\rho\vert\leq 1$ if $-1\leq\rho$ or
+\[
+-1\leq 1-4\gamma_{1}\sin^{2} \frac{qh_{1}}{2}
+-4\gamma_{2}\sin^{2} \frac{ph_{2}}{2}
+\]
+The last inequality holds for all $p$ and $q$ provided that $\gamma_{1}+\gamma_{2}\leq 1/2$
+or
+\begin{equation}
+K\tau
+\left(\frac{1}{h_{1}^2}+\frac{1}{h_{2}^2}\right)\leq\frac{1}{2}. \label{f9}
+\end{equation}
+Thus, the method (\ref{f4}) is conditionally stable. Note that if
+$h_{1}=h_{2}=h$, then the stability condition (\ref{f9}) becomes
+$K\tau/h^2\leq 1/4$. With $m$ space variables and equal space step
+sizes the stability condition becomes $K\tau/h^2\leq 1/2m$.
+
+
+
+\vskip 0.3cm  
+To avoid stability problems, we can employ the backward difference
+formula to approximate $u_t$. This yields
+the implicit scheme
+\begin{equation}
+\frac{w_{kj}^{n}-w_{kj}^{n-1}}{\tau} -K\left(
+\frac{\delta_{x}^2}{h_{1}^2}+\frac{\delta_{y}^2}{h_{2}^2}\right)w_{kj}^{n}=f_{kj}^n, \label{f10}
+\end{equation}
+which has the same local truncation error and is unconditionally
+stable.
+If we let
+\begin{equation}
+{\bf w}^{n}=\left[
+\begin{array}{c}
+w_{1,1}^{n} \\
+w_{2,1}^{n} \\
+\vdots \\
+w_{N_{1}-1,1}^{n} \\
+w_{1,2}^{n} \\
+w_{2,2}^{n} \\
+\vdots \\
+w_{N_{1}-1,2}^{n} \\
+w_{1,3}^{n} \\
+\vdots \\
+\vdots \\
+w_{N_{1}-1,N_{2}-1}^{n}
+\end{array}\right],
+\quad {\bf F}^{n}=\left[
+\begin{array}{c}
+f_{1,1}^{n} \\
+f_{2,1}^{n} \\
+\vdots \\
+f_{N_{1}-1,1}^{n} \\
+f_{1,2}^{n} \\
+f_{2,2}^{n}\\
+\vdots \\
+f_{N_{1}-1,2}^{n} \\
+f_{1,3}^{n} \\
+\vdots \\
+\vdots \\
+f_{N_{1}-1,N_{2}-1}^{n}
+\end{array}\right],
+\label{eee8}
+\end{equation}
+then the linear system (\ref{f10}) can be written in the matrix form
+\begin{equation}
+A{\bf w}^{n}={\bf w}^{n-1}+\tau{\bf F}^{n}, \label{eee9}
+\end{equation}
+where $A$ is the $(N_{1}-1)(N_{2}-1)\times(N_{1}-1)(N_{2}-1)$ matrix given by
+\begin{equation}
+A=\left[
+\begin{array}{cccccc}
+Q &-\gamma_{2}I &0      &\dots  &\dots &0 \\
+-\gamma_{2}I &Q &-\gamma_{2}I &\ddots  &     &\vdots \\
+0      &-\gamma_{2}I &Q &-\gamma_{2}I &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma_{2}I \\
+0      &\dots  &\dots  &0      &-\gamma_{2}I &Q
+\end{array}\right], \label{eee10}
+\end{equation}
+and where $I$ is the identity matrix and $Q$ is the $(N_{1}-1)\times(N_{1}-1)$ matrix having the form
+\begin{equation}
+Q=\left[
+\begin{array}{cccccc}
+1+2(\gamma_{1}+\gamma_{2}) &-\gamma_{1}  &0      &\dots  &0 \\
+-\gamma_{1} &1+2(\gamma_{1}+\gamma_{2})  &-\gamma_{1}     &\ddots       &\vdots \\
+0  &-\gamma_{1} &1+2(\gamma_{1}+\gamma_{2})      &\ddots       &\vdots \\
+\vdots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &-\gamma_{1} \\
+0      &\dots  &0      &-\gamma_{1} &1+2(\gamma_{1}+\gamma_{2})
+\end{array}\right]. \label{eee11}
+\end{equation}
+Here
+\[
+\gamma_{1}=\frac{K\tau}{h_{1}^2}, \quad \gamma_{2}=\frac{K\tau}{h_{2}^2}.
+\]
+The linear algebraic system (\ref{eee9}) has
+the block-tridiagonal matrix $A$, but, unfortunately, it
+is not tridiagonal,
+which makes it difficult to solve if the step sizes are small.
+
+
+\vskip 0.3cm  
+The Crank-Nicolson scheme can be extended to the two-dimensional problem in the form
+\begin{equation}
+\frac{w_{kj}^{n+1}-w_{kj}^{n}}{\tau} -\frac{K}{2}
+\left(\frac{1}{h_{1}^2}
+\delta_{x}^2+\frac{1}{h_{2}^2}\delta_{y}^2\right)
+\left(w_{kj}^{n}+w_{kj}^{n+1}\right)=f_{kj}^{n+\frac{1}{2}}, \label{f11}
+\end{equation}
+where
+\[
+f_{kj}^{n+\frac{1}{2}}=f(x_{k},y_{j},t_{n}+\tau/2)=\frac{f(x_{k},y_{j},t_{n})+f(x_{k},y_{j},t_{n+1})}{2}+O(\tau^2).
+\]
+This method is always stable, and its local truncation error is
+$O(\tau^2+h_{1}^2+h_{2}^2)$. Again, the linear system (\ref{f11})
+is not tridiagonal.
+
+
+\vskip 0.5cm
+ 
+{\bf The alternating-direction implicit (ADI) method.}
+The ADI method is intended to
+simplify the solution of the algebraic equations while preserving the stability
+and accuracy requirements.
+The main idea of the method is a reformulation of the finite difference
+equations so that the algebraic problem consists of a set of linear equations
+possessing a tridiagonal matrix. We then solve this set of equations in each
+coordinate direction in turn by the double-sweep method.
+We illustrate the basic concepts for the case of equal step sizes in
+the $x$ and $y$ directions:
+$h_{1}=h_{2}=h$.
+
+\vskip 0.3cm
+ 
+The idea of the ADI method is to divide each time step into two
+steps of size $\tau/2$. In each substep, a different dimension is treated
+implicitly:
+\begin{eqnarray}
+&&\frac{w^{n+\frac{1}{2}}_{k,j}-w^{n}_{k,j}}{\tau}=\frac{K}{2h^2}
+\left(\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}w^{n}_{k,j}\right)+\frac{1}{2}f^{n+\frac{1}{2}}_{k,j}, \label{f12} \\
+&&\frac{w^{n+1}_{k,j}-w^{n+\frac{1}{2}}_{k,j}}{\tau}=\frac{K}{2h^2}
+\left(\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}w^{n+1}_{k,j}\right)+\frac{1}{2}f^{n+\frac{1}{2}}_{k,j}. \label{f13}
+\end{eqnarray}
+The advantage of this method is that each substep requires only
+the solution of a simple tridiagonal system.
+
+
+\vskip 0.3cm
+ 
+To find the local truncation error of the ADI method, we first eliminate
+the intermediate values from Eqs. (\ref{f12}), (\ref{f13}). Adding the two equations, we
+obtain
+\[
+\frac{w^{n+1}_{k,j}-w^{n}_{k,j}}{\tau}=\frac{K}{2h^2}
+\left(2\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}\left[w^{n}_{k,j}+w^{n+1}_{k,j}\right]\right)+f^{n+\frac{1}{2}}_{k,j}.
+\]
+Subtracting (\ref{f13}) from (\ref{f12}), we find that
+\[
+\frac{2}{\tau}w^{n+\frac{1}{2}}_{k,j}=\frac{w^{n+1}_{k,j}+w^{n}_{k,j}}{\tau}+
+\frac{K}{2h^2}\delta^2_{y}\left[w^{n}_{k,j}-w^{n+1}_{k,j}\right].
+\]
+It follows that
+\begin{equation}
+\frac{w^{n+1}_{k,j}-w^{n}_{k,j}}{\tau}=\frac{K}{2h^2}
+\left(\delta^2_{x}+\delta^2_{y}\right)\left(
+w^{n}_{k,j}+w^{n+1}_{k,j}\right)+f^{n+\frac{1}{2}}_{k,j}+
+\frac{K^2\tau}{4h^4}\delta^2_{x}\delta^2_{y}
+\left[w^{n}_{k,j}-w^{n+1}_{k,j}\right]. \label{f14}
+\end{equation}
+If the last term on the right side of this equation were absent, the equation
+would coincide with the Crank-Nicolson method whose local truncation
+error is $O(\tau^2+h^2)$.
+
+\vskip 0.3cm
+ 
+We will show that the last term in
+(\ref{f14}), evaluated on the exact solution $u(x,y,t)$, is $O(\tau^2)$. To do this, we first observe that
+\begin{eqnarray}
+&&\frac{1}{h^2}\delta_{x}^2 \, u_{kj}^n=u_{xx}(x_k,y_j,t_n)
++\frac{h^2}{12} \, u_{xxxx}(x_k,y_j,t_n)+O(h^4), \nonumber \\
+&&\frac{1}{h^2}\delta_{y}^2 \, u_{kj}^n=u_{yy}(x_k,y_j,t_n)
++\frac{h^2}{12} \, u_{yyyy}(x_k,y_j,t_n)+O(h^4). \label{f14a}
+\end{eqnarray}
+It follows from (\ref{f14a}) that
+\[\begin{split}
+\frac{1}{h^4}\delta^2_{x}\delta^2_{y}\, u^{n}_{k,j}&=u_{xxyy}(x_k,y_j,t_n)
++O(h^2), \\
+\frac{1}{h^4}\delta^2_{x}\delta^2_{y}\, u^{n+1}_{k,j}&=u_{xxyy}(x_k,y_j,t_{n+1})
++O(h^2).
+\end{split}\]
+Further, we have
+\begin{eqnarray}
+\frac{1}{h^4}\delta^2_{x}\delta^2_{y}\, \left( u^{n}_{k,j}-u^{n+1}_{k,j}\right) &=& u_{xxyy}(x_k,y_j,t_n)-u_{xxyy}(x_k,y_j,t_{n+1})
++O(h^2), \nonumber \\
+&=&-\tau u_{xxyyt}(x_k,y_j,t_n) +O(\tau^2)+O(h^2). \label{ff14c}
+\end{eqnarray}
+Hence,
+\[
+\frac{K^2\tau}{4h^4} \, \delta^2_{x}\delta^2_{y}\, \left(u^{n}_{k,j}-u^{n+1}_{k,j}\right)=
+\frac{K^2\tau^2}{4}\left[-u_{xxyyt}(x_k,y_j,t_n)+O(\tau)\right]+O(\tau h^2)=O(\tau^2).
+\]
+Therefore, the local truncation error
+of the ADI method is $O(\tau^2+h^2)$.
+
+\vskip 0.5cm
+ 
+Let us investigate the stability of the ADI method. If
+$z^{n}_{k,j}=w_{k,j}-\tilde{w}_{k,j}$ is
+the perturbation at the grid point $(x_{k}, y_{j}, t_{n})$ for each $k,j=0,1,2, \dots, N$
+and $n=0,1, \dots$, then it satisfies the difference equations
+\begin{eqnarray}
+&&z^{n+\frac{1}{2}}_{k,j}=z^{n}_{k,j}+\frac{\gamma}{2}
+\left(\delta^2_{x}z^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}z^{n}_{k,j}\right), \nonumber \\
+&&z^{n+1}_{k,j}=z^{n+\frac{1}{2}}_{k,j}+\frac{\gamma}{2}
+\left(\delta^2_{x}z^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}z^{n+1}_{k,j}\right), \label{f15}
+\end{eqnarray}
+for $k=1,2, \dots, N$ and $j=1, 2, \dots$. We seek a particular solution of
+(\ref{f15}) in the form
+\[
+z^{n}_{k,j}=\rho^{n}e^{iqx_{k}+ipy_{j}}
+\]
+for $q,p\in{\mathbb R}$ and $n=0,1,\dots$
+The method is stable, if $\vert\rho\vert\leq 1$ for all $q,p\in{\mathbb R}$.
+
+\vskip 0.3cm
+ 
+To deal with the substeps, we assume that
+\[
+z^{n+\frac{1}{2}}_{k,j}=z^{n}_{k,j}\rho^{(1)} \quad {\rm and}\quad
+z^{n+1}_{k,j}=z^{n+\frac{1}{2}}_{k,j}\rho^{(2)}
+\]
+(so that $\rho=\rho^{(1)}\rho^{(2)}$). Substituting these in
+(\ref{f15}), we find that
+\begin{eqnarray}
+&&\rho^{(1)}=1+\frac{\gamma}{2}
+\rho^{(1)}\left(e^{iqh}-2+e^{-iqh}\right)
++\frac{\gamma}{2}\left(e^{iph}-2+e^{-iph}\right), \nonumber \\
+&&\rho^{(2)}=1+\frac{\gamma}{2}
+\left(e^{iqh}-2+e^{-iqh}\right)
++\rho^{(2)}\frac{\gamma}{2}\left(e^{iph}-2+e^{-iph}\right). \nonumber
+\end{eqnarray}
+Since
+\[
+e^{iqh}-2+e^{-iqh}=\left(e^{iqh/2}-e^{-iqh/2}\right)^{2}=-4\sin^{2} \frac{qh}{2},
+\]
+we obtain
+\begin{eqnarray}
+&&\rho^{(1)}=\frac{1-2\gamma\sin^{2} \frac{ph}{2}}
+{1+2\gamma\sin^{2} \frac{qh}{2}}, \nonumber \\
+&&\rho^{(2)}=\frac{1-2\gamma\sin^{2} \frac{qh}{2}}
+{1+2\gamma\sin^{2} \frac{ph}{2}}. \nonumber
+\end{eqnarray}
+It follows that
+\[
+\rho=\rho^{(1)}\rho^{(2)}
+=\frac{\left(1-2\gamma\sin^{2} \frac{ph}{2}\right)
+\left(1-2\gamma\sin^{2} \frac{qh}{2}\right)}
+{\left(1+2\gamma\sin^{2} \frac{ph}{2}\right)
+\left(1+2\gamma\sin^{2} \frac{qh}{2} \right)}.
+\]
+Evidently, $\vert\rho\vert\leq 1$ and, therefore,
+the method is unconditionally stable. (Note that for some $p,q$ and $\gamma$, we can have $\vert\rho^{(1)}\vert >1$.
+This, however,
+is compensated by $\vert\rho^{(2)}\vert <1$, yielding $\vert\rho\vert=\vert\rho^{(1)}\rho^{(2)}\vert\leq 1$
+for all $p,q$ and $\gamma$.)

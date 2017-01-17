@@ -1,0 +1,659 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Lecture notes for Numerical Methods for Partial Differential Equations
+%
+% Chapter 2: Parabolic PDEs
+%   Sections 3 and 4
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% !TeX root = NumPDE_Lecture_notes.tex
+
+\subsection{Implicit methods}
+
+\subsubsection{Backward-difference method}
+ 
+To obtain a method which is {\bf unconditionally stable}, we consider
+an implicit-difference method that results from using the backward-difference formula for
+$\pr u/\pr t(x,t)$:
+\[
+\frac{\pr u}{\pr t}(x_{k},t_{j})=\frac{u(x_{k},t_{j})-u(x_{k},t_{j-1})}{\tau}+
+\frac{\tau}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k}, \mu_{j}),
+\]
+where $\mu_{j}\in(t_{j-1},t_{j})$. Using this instead of the forward-difference formula
+yields the following difference equation
+\begin{equation}
+\frac{w_{kj}-w_{k,j-1}}{\tau}-K
+\frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=0 \label{x9}
+\end{equation}
+for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots,M$. This equation is different from Eq. (\ref{b4})
+and cannot be solved using a procedure as straightforward as that
+in the forward-difference method.
+
+ 
+ 
+Equation (\ref{x9}) can be rewritten as
+\begin{equation}
+(1+2\gamma)w_{kj}-\gamma (w_{k+1, j}+w_{k-1, j})=w_{k,j-1} \label{x10}
+\end{equation}
+for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots,M$, or, equivalently,
+\begin{equation}
+A{\bf w}^{(j)}={\bf w}^{(j-1)} \quad \hbox{for} \quad j=1,2,\dots, \label{x11}
+\end{equation}
+where
+\begin{equation}
+A=\left[
+\begin{array}{cccccc}
+1+2\gamma &-\gamma &0      &\dots  &\dots &0 \\
+-\gamma &1+2\gamma &-\gamma &\ddots  &     &\vdots \\
+0      &-\gamma &1+2\gamma &-\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma \\
+0      &\dots  &\dots  &0      &-\gamma &1+2\gamma
+\end{array}\right], \quad
+{\bf w}^{(j)}=\left[
+\begin{array}{c}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N-1,j}
+\end{array}\right].
+\label{x12}
+\end{equation}
+If we know ${\bf w}^{(j-1)}$, Eq. (\ref{x11}) represents a system of linear equations for
+${\bf w}^{(j)}$ which can be solved, e.g., by the double-sweep method that we will describe in 
+the next subsection.
+
+The finite-difference method described above is called the {\bf backward-difference method}. It is an example
+of {\bf implicit} finite-difference methods.
+
+ 
+ 
+Now let us investigate the stability of the backward-difference scheme
+by the Fourier method.
+If we introduce the error $z_{k0}=w_{k0}-u_{0}(x_{k})$ into the initial condition, it
+will propagate with each step in time. Let $z_{kj}=w_{kj}-u_{0}(x_{k},t_{j})$ be
+the error at the mesh point $(x_{k}, t_{j})$ for each $k=0,1,2, \dots, N$
+and $j=0,1, \dots$.
+It follows from (\ref{x9}) that $z_{kj}$ satisfies the difference equation
+\begin{equation}
+\frac{z_{kj}-z_{k,j-1}}{\tau}-K
+\frac{z_{k+1, j}-2z_{kj}+z_{k-1,j}}{h^{2}}=0  \label{c15}
+\end{equation}
+for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots, M$.
+We seek a particular solution of
+(\ref{c15}) in the form
+\begin{equation}
+z_{k,j}=\rho_{q}^{j}e^{iqx_{k}}, \quad q\in{\mathbb R}. \label{c16}
+\end{equation}
+The finite-difference method (\ref{x9}) is stable, if
+\[
+\vert\rho_{q}\vert\leq 1
+\]
+for all $q$.
+
+ 
+ 
+Substitution of (\ref{c16}) into (\ref{c15}) yields
+\[
+e^{iqx_{k}}\left(\rho_{q}^{j}-\rho^{j-1}\right)-
+\gamma\rho_{q}^{j}\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)=0
+\]
+or
+\[
+1-\frac{1}{\rho_{q}}-
+\gamma\left(e^{iqh}-2+e^{-iqh}\right)=0.
+\]
+Since
+\[
+e^{iqh}-2+e^{-iqh}=\left(e^{iqh/2}-e^{-iqh/2}\right)^{2}=-4\sin^{2} \frac{qh}{2},
+\]
+we obtain
+\[
+\rho_{q}=\frac{1}{1+4\gamma\sin^{2} \frac{qh}{2}}.
+\]
+Evidently, $\vert\rho_{q}\vert\leq 1$ for all $q$, and therefore, the method is stable.
+Note that the method is {\bf unconditionally stable} (independent
+of the choice of $\gamma=K\tau/h^{2}$). It can be shown that
+its local truncation
+error is $O(\tau+h^{2})$ (the same as in the forward-difference method).
+
+\subsubsection{Double-sweep algorithm}
+ 
+\textbf{The double-sweep method.} How to solve system (\ref{x10})? This system is tridiagonal. The most efficient algorithm
+of solving such systems is called {\bf the double-sweep method}. Consider the following
+tridiagonal system:
+\begin{equation}
+A_{i}v_{i-1}-C_{i}v_{i}+B_{i}v_{i+1}=F_{i} \quad \hbox{for}\quad i=1, \dots, N-1;
+\quad v_{0}=v_{N}=0; \label{y22}
+\end{equation}
+where the coefficients $A_{i}$, $B_{i}$ and $C_{i}$ satisfy the conditions
+\begin{equation}
+A_{i}, B_{i}, C_{i} > 0, \quad  C_{i} \geq A_{i} + B_{i}.  \label{y23}
+\end{equation}
+(One can verify that system (\ref{x10}) satisfies the conditions (\ref{y23}).)
+To solve (\ref{y22}), we will seek $\alpha_{i}$ and $\beta_{i}$ such that
+\begin{equation}
+v_{i-1}=\alpha_{i}v_{i}+\beta_{i}  \quad  \hbox{for} \quad
+i=1, 2, \dots, N.  \label{y24}
+\end{equation}
+Substitution of (\ref{y24}) into (\ref{y22}) yields
+\begin{equation}
+(\alpha_{i}A_{i}-C_{i})v_{i}+B_{i}v_{i+1}+\beta_{i}A_{i}-F_{i}=0 \quad \hbox{for}\quad i=1, \dots, N-1. \label{y25}
+\end{equation}
+From (\ref{y24}), we also have
+\[
+v_{i}=\alpha_{i+1}v_{i+1}+\beta_{i+1}  \quad  \hbox{for} \quad
+i=0, 1, \dots, N-1.
+\]
+Substituting this into (\ref{y25}), we find that
+\[
+[(\alpha_{i}A_{i}-C_{i})\alpha_{i+1}+B_{i}]v_{i+1}+[
+(\alpha_{i}A_{i}-C_{i})\beta_{i+1}+\beta_{i}A_{i}-F_{i}]=0
+\]
+for $i=1, \dots, N-1$.
+This equation is satisfied if the two expressions in the square brackets are both zero. 
+This leads to the following recursive formulas:
+\begin{equation}
+\alpha_{i+1}=\frac{B_{i}}{C_{i}-\alpha_{i}A_{i}}, \quad
+\beta_{i+1}=\frac{\beta_{i}A_{i}-F_{i}}{C_{i}-\alpha_{i}A_{i}}, \quad
+\hbox{for}\quad i=1, \dots, N-1. \label{y26}
+\end{equation}
+Now if $\alpha_{1}$ and  $\beta_{1}$ are known, then $\alpha_{i}$ and  $\beta_{i}$ for $i=2, 3, \dots, N$
+can be computed from Eqs. (\ref{y26}).  $\alpha_{1}$ and  $\beta_{1}$ can be determined from Eq. (\ref{y24}) and
+the fact that $v_{0}=0$. Indeed
+\[
+v_{0}= \alpha_{1}v_{1}+\beta_{1} \quad \hbox{and} \quad v_{0}=0 \quad \Rightarrow \quad
+\alpha_{1}v_{1}+\beta_{1}=0.
+\]
+To satisfy the last equation, we choose $\alpha_{1}=0$ and $\beta_{1}=0$. Once we know all $\alpha_{i}$
+and $\beta_{i}$, we compute $v_{N-1}, v_{N-2}, \dots, v_{1}$ using formula (\ref{y24}).
+
+   
+Now let's show that conditions (\ref{y23}) are sufficient for the double-sweep method to work. Numbers $\alpha_{i}$ and $\beta_i$ are well-defined
+by Eqs. (\ref{y26}) provided that $C_{i}-\alpha_{i}A_{i}\neq 0$ for $i=1,\dots,N$.
+First we show that $0\leq\alpha_i < 1$ for $i=1,\dots,N$. We will show this by induction. Since $\alpha_1=0$, it satisfies
+the required inequality. Now we need to show that if $0\leq\alpha_{i}<1$ for some
+$i\geq 1$, then $0\leq\alpha_{i+1}<1$. it follows from (\ref{y23}) that
+\[
+C_{i}-\alpha_{i}A_{i}> A_i + B_i- \alpha_{i}A_{i} > B_i \quad
+\Rightarrow \quad \alpha_{i+1}=\frac{B_{i}}{C_{i}-\alpha_{i}A_{i}} < 1.
+\]
+So, all $\alpha_i$ satisfy $0\leq\alpha_i < 1$. Therefore,
+\[
+C_{i}-\alpha_{i}A_{i}> A_i + B_i- \alpha_{i}A_{i} > B_i >0 \quad \hbox{for} \ \ i=1,\dots,N,
+\]
+as required.
+
+
+\vskip 0.5cm  
+\emph{Is it possible to generalise the double-sweep method to the case
+when we have non-zero boundary conditions?} The answer is `Yes', and it is not difficult.
+
+Suppose that we need to solve the same equations (\ref{y22}), but with non-zero boundary conditions:
+\[
+v_{0}=A, \quad v_{N}=B.
+\]
+The only thing that we need to modify is the choice of $\alpha_{1}$ and $\beta_{1}$. It follows from Eq. (\ref{y24})
+and the boundary condition that
+\[
+\alpha_{1}v_{1}+\beta_{1}=A.
+\]
+To satisfy this we simply choose
+\[
+\alpha_{1}=0, \quad \beta_{1}=A.
+\]
+Boundary  condition $v_{N}=B$ is taken into account automatically when
+$v_{N-1}$ is computed using Eq. (\ref{y24}).
+
+\vskip 0.5cm  
+The double-sweep method can also be generalised for
+the following boundary conditions:}
+\[
+v_{0}=\lambda v_1+B \quad \hbox{and} \quad v_{N}=\mu v_{N-1} + B,
+\]
+where $\lambda$, $\mu$, $A$ and $B$ are constants and $\vert\lambda\vert\leq 1$, $\vert\mu\vert\leq 1$. (Prove this!)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Richardson method}
+
+\emph{How to improve the order of approximation
+of the heat equation by finite-difference schemes?} The easiest way
+to obtain a finite-difference method whose truncation error is
+$O(\tau^{2}+h^{2})$ is to replace the forward (backward)
+difference formulas for $u_{t}$ with the central difference
+formula:
+\begin{equation}
+\frac{\pr u}{\pr t}(x_k,t_j)=\frac{u(x_k,t_j+\tau)-u(x_k,t_j-\tau)}{2\tau}-
+\frac{\tau^2}{6}\frac{\pr^3 u}{\pr t^3}(x_k,\xi) \label{aa15}
+\end{equation}
+[It is an exercise for you to derive this formula.]
+This leads to the Richardson method, given by
+\begin{equation}
+\frac{w_{k,j+1}-w_{k,j-1}}{2\tau}-K \frac{w_{k+1,
+j}-2w_{kj}+w_{k-1,j}}{h^{2}}=0. \label{d4}
+\end{equation}
+(for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots, M-1$). 
+\footnote{This was the first published finite-difference methods for PDEs, introduced by Lewis Fry Richardson already in 1911 in
+``The Approximate Arithmetical Solution by Finite Differences of Physical Problems Involving Differential Equations, with an Application to the Stresses in a Masonry Dam'', Philosophical Transactions of the Royal Society of London A 210, pp.307 -- 357.}
+
+
+ 
+\begin{problem} Show that the Richardson method
+has the local truncation error $O(\tau^{2}+h^{2})$.
+\end{problem}
+\begin{solution}
+The local truncation error for Richardson's
+method is
+\begin{equation}
+\tau_{kj}=\frac{u_{k,j+1}-u_{k,j-1}}{2\tau}-K \frac{u_{k+1,
+j}-2u_{kj}+u_{k-1,j}}{h^{2}}. \label{d5}
+\end{equation}
+Here $u_{kj}=u(x_{k},t_{j})$. Expanding $u_{k,j\pm
+1}=u(x_{k},t_{j\pm 1})=u(x_{k},t_{j}\pm \tau)$ in Taylor's series at
+point $(x_{k},t_{j})$, we obtain
+\begin{eqnarray}
+&&u_{k,j+1}=u_{kj}+\tau \frac{\pr u}{\pr t}(x_k,t_j)+
+\frac{\tau^2}{2}\frac{\pr^2 u}{\pr t^2}(x_k,t_j)+O(\tau^3),   \nonumber \\
+&&u_{k,j-1}=u_{kj}-\tau \frac{\pr u}{\pr t}(x_k,t_j)+
+\frac{\tau^2}{2}\frac{\pr^2 u}{\pr t^2}(x_k,t_j)+O(\tau^3).
+\nonumber
+\end{eqnarray}
+It follows that
+\begin{equation}
+\frac{u_{k,j+1}-u_{k,j-1}}{2\tau}=\frac{\pr u}{\pr
+t}(x_k,t_j)+O(\tau^2). \label{d6}
+\end{equation}
+Expanding $u_{k\pm 1,j}=u(x_{k\pm 1},t_j)=u(x_{k}\pm h,t_{j})$ in
+Taylor's series at point $(x_{k},t_{j})$, we find that
+\begin{eqnarray}
+&&u_{k+1,j}=u_{kj}+h \frac{\pr u}{\pr x}(x_k,t_j)+
+\frac{h^2}{2}\frac{\pr^2 u}{\pr x^2}(x_k,t_j)+
+\frac{h^3}{6}\frac{\pr^3 u}{\pr x^3}(x_k,t_j)+O(h^4),   \nonumber \\
+&&u_{k-1,j}=u_{kj}-h \frac{\pr u}{\pr x}(x_k,t_j)+
+\frac{h^2}{2}\frac{\pr^2 u}{\pr x^2}(x_k,t_j)-
+\frac{h^3}{6}\frac{\pr^3 u}{\pr x^3}(x_k,t_j)+O(h^4).   \nonumber
+\end{eqnarray}
+Hence,
+\begin{equation}
+\frac{u_{k+1, j}-2u_{kj}+u_{k-1,j}}{h^{2}}= \frac{\pr^2 u}{\pr
+x^2}(x_k,t_j)+O(h^2). \label{d7}
+\end{equation}
+Substitution of (\ref{d6}) and (\ref{d7}) in Eq. (\ref{d5}) yields
+\[
+\tau_{kj}=\frac{\pr u}{\pr t}(x_k,t_j)-K \frac{\pr^2 u}{\pr
+x^2}(x_k,t_j) +O(\tau^2)+O(h^2).
+\]
+Taking into account the fact that $u(x,t)$ satisfies the heat equation,
+we obtain
+\[
+\tau_{kj}=O(\tau^2+h^2).
+\]
+\end{solution}
+ 
+\begin{problem}
+Investigate the
+stability of Richardson's method, given by (\ref{d4}), by the
+Fourier method.
+\end{problem}
+\begin{solution}
+If $w_{kj}$ and $\tilde{w}_{kj}$ are two
+solutions of the difference equation (\ref{d4}) that correspond to
+different initial conditions, then the perturbation (error)
+$z_{kj}=\tilde{w}_{kj}-w_{kj}$ satisfies the homogeneous difference
+equation
+\begin{equation}
+\frac{z_{k,j+1}-z_{k,j-1}}{2\tau}-K \frac{z_{k+1,
+j}-2z_{kj}+z_{k-1,j}}{h^{2}}=0. \label{d8}
+\end{equation}
+We seek a particular solution of (\ref{d8}) in the form
+\[
+z_{k,j}=\rho_{q}^{j}e^{iqx_{k}}.
+\]
+Substituting this into (\ref{d8}), we obtain
+\[
+e^{iqx_{k}}\left(\rho_{q}^{j+1}-\rho_{q}^{j-1}\right)-
+2\gamma\rho_{q}^{j}
+\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)=0
+\]
+or
+\[
+\rho^{2}_{q}-1- 2\gamma\rho_{q} \left(e^{iqh}-2+e^{-iqh}\right)=0 .
+\]
+Since
+\[
+e^{iqh}-2+e^{-iqh}=\left(e^{iqh/2}-e^{-iqh/2}\right)^{2}=-4\sin^{2}
+\frac{qh}{2},
+\]
+we obtain
+\[
+\rho^{2}_{q}+\left(8\gamma\sin^{2} \frac{qh}{2}\right)\rho_{q}-1=0.
+\]
+One of the roots of this quadratic equation, namely,
+\[
+\rho_{q}=-4\gamma\sin^{2} \frac{qh}{2}- \sqrt{16\gamma^2\sin^{4}
+\frac{qh}{2}+1},
+\]
+is greater than $1$ in magnitude for any $q$ such that $\sin(qh/2)\neq 0$. Thus, Richardson's
+method is (unconditionally) unstable.
+\end{solution}
+
+
+\subsubsection{Crank-Nicolson method} 
+
+Let $\delta_{x}^{2}$ be a finite-difference operator defined by
+\begin{equation}
+\delta_{x}^{2}w_{kj}=w_{k+1, j}-2w_{kj}+w_{k-1,j}. \label{cc0}
+\end{equation}
+Consider the initial boundary value problem for
+the heat equation
+\begin{eqnarray}
+&&\frac{\pr u}{\pr t}(x,t) = K\frac{\pr^{2} u}{\pr x^{2}}(x,t), \quad
+0<x< L, \quad 0<0<T,   \label{c1} \\
+&&u(0, t) = u(L, t)=0 \quad \hbox{for} \quad t>0,   \label{c2} \\
+&&u(x, 0) = u_{0}(x).   \label{c3}
+\end{eqnarray}
+With the help of the above notation the (explicit) forward-difference method for Eq. (\ref{c1}) can be written as
+\begin{equation}
+\frac{w_{k,j+1}-w_{kj}}{\tau}-K\frac{\delta_{x}^{2}w_{kj}}{h^2}=0, \label{cc4}
+\end{equation}
+the (implicit) backward-difference method can be written as
+\begin{equation}
+\frac{w_{k,j+1}-w_{kj}}{\tau}-K\frac{\delta_{x}^{2}w_{k,j+1}}{h^2}=0. \label{cc5}
+\end{equation}
+A better method is obtained by averaging the forward-difference
+method (\ref{cc4}) and the backward-difference method (\ref{cc5}).
+Adding Eq. (\ref{cc4}) to Eq. (\ref{cc5}) with weights $1/2$, we
+obtain the difference equation
+\begin{equation}
+\frac{w_{k,j+1}-w_{k,j}}{\tau}- \frac{K}{2h^{2}}\left(
+\delta_{x}^{2}w_{kj}+\delta_{x}^{2}w_{k,j+1}\right)=0 \label{qq14}
+\end{equation}
+or, equivalently,
+\begin{equation}
+w_{k,j+1}-w_{k,j}-\frac{\gamma}{2}\left( w_{k+1,
+j}-2w_{kj}+w_{k-1,j}+ w_{k+1, j+1}-2w_{k,j+1}+w_{k-1,j+1}\right)=0
+\label{qq15a}
+\end{equation}
+where $\gamma=K\tau/h^2$.
+This method is called the {\bf Crank-Nicolson method}. It can be
+shown that the local truncation error of the  Crank-Nicolson method
+is $O(\tau^{2}+h^{2})$ (see problem sheet).
+
+   
+In matrix form, Eq. (\ref{qq15a}) can be
+written as
+\begin{equation}
+A{\bf w}^{(j+1)}=B{\bf w}^{(j)} \quad \hbox{for} \quad
+j=0,1,2,\dots, \label{qq15}
+\end{equation}
+where
+\[\begin{split}
+A&=\left[
+\begin{array}{cccccc}
+1+\gamma &-\gamma/2 &0      &\dots  &\dots &0 \\
+-\gamma/2 &1+\gamma &-\gamma/2 &\ddots  &     &\vdots \\
+0      &-\gamma/2 &1+\gamma &-\gamma/2 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma/2 \\
+0      &\dots  &\dots  &0      &-\gamma/2 &1+\gamma
+\end{array}\right], \\
+B&=\left[
+\begin{array}{cccccc}
+1-\gamma &\gamma/2 &0      &\dots  &\dots &0 \\
+\gamma/2 &1-\gamma &\gamma/2 &\ddots  &     &\vdots \\
+0      &\gamma/2 &1-\gamma &\gamma/2 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &\gamma/2 \\
+0      &\dots  &\dots  &0      &\gamma/2 &1-\gamma
+\end{array}\right].
+\end{split}\]
+If we know ${\bf w}^{(j)}$, we can find ${\bf w}^{(j+1)}$ by solving the tridiagonal linear
+system (\ref{qq15}) by the double-sweep method.
+
+\vskip 0.5cm  
+To investigate the stability of the Crank-Nicolson method, we employ
+the Fourier method. If $z_{kj}=w_{kj}-\tilde{w}_{kj}$, then
+\begin{equation}
+z_{k,j+1}-z_{k,j}-\frac{\gamma}{2} \left(z_{k+1,
+j}-2z_{kj}-z_{k-1,j}+ z_{k+1, j+1}-2z_{k,j+1}+z_{k-1,j+1}\right)=0
+\label{qq16}
+\end{equation}
+for $k=1,2, \dots, N-1$ and $j=1,2, \dots$. We seek a particular
+solution of (\ref{qq16}) in the form
+\begin{equation}
+z_{k,j}=\rho_{q}^{j}e^{iqx_{k}}, \quad q\in{\mathbb R}. \label{qq17}
+\end{equation}
+Then, the finite-difference method (\ref{qq15a}) is
+stable, if
+\[
+\vert\rho_{q}\vert\leq 1
+\]
+for all $q$.
+
+   
+Substitution of (\ref{qq17}) into (\ref{qq16})
+yields
+\begin{multline}
+0=e^{iqx_{k}}\left(\rho_{q}^{j+1}-\rho_{q}^{j}\right)\\
+-\frac{\gamma}{2}\left[\rho_{q}^{j}
+\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)
++\rho_{q}^{j+1}\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)
+\right]
+\end{multline}
+or
+\begin{multline*}
+0=\rho_{q}-1- \frac{\gamma}{2} \left[e^{iqh}-2+e^{-iqh}+
+\rho_{q}\left(e^{iqh}-2+e^{-iqh}\right) \right]\\
+\Rightarrow
+\quad 0=\rho_{q}-1-
+\frac{\gamma}{2}(\rho_{q}+1)\left(e^{iqh}-2+e^{-iqh}\right).
+\end{multline*}
+Since
+\[
+e^{iqh}-2+e^{-iqh}=\left(e^{iqh/2}-e^{-iqh/2}\right)^{2}=-4\sin^{2}
+\frac{qh}{2},
+\]
+we obtain
+\[
+\rho_{q}-1+(\rho_{q}+1) 2\gamma\sin^{2} \frac{qh}{2}=0 \quad
+\Rightarrow \quad \rho_{q}=\frac{1-2\gamma\sin^{2}
+\frac{qh}{2}}{1+2\gamma\sin^{2} \frac{qh}{2}}.
+\]
+To find out whether $\vert\rho_{q}\vert \leq 1$, we consider the function
+$f(\alpha)=\frac{1-\alpha}{1+\alpha}$ for $\alpha\in[0,\infty)$. Since
+$f'(\alpha)=-\frac{2}{(1+\alpha)^2} < 0$ for all $\alpha\in[0,\infty)$,
+it is a decreasing function.
+In addition to this, we have $f(0)=1$ and $\lim_{\alpha\to\infty}f(\alpha)=-1$.
+We conclude that
+$-1< f(\alpha) \leq 1$ for $\alpha\geq 0$. Therefore, $\vert\rho_{q}\vert \leq 1$
+for all $q\in\mathbb{R}$, and
+the Crank-Nicolson method is unconditionally stable.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\subsection{Consistency, stability, and convergence}
+
+ 
+By definition, a finite-difference approximation to a differential equation
+is {\bf consistent} with this differential equation if local truncation errors
+tend to zero as the step size goes to zero, i.e.
+\[
+\max_{k,j}\vert \tau_{ki}(h,\tau)\vert \to 0 \ \ {\rm as} \ \ h,\tau \to 0.
+\]
+Finite difference equation for PDEs arising in initial value
+problems may display a phenomenon which has no counterpart in
+ordinary differential equations. Successive reduction of step
+sizes in $x$ and $t$ may generate a finite difference solution
+which is stable, but which may converge to the solution of a
+different differential equation. For example, the Du Fort -
+Frankel method for solving the heat equation
+\begin{equation}
+\frac{\partial u}{\partial t}- \frac{\partial^{2}u}{\partial
+x^{2}}=0 \label{ww1}
+\end{equation}
+is given by
+\[
+\frac{w_{k,j+1}-w_{k,j-1}}{2\tau}- \frac{w_{k+1,
+j}-w_{k,j-1}-w_{k,j+1}+w_{k-1,j}}{h^{2}}=0.
+\]
+It can be shown that this method is always stable and has
+the local truncation error
+\[
+\tau_{kj}=O\left(\tau^2+h^2+\frac{\tau^2}{h^2}\right).
+\]
+Thus, the Du Fort-Frankel formula is consistent with Eq. (\ref{ww1}) only
+if $\tau$ goes to zero faster than $h$. If they go to zero
+at the same rate, so that $\tau/h=\beta$ is fixed, then this approximation
+is consistent not with the diffusion equation but with the hyperbolic equation
+\[
+\frac{\partial u}{\partial t}- \frac{\partial^{2}u}{\partial
+x^{2}}+ \beta^2\frac{\partial^{2}u}{\partial t^{2}}=0.
+\]
+
+
+
+
+
+    
+By definition, a finite-difference method is said to be {\bf convergent}
+if the total error of the method
+\[
+E=\max\limits_{k,j}\vert u_{kj}-w_{kj}\vert
+\]
+tends to zero as $h\to 0$ and $\tau\to 0$:
+\[
+E \to 0 \quad {\rm as} \quad h\to 0 \quad {\rm and} \quad \tau\to 0.
+\]
+We know that an approximation for the initial boundary value problem (\ref{c1})--(\ref{c3})
+can be obtained using the forward-difference method
+\begin{multline}
+w_{k,j+1}=\left(1-2\gamma\right)w_{kj}+
+\gamma\left( w_{k+1, j}+w_{k-1,j}\right)\\ {\rm for}
+\quad k=1,2,\dots,N-1, 
+j=0,1,\dots,M-1, \quad\quad \label{c4}
+\end{multline}
+\begin{align}
+w_{0,j}&=w_{N,j}=0  \quad {\rm for}
+\quad j=0,1,\dots,M \quad {\rm and} \\w_{k,0}&=u_{0}(x_{k}) \quad {\rm for}
+\quad k=1,2,\dots,N-1. \label{c5}
+\end{align}
+Here $\gamma\equiv K\tau/h^{2}$.
+Also, we know that the local truncation error for the method is
+\begin{equation}
+\tau_{kj}= \frac{u_{k,j+1}-u_{kj}}{\tau}-\frac{\gamma}{\tau}
+\left(u_{k+1,j}-2u_{kj}+u_{k-1,j}\right)=O(\tau+h^{2}), \label{c6}
+\end{equation}
+so that the method is consistent,
+and that the method is stable under the condition
+\begin{equation}
+\gamma \leq \frac{1}{2}. \label{c7}
+\end{equation}
+\begin{theorem}
+If the stability condition (\ref{c7}) is satisfied,  the forward-difference method 
+(\ref{c4}), (\ref{c5}) is convergent.
+\end{theorem}
+\begin{proof}
+It follows from (\ref{c6}) that
+\begin{equation}
+u_{k,j+1}=(1-2\gamma)u_{kj}+\gamma
+\left(u_{k+1,j}+u_{k-1,j}\right)+O(\tau^2+h^{2}\tau).  \label{c8}
+\end{equation}
+Let
+\begin{equation}
+z_{kj}=u_{kj}-w_{kj}. \label{c9}
+\end{equation}
+Then it follows from (\ref{c8}) and (\ref{c4}) that
+\begin{equation}
+z_{k,j+1}=(1-2\gamma)z_{kj}+\gamma
+\left(z_{k+1,j}+z_{k-1,j}\right)+O(\tau^2+h^{2}\tau)  \label{c10}
+\end{equation}
+for $k=1,2,\dots,N-1$ and $j=0,1,\dots,M-1$.
+In view of (\ref{c5}),
+\begin{equation}
+z_{0,j}=z_{N,j}=0,  \quad j=0,1,\dots,M \quad {\rm and} \quad
+z_{k,0}=0, \quad k=1,2,\dots,N-1. \label{c11}
+\end{equation}
+If the stability condition (\ref{c7}) is satisfied, then
+all coefficients on the right side of (\ref{c10}) are positive.
+
+By definition of $O$, Eq. (\ref{c10}) implies that
+\[
+\left\vert z_{k,j+1}-\left[(1-2\gamma)z_{kj}+\gamma
+\left(z_{k+1,j}+z_{k-1,j}\right)\right]\right\vert \leq A_{k,j+1} \, \vert\tau^2+h^{2}\tau\vert
+\]
+for some positive $A_{k,j+1}$. This and the inequality
+\[
+\vert a\vert = \vert b +(a-b)\vert\leq \vert b\vert + \vert a-b\vert
+\]
+(which is valid for any $a$ and $b$)
+have a consequence that
+\begin{equation}
+\vert z_{k,j+1}\vert =\vert (1-2\gamma)z_{kj}+\gamma
+\left(z_{k+1,j}+z_{k-1,j}\right)\vert +A_{k,j+1} \, \vert\tau^2+h^{2}\tau\vert  \label{c10a}
+\end{equation}
+for  $k=1,2,\dots,N-1$ and $j=0,1,\dots,M-1$.
+
+\vskip 3mm  
+Let ${\bf z}^{(j)}=(z_{1j}, z_{2j}, \dots, z_{N-1,j})^{T}$ and let
+\[
+\Vert {\bf z}^{(j)}\Vert =\Vert {\bf z}^{(j)}\Vert_{\infty}=
+\max\limits_{1\leq k\leq N-1}\vert z_{kj}\vert .
+\]
+It follows from Eq. (\ref{c10}) that
+\begin{eqnarray}
+\Vert {\bf z}^{(j+1)} \Vert&=&\max\limits_{k}\vert z_{k,j+1} \vert\nonumber\\
+&=&
+\max\limits_{k}\left\{\left\vert
+(1-2\gamma)z_{kj}+\gamma
+\left(z_{k+1,j}+z_{k-1,j}\right)\right\vert + A_{j+1} \, \vert\tau^2+h^{2}\tau\vert\right\} \nonumber \\
+&\leq&(1 -2\gamma)\max\limits_{k}\vert z_{kj}\vert+
+\gamma\max\limits_{k}\vert z_{k+1,j}\vert +
+\gamma\max\limits_{k}\vert z_{k-1,j}\vert\nonumber\\
+&&\qquad\qquad
++A_{j+1} \, \vert\tau^2+h^{2}\tau\vert \nonumber \\
+&\leq&\Vert {\bf z}^{(j)} \Vert+A_{k,j+1} \, \vert\tau^2+h^{2}\tau\vert. \nonumber
+\end{eqnarray}
+Here $A_{j+1}=\max\limits_{k}A_{k,j+1}$.
+This inequality is valid for all $j=0,1,\dots,M-1$.
+It follows that
+\begin{eqnarray}
+\Vert {\bf z}^{(j)} \Vert&\leq&
+\Vert {\bf z}^{(j-1)} \Vert +A_{j} \, \vert\tau^2+h^{2}\tau\vert \nonumber \\
+&\leq&\Vert {\bf z}^{(j-2)} \Vert +(A_{j}+A_{j-1}) \, \vert\tau^2+h^{2}\tau\vert \nonumber \\
+&&\dots\quad \dots\quad \dots\quad \dots\quad \dots\quad \nonumber \\
+&\leq&\Vert {\bf z}^{(0)} \Vert +(A_{j}+\dots +A_{1})\, \vert\tau^2+h^{2}\tau\vert \nonumber \\
+&\leq&\Vert {\bf z}^{(0)} \Vert +Aj\tau \, \vert\tau+h^{2}\vert=\Vert {\bf z}^{(0)} \Vert +
+A t_{j} \, \vert\tau+h^{2}\vert \nonumber
+\end{eqnarray}
+where
+\[
+A=\max_{j}A_{j}=\max_{k,j}A_{kj}.
+\]
+Since ${\bf z}_{0}=0$, we obtain
+\begin{equation}
+\Vert {\bf z}^{(j)} \Vert \leq A t_{j} \, \vert\tau+h^{2}\vert \leq A T \vert\tau+h^{2}\vert. \label{c13}
+\end{equation}
+Since this inequality is valid for all $j=0,1,\dots,M$, we obtain
+\[
+E= \max\limits_{k,j}\vert z_{kj} \vert=\max\limits_{j}\Vert {\bf z}^{(j)} \Vert\leq A T \vert\tau+h^{2}\vert \quad \Rightarrow \quad E\to 0 \quad {\rm as} \quad \tau,h\to 0.
+\]
+Thus, we have proved that the forward-difference method is convergent.
+\end{proof}
+Similar statements can be proved for other finite-difference methods.
+ 
+Lax and Richtmyer\footnote{Lax, P.D., and Richtmyer, R.D. (1956). Survey of the stability of linear finite difference equations. Comm. Pure Appl. Math. 9, 267–293.
+} and others studied the relation between consistency, stability,
+and convergence of the approximations of linear initial value problems by
+finite difference equations. The major result of that study is
+\begin{theorem}[Lax equivalence theorem]
+Given a well-posed initial boundary value problem and a finite
+difference approximation to it that satisfies the consistency condition, then
+stability is the necessary and sufficient condition for convergence.
+\end{theorem}
