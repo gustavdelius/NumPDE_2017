@@ -9,10 +9,11 @@ appreciate pull requests for suggested corrections and improvements.
 # How this module works
 
 ## No lectures
-I will not give standard lectures on the material. Instead the lecture slots
+We will not give standard lectures on the material. Instead the lecture slots
 will be discussion sessions where we talk through the material together with
 the help of the lecture slides. Students are required to read through a 
-specified section of the textbook before each session. 
+specified section of the [lecture notes](https://github.com/gustavdelius/NumPDE_2017/blob/master/Lecture_notes/NumPDE_Lecture_notes.pdf) 
+before each session. 
 
 There will be no brownie points for pretending to understand something. Instead 
 there will be praise for raising questions about the material. Such questions will
