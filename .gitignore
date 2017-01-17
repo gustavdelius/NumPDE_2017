@@ -39,3 +39,5 @@ vignettes/*.pdf
 *.out
 *.toc
 *.synctex.*
+*.nav
+*.snm
