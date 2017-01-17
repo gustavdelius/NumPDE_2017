@@ -1,0 +1,167 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsbsy}
+\usepackage{epsfig,array}
+
+
+\textwidth 17cm \textheight 24cm \setlength{\oddsidemargin}{-3mm}
+\setlength{\evensidemargin}{-3mm}
+\setlength{\headheight}{-1\baselineskip}
+\setlength{\headsep}{-1\baselineskip}
+
+\renewcommand{\section}{\subsection}
+
+\pagestyle{empty}
+
+
+
+% Definitions
+%================================================================
+\def\curl{{\rm curl}\,}
+\def\div{{\rm div}\,}
+\def\la{\lambda}
+\def\ba{{\bf a}}
+\def\bb{{\bf b}}
+\def\be{{\bf e}}
+\def\bj{{\bf j}}
+\def\bn{{\bf n}}
+\def\bV{{\bf V}}
+\def\bJ{{\bf J}}
+\def\bv{{\bf v}}
+\def\bu{{\bf u}}
+\def\bH{{\bf H}}
+\def\vf{{\bf f}}
+\def\bh{{\bf h}}
+\def\bU{{\bf U}}
+\def\bV{{\bf V}}
+\def\bx{{\bf x}}
+\def\by{{\bf y}}
+\def\bz{{\bf z}}
+\def\bX{{\bf X}}
+\def\bC{{\bf C}}
+
+\def\vx {{\bf x}}
+\def\vy {{\bf y}}
+\def\vz {{\bf z}}
+\def\vv {{\bf v}}
+\def\vu {{\bf u}}
+\def\vb {{\bf b}}
+\def\vc {{\bf c}}
+\def\vr {{\bf r}}
+
+\def\pr{{\partial}}
+\def\veta{\boldsymbol{\eta}}
+\def\bxi{\boldsymbol{\xi}}
+\def\bnu{\boldsymbol{\nu}}
+\def\Bom{\boldsymbol{\Omega}}
+\def\pd#1#2{\frac{\displaystyle\partial#1}{\displaystyle\partial#2}}
+\def\bfr#1#2{\frac{\displaystyle #1}{\displaystyle #2}}
+\def\vec#1{\boldsymbol{#1}}
+\def\Bbb{\mathbb}
+\def \shalf{{\textstyle \frac{1}{2}}}
+\def \half{\frac{1}{2}}
+\def \ssum{{\textstyle \sum}}
+
+%=======================================================================
+
+
+
+\begin{document}
+
+
+\begin{center}
+{\large {\bf Numerical Methods for PDEs (Spring 2017)}}
+\end{center}
+
+
+\begin{center}
+{\large {\bf Problems 1}}
+\end{center}
+
+\vskip 0.5cm
+\noindent
+Attempt each problem as soon as the material comes up in your assigned reading. The deadline for handing in the written solution for a problem will be at the start of the session on Tuesday
+following the session in which we discuss the material.
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 1.} Derive a finite-difference formula for
+the mixed derivative
+\[
+\frac{\partial^2 u}{\partial x\partial t}
+\]
+at $(x_{k},t_{j})$ based on the grid points $(x_{k},t_{j})$, $(x_{k+1},t_{j})$, $(x_{k},t_{j+1})$ and
+$(x_{k+1},t_{j+1})$, where $t_{j+1}=t_{j}+\tau$ and $x_{k+1}=x_{k}+h$.
+
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 2.} The heat equation
+\begin{equation}
+\frac{\partial u}{\partial t}-K \frac{\partial^{2}u}{\partial
+x^{2}}=f(x,t) \quad \hbox{for} \quad 0<x<1, \ \ 0 < t < T, \label{1}
+\end{equation}
+subject to the boundary and initial conditions
+\begin{equation}
+u(0,t)=0, \quad u(1, t)=0, \quad u(x,0)=u_{0}(x), \label{2}
+\end{equation}
+is solved numerically using the Crank-Nicolson finite-difference method:
+\begin{eqnarray}
+&&w_{k0}=u_{0}(x_{k}), \quad w_{0j}=0, \quad w_{Nj}=0,   \nonumber \\
+&&w_{k,j+1}-w_{k,j}-\frac{\gamma}{2} \left(
+w_{k+1,j}-2w_{kj}+w_{k-1,j}+w_{k+1,j+1}-2w_{k,j+1}+w_{k-1,j+1}\right)
+=\tau f(x_{k}, t_{j}+\tau/2),  \label{4}
+\end{eqnarray}
+for $k=1, 2, \dots , N-1$ and $j=1, 2, \dots,M$.
+Here $w_{kj}$ is an approximation to $u(x_{k}, y_{j})$ and
+\[
+\gamma=K\tau/h^{2}, \quad x_{k}=k h \ \ (k=0,1,\dots,N), \quad
+t_{j}=j \tau \ \ (j=0,1,\dots,M), \quad h=\frac{1}{N}, \quad \tau=\frac{T}{M}.
+\]
+Show that the local truncation error, given by
+\[
+\tau_{k,j}(h)=\frac{1}{\tau}\left[u_{k,j+1}-u_{kj}-\frac{\gamma}{2}
+\left(
+u_{k+1,j}-2u_{kj}+u_{k-1,j}+u_{k+1,j+1}-2u_{k,j+1}+u_{k-1,j+1}\right)\right]
+-f(x_{k}, t_{j}+\tau/2),
+\]
+is $O(\tau^{2}+h^{2})$. (Here $u_{k,j}=u(x_{k}, t_{j})$.)
+
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 3.} The equation
+\begin{equation}
+\frac{\partial u}{\partial t}=\frac{\partial^{2}u}{\partial x^{2}}+\alpha \,
+\frac{\partial u}{\partial x} \quad \hbox{for} \quad
+0<x<1, \ \ t>0, \label{11}
+\end{equation}
+where $\alpha$ is a real constant, subject to the boundary conditions
+\begin{equation}
+u(0,t)=0, \quad u(1, t)=0,  \label{12}
+\end{equation}
+and the initial condition
+\begin{equation}
+u(x,0)=u_{0}(x),  \label{13}
+\end{equation}
+is solved numerically using the finite-difference method:
+\begin{eqnarray}
+&&w_{k0}=u_{0}(x_{k}), \quad w_{0j}=0, \quad w_{Nj}=0,   \nonumber \\
+&&\frac{w_{k,j}-w_{k,j-1}}{\tau}-\frac{w_{k+1,j}-2w_{kj}+w_{k-1,j}}{h^{2}}
+-\alpha \, \frac{w_{k+1,j}-w_{k-1,j}}{2h}=0,   \label{15}
+\end{eqnarray}
+for $k=1, 2, \dots , N-1$ and $j=1, 2, \dots$.
+Here $w_{kj}$ is an approximation to $u(x_{k}, y_{j})$ and
+$x_{k}=k h$ $(k=0,1,\dots,N)$, $t_{j}=j \tau$ $(j=0,1,\dots)$, $h=\frac{1}{N}$.
+
+\vskip 0.2cm \noindent (a) Find the local truncation error of this 
+finite-difference scheme.
+
+\vskip 0.2cm \noindent (b) Investigate the stability of the scheme
+(using the Fourier method).
+
+
+
+
+
+\end{document}
