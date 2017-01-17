@@ -1,0 +1,198 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Practical 3"
+author: "Richard Southwell, Gustav Delius"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+## Forwards difference method
+
+Consider the heat equation
+\begin{equation}
+u_{t}(x,t) = K u_{xx}(x,t), \quad
+0<x< 1, \quad 0<t<0.1,   \label{a1}
+\end{equation}
+subject to the boundary conditions
+\begin{equation}
+u(0, t) = u(1, t)=0,   \label{a2}
+\end{equation}
+and initial condition
+\begin{equation}
+u(x, 0) = 2\sin(2\pi x).   \label{a3}
+\end{equation}
+Here $K > 0$ is the heat parameter. Let $N$ and $M$ be integers and let $h=1/N$  
+and $\tau=0.1/M$. Then we define the grid points $(x_k, t_j)$, where 
+$x_k=hk$ for $k=0,1,\dots,N$ and $t_j=\tau j$ for $j=0,1,\dots,M$. The
+problem is to find numbers $w_{kj}$ such that $w_{kj}$ approximates the value of 
+the exact solution $u(x,t)$ at the grid point $(x_k, t_j)$.
+
+The forward-difference method to obtain a numerical approximation to
+this initial-value problem is
+\begin{eqnarray}
+&&w_{k,0}=u_{0}(x_{k}), \quad k=1, \dots, N-1; \nonumber \\
+&&w_{0,j}=w_{N,j}=0, \quad j=0, 1, \dots, M; \nonumber \\
+&&w_{k,j+1}=\left(1-2\gamma\right)w_{kj}+
+\gamma\left(
+w_{k+1, j}+w_{k-1,j}\right),  \quad k=1, 2, \dots, N-1 \ \
+{\rm and} \ \ j=0,1, \dots, M-1 . \nonumber
+\end{eqnarray}
+Here
+\[
+\gamma=\frac{K \tau}{h^{2}}.
+\]
+
+The method described above is called the forward-difference method.
+It can also be written in the matrix form
+\begin{equation}
+{\bf w}^{(j)}=A{\bf w}^{(j-1)} \quad \hbox{for} \quad j=1,2,\dots, \label{b6}
+\end{equation}
+where
+\begin{equation}
+A=\left[
+\begin{array}{cccccc}
+1-2\gamma &\gamma &0      &\dots  &\dots &0 \\
+\gamma &1-2\gamma &\gamma &\ddots  &     &\vdots \\
+0      &\gamma &1-2\gamma &\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &\gamma \\
+0      &\dots  &\dots  &0      &\gamma &1-2\gamma
+\end{array}\right], \quad
+{\bf w}^{(j)}=\left[
+\begin{array}{c}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N-1,j}
+\end{array}\right],
+\label{b7}
+\end{equation}
+
+We shall gradually construct code to study this scenario. 
+
+We start by generating a vector $(x_1,x_2,..,x_{N-1})$ of non-boundary grid points. Here $x_k = hk$ where $h = L/N$ where $L=1$, and, for the sake of this example we choose $N=30$:  
+
+```{r}
+N <- 30
+L <- 1
+h <- L/N
+x <- h*(1:(N-1))
+```
+
+The initial condition ${\bf w}^{(0)}$ is specified as follows:
+
+```{r}
+w <- 2*sin(2*pi*x) 
+w
+```
+
+Next we set up the time stepping. The amount of time our system runs for is 
+$T=0.1.$ In this case let us use $M = 200$ time steps. The time step size is 
+$\tau = \frac{T}{M}$. This enables us to define the vector `t` of time steps.   
+
+```{r}
+T <- 0.1
+M <- 200
+tau <- T/M
+t <- tau*(0:M) 
+```
+
+In this example we shall set the heat parameter to be $K=1,$ and so we can specify the value of $\gamma = \frac{K \tau }{h^2}.$
+
+```{r}
+K <- 1
+gamma <- K*tau/(h^2)
+```
+
+Given an R variable `w` that represents the system state ${\bf w}^{(j)},$ on time step $j$, if we want to update, to determine the system state ${\bf w}^{(j+1)},$ on the next time step, then we multiply `w` by the matrix `A` defined by the code:
+
+```{r}
+A <- diag(1-2*gamma, N-1)
+for (k in 1:(N-2)) {
+    A[k,k+1] <- gamma
+    A[k+1,k] <- gamma
+}
+```
+
+We perform such an update in R by computing the matrix product `A %*% w` of `A` and `w`.  We use this method to plot ${\bf w}^{0}$ and ${\bf w}^{1}$ in the following code: 
+
+```{r}
+plot(x, w, type = "l")
+lines(x, A %*% w, col = "red")
+```
+
+Note how the solution has changed ever so slightly over this one time step.
+
+In order to evolve our system over all `M` time steps, we repeatedly rewrite the object `w` by its updated value `A %*% w`, by using the command `w <- A %*% w`, inside a do loop. As we do this we store the successive vectors ${\bf w}^{0}, {\bf w}^{1},..,{\bf w}^{M}$, as successive columns of an $(N-1) \times (M+1)$  matrix which we call `Temperature`. Initially we define this matrix as being full of zeroes. All this is done in the following code:
+
+```{r}
+Temperature <- matrix(0, N-1, M+1) # Matrix to hold the solution
+Temperature[ , 1] <- w
+# Loop over time steps
+for (j in 0:(M)) {
+    w <- A %*% w
+    Temperature[ , j+1] <- w
+}
+
+```
+
+The code `Temperature[ , j+1] <- w` sets the $(j+1)$th column of `Temperature` equal to ${\bf w}^{j}$. We use this indexing regime because vectors (and matrices) in R have indexes starting from 1 whereas, algebraically, we attribute our initial state to time step zero. The result of our convention is that $w_{k,j}$ equals `Temperature[k, j+1]` in our R code. 
+
+Note we added comments to the code using `#`. Everything on a line after a `#` 
+will be ignored by R and is there to help the human reader.
+
+We shall make a 3D plot to show the time evolution of our system:
+
+```{r warning=FALSE}
+library("plot3Drgl") 
+persp3D(x, t, Temperature,
+        xlab="x", ylab="t", zlab="Temperature", # Provides axis labels
+        ticktype="detailed", nticks=4) # Provides axis ticks
+```
+
+Let's send the plot to a separate window again, and also turn on a light source 
+to enhance the 3D effect.
+```{r eval=FALSE}
+plotrgl(smooth=TRUE, lighting = TRUE)
+```
+
+
+
+## Exercises
+
+1) Collect all the commands from above in your own R script file and make sure 
+you can run the code from there and get the same solution.
+
+2) Evolve the heat equation from two other initial conditions of your choosing.
+
+3) Now explore the effect of different values of $K$ on the solution. Start 
+with $K=0.5$. What do you observe? Does it agree with your expectation?
+
+4) Next try $K=1.5$. What do you observe? Does it agree with your expectation?
+
+5) To avoid the instability, change the size of the time step. How small does
+the time step have to be if you want to get a solution for $K=5$?
+
+6) Modify the above file appropriately to solve the following initial boundary value problem
+\begin{eqnarray}
+&&u_{t}(x,t) = u_{xx}(x,t)-25 \sin(3\pi x), \quad
+0<x< 1, \quad 0<t<0.2;   \label{b1} \\
+&&u(0, t) = u(1, t)=0, \quad u(x, 0) = -1.5\sin(2\pi x).   \label{b2}
+\end{eqnarray}
+Note that the generalisation of the forward-difference method to the non-homogeneous heat equation
+$u_{t}=K \, u_{xx} + f(x),$ can be written as a matrix equation as
+\begin{equation}
+{\bf w}^{(j)}=A{\bf w}^{(j-1)}+\tau {\bf F}^{(j-1)} \quad \hbox{for} \quad j=1,2,\dots, \label{d106}
+\end{equation}
+where
+$${\bf F}^{(j)}=\left[
+\begin{array}{c}
+f_{x_1} \\ f_{x_2} \\ \vdots \\ \vdots \\ \vdots \\ f_{x_{N-1}} 
+\end{array}\right]$$
+
