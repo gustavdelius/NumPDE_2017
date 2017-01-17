@@ -1,0 +1,301 @@
+\documentclass{beamer}
+
+\mode<presentation>
+
+
+\input{frontmatter}
+
+\usepackage[normalem]{ulem}
+
+\begin{document}
+
+\setbeamercovered{transparent}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Numerical Methods for PDEs (Spring 2017)}
+
+\begin{itemize}
+
+\item{} \textcolor{blue}{\textbf{Module coordinators}}:
+
+Gustav Delius and Richard Southwell
+
+\item{} \textcolor{blue}{\textbf{Module aims}}:
+
+\begin{itemize}
+
+\item{} To gain an understanding of basic numerical methods for solving PDEs
+
+\item{} To be aware of the potential pitfalls and develop experience in 
+avoiding them
+
+\item{} To implement numerical algorithms in practice
+
+\item{} To gain competency in using computing tools like R, C++, Git, ...
+
+\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Teaching and assessment}
+
+\begin{itemize}
+
+\item{} \textcolor{blue}{\textbf{Teaching}}:
+
+\begin{itemize}
+
+\item<1|only@1>{} 18 hours of lectures
+
+\item<1|only@1> 9 hours of practicals (computer classes)
+
+\item<2|only@2->{\sout{18 hours of lectures}}
+
+\item<2|only@2->{\sout{9 hours of practicals (computer classes)}}
+
+\item<2-|only@2-> 27 hours of discussion of theory and computer work
+\begin{itemize}
+\item<3-> Lecture notes
+\item<3-> Lecture slides and summary sheets
+\item<3-> Problem and solution sheets
+\item<3-> Computer worksheets with example code and exercises
+\end{itemize}
+
+\end{itemize}
+\pause
+\item{} \textcolor{blue}{\textbf{Assessment}}: 
+
+\begin{itemize}
+
+\item<4-> 2 hour exam in week 1 of the
+Summer term -- 75\% 
+
+\item<5-> Coursework -- 25\%
+
+\begin{itemize}
+
+\item<6-> mini-project 1 (10\%) Implementing a numerical scheme for solving a given parabolic equation
+
+\item<7-> mini-project 2 (15\%) Implementing a numerical scheme for a PDE from a published research paper of your choice
+
+\end{itemize}
+
+\end{itemize}
+
+\end{itemize}
+
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Course contents}
+
+{\footnotesize
+
+\begin{enumerate}
+
+\item{} Introduction (1 week).
+
+\item{} Parabolic differential equations. Finite-difference methods. Consistency, stability and convergence of
+finite-difference schemes. (5 weeks).
+
+\item{} Finite-difference methods for elliptic differential equations (2 weeks).
+
+\item{} Finite-difference methods for hyperbolic differential equations (1 week).
+
+\end{enumerate}
+
+\vskip 5mm
+\pause
+
+\textcolor{blue}{\textbf{Reading list}}:
+
+\begin{enumerate}
+
+\item{} RL Burden \& JD Faires, {\it Numerical Analysis}
+(6th ed.), Brooks/Cole Publishing Company, 1997;
+
+\item{} WF Ames,
+{\it Numerical Methods for Partial Differential Equations}, Academic
+Press, 1977;
+
+\item{} WH Press,
+{\it Numerical Recipes: the Art of Scientific Computing}, CUP, 2007.
+
+\end{enumerate}
+}
+
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{frame}{\small Some facts from Calculus}
+
+{\footnotesize
+
+\textbf{Taylor's theorem for functions of one variable}
+
+\vskip 3mm
+If $f\in C^{n+1}$ in $(x_{0}-\epsilon,x_{0}+\epsilon)$, then
+\[
+f(x)=T_{n}+R_{n}
+\]
+where $T_{n}$ in the $n$th Taylor polynomial
+\[
+T_{n}=f(x_{0})+(x-x_{0})f^{\prime}(x_{0})+
+\frac{(x-x_{0})^{2}}{2!}f^{\prime\prime}(x_{0})+ \dots+
+\frac{(x-x_{0})^{n}}{n!}f^{(n)}(x_{0})
+\]
+and $R_{n}$ is the remainder term
+\[
+R_{n}=\frac{(x-x_{0})^{n+1}}{(n+1)!}f^{(n+1)}(\xi)
+\]
+for some point $\xi$ between $x_{0}$ and $x$ ($\xi$ can be written
+as $\xi=x_{0}+\theta (x-x_{0})$ where $0< \theta<1$).
+
+}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}{\small Some facts from Calculus}
+
+{\footnotesize
+
+\textbf{Taylor's theorem for functions of two variables}
+
+\vskip 3mm
+If $F\in C^{n+1}(D)$ where $D\subset\mathbb{R}^2$,
+then
+\begin{eqnarray}
+F(x, y) &=& T_{n}(x, y)+R_{n}(x, y), \nonumber \\
+T_{n}(x, y) &=& F(x_{0}, y_{0})+
+\left[\Delta x\left.\frac{\partial F}{\partial x}\right\vert_{(x_{0}, y_{0})}+
+\Delta y\left.\frac{\partial F}{\partial y}\right\vert_{(x_{0}, y_{0})}\right] \nonumber \\
+&+& \left[\frac{(\Delta x)^{2}}{2}\left.\frac{\partial^2 F}{\partial x^2}\right\vert_{(x_{0}, y_{0})}+
+\Delta x \Delta y\left.\frac{\partial^2 F}{\partial x\partial y}\right\vert_{(x_{0}, y_{0})}+
+\frac{(\Delta y)^{2}}{2}\left.\frac{\partial^2 F}{\partial y^2}\right\vert_{(x_{0}, y_{0})}
+\right] \qquad \nonumber \\
+&+& \dots\dots \nonumber \\
+&+& \left[\frac{1}{n!}\sum_{j=0}^{n}
+\left(
+\begin{array}{c}
+n \\
+ j
+\end{array}
+\right)
+(\Delta x)^{n-j}(\Delta y)^{j}
+\left.\frac{\partial^{n} F}{\partial x^{n-j}\partial y^{j}}\right\vert_{(x_{0}, y_{0})}\right] \nonumber
+\end{eqnarray}
+where $\Delta x=x-x_{0}$, $\Delta y=y-y_{0}$ and
+\[
+R_{n}(x, y)=
+\frac{1}{(n+1)!}\sum_{j=0}^{n+1}
+\left(
+\begin{array}{c}
+n+1 \\
+ j
+\end{array}
+\right)
+(\Delta x)^{n+1-j}(\Delta y)^{j}
+\frac{\partial^{n+1} f}{\partial x^{n+1-j}\partial y^{j}}(\xi, \mu) .
+\]
+}
+
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}{\small Some facts from Calculus}
+
+
+
+\textbf{Big $O$ notation}
+
+\vskip 5mm
+\textcolor{blue}{\textbf{Definition.}} Let $\lim\limits_{x\to 0}g(x)=0$ and
+$\lim\limits_{x\to 0}f(x)=f_{0}$. If there exists
+a constant $K>0$ such that
+\[
+\vert f(x)-f_{0}\vert   \leq K \vert g(x)\vert,
+\]
+at least for $x$ sufficiently close to zero, we write
+\[
+f(x)=f_{0}+O(g(x)) \quad {\rm as} \quad x\to 0.
+\]
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}{\small Some facts from Calculus}
+
+
+\begin{itemize}[<+->]
+
+\item
+\textcolor{blue}{\textbf{Example}}. Let us show that $\sin(x)/x=1+O(x^2)$ as $x\to 0$.
+
+
+\vskip 3mm
+
+\item \textbf{Solution.}
+The 2nd Taylor polynomial for $sin(x)$:
+\[
+\sin(x)=x-\frac{x^{3}}{3!}\cos(\xi)
+\]
+where $\xi$ is some number between 0 and $x$.
+
+\vskip 3mm
+We have
+\[
+\left\vert \frac{\sin x}{x} -1 \right\vert = \frac{\vert x
+\vert^{2}}{3!}\vert \cos(\xi)\vert \leq \frac{x^{2}}{3!}=\frac{x^{2}}{6} \ \ \
+\Rightarrow \ \ \ \ \frac{\sin x}{x}=1+O(x^{2}).
+\]
+
+\end{itemize}
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}{\small Some facts from Calculus}
+
+\textcolor{blue}{\textbf{Properties of $O(x^n)$}}:
+
+\begin{enumerate}[<+->]
+\item{} $O(x^n)+O(x^m)=O(x^k)$ \ \ for $n,m\geq 0$ \ \ and \ \ $k=\min\{n,m\}$.
+
+\vskip 3mm
+\item{} $O(x^n)O(x^m)=O(x^{n+m})$ \ \ for \ \ $n,m\geq 0$.
+
+\vskip 3mm
+\item{} $x^m O(x^n)=O(x^{n+m})$ \ \ for $n\geq 0$ \ \ and \ \ $n+m\geq 0$.
+\end{enumerate}
+
+
+
+\end{frame}
+
+\end{document}
