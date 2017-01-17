@@ -101,6 +101,10 @@ f(x)=f_{0}+O(g(x))
 \]
 as $x\to 0$.
 \end{definition}
+Note that in the above definition it is important that we specify the ``as $x\to 0$''.
+We are interested in the behaviour as $x$ gets smaller, and we say something is
+$O(g(x))$ if it goes to zero at least as fast as $g(x)$.
+One could also use the Big Oh notation for other limits, in particular $x\to\infty$.
 
 \begin{example}
 The function $f(x)=\sin(x)/x$ converges to 1 as fast
@@ -118,7 +122,7 @@ where $\xi$ is some number between 0 and $x$. We have
 Here we used the fact that $\vert\cos(\xi)\vert\leq 1$ for all $\xi$.
 \end{example}
 
-\begin{lemma}[Properties of $O(x^n)$]
+\begin{lemma}[Properties of $O(x^n)$ as $x\to 0$]
 We have
 \begin{enumerate}
 
@@ -137,6 +141,8 @@ O(x^2)+O(x^3)=O(x^2), \quad
 O(x^2)O(x^3)=O(x^5), \quad
 x^{-2}O(x^3)=O(x).
 \]
+Note that the first property holds for $x\to 0$ but if we were instead considering
+$x\to\infty$ the min would change to a max.
 
 \pagebreak[2]
 
