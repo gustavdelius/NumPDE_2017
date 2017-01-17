@@ -1,0 +1,339 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Practical 2"
+author: "Richard Southwell, Gustav Delius"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+## Lists
+
+A vector is a collection of elements of the same class. If we want to group up 
+elements of different classes, we can use a `list`. For example, the code below 
+makes a list including a character vector and a numeric vector:
+
+```{r}
+myList <- list(animal=c("dog", "man"), legs=c(4, 2))
+myList
+```
+
+You can extract an component of the list either by name, separating the name of 
+the list and the name of the component by a \$,
+
+```{r}
+myList$legs
+```
+or by index, using double square brackets around the index of the component:
+```{r}
+myList[[2]]
+```
+Single square bracket notation also works, but it returns a list:
+```{r}
+myList[2]
+```
+
+## Creating Functions
+
+R has many built in functions, and we can create more. Let us make a function
+`circle()`, which takes two inputs arguments: `N` and `r`, and outputs the 
+coordinates of `N` points equally spaced around a circle of radius `r`.
+
+```{r}
+circle <- function(N, r) {
+    t <- (1:N)/N
+    A <- list(x=r*sin(2*pi*t), y=r*cos(2*pi*t))
+    return(A)
+}
+```
+
+This function creates a list `A` with two components: `A$x` is a vector with 
+the x-coordinates of our circle points, and `A$y` is a vector with the 
+y-coordinates of the circle points. Let us check this function works. 
+
+```{r}
+coords <- circle(100, 2)
+par(pty="s")
+plot(coords$x, coords$y, main="A circle", xlab="X", ylab="Y")
+par(pty="m")
+```
+
+Recall from last time that we need to change R's plotting parameters using 
+`par(pty="s")` to get the axes to have the same length, and after we are done 
+we reset the parameters with `par(pty="m")`. 
+
+The variables `N,r,A,t` are defined locally inside our circle function, so if 
+we use variables `t` or `N` in our global environment, they will be independent 
+of the similarly named variables inside our `circle()` function and will not be
+changed when we call the `circle()` function
+
+```{r}
+t <- 1
+N <- 2
+circle(5,3)
+t
+```
+
+Regarding plotting, we again set`type = "l"` to make a plot with lines. 
+Additional  lines can be added using the `lines` command. We add one more line 
+to close the hexagon in this case. 
+
+```{r}
+coords <- circle(6, 2)
+par(pty="s")
+plot(coords$x, coords$y, main="A hexagon", xlab="X", ylab="Y", type = "l")
+lines(c((coords$x)[6], (coords$x)[1]), c((coords$y)[6], (coords$y)[1]))
+par(pty="m")
+```
+
+It is possible to refer to variables inside a function, which are not inputs 
+and which are not defined inside a function. When R encounters such variables 
+it looks to see if they are defined at a higher level. For example, let us 
+write another function, that generates a circle, but this time it will be 
+shifted `w` units to the right:
+
+```{r}
+shiftedCircle <- function(N, r) {
+    t <- (1:N)/N
+    A <- list(x=r*sin(2*pi*t) + w, y=r*cos(2*pi*t))
+    return(A)
+}
+```
+
+Let us test our function:
+
+```{r}
+w <- 1
+par(pty="s")
+plot(shiftedCircle(100, 2)$x, shiftedCircle(100, 2)$y, 
+     main="Two circles", xlab="X", ylab="Y")
+w <- 2
+points(shiftedCircle(100, 1)$x, shiftedCircle(100, 1)$y)
+par(pty="m")
+```
+
+This `plot` command makes a radius two circle with a centre one unit to the 
+right of the origin. The `points` command adds extra points, in this case for a 
+radius one circle with a centre two units to the right of the origin. 
+
+## Loops
+
+The `for` loop repeats a group of statements a fixed, predetermined number of 
+times. The statements to be repeated are enclosed in curly brackets:
+
+```{r}
+for (n in 1:3) {
+    print(n/2)
+}
+```
+
+In this example, we make a vector `f` of ones, and then use a `for` loop to 
+rewrite it with the Fibonacci numbers:
+
+```{r}
+f <- rep(1, 10)
+f
+for (n in 3:10) {
+    f[n] <- f[n-1] + f[n-2]
+}
+f
+```
+
+    
+We can fill in a matrix by nesting one for loop inside another:
+
+```{r}
+H <- matrix(0, 5, 5)
+for (n in 1:5) {
+    for (m in 1:5) {
+        H[n, m] <- 1/(n+m)
+    }
+}
+H
+```
+
+Note that we have indented the code inside the loops. Indenting like this is 
+not necessary for the code to run, but it is a helpful programming convention 
+that makes it easier for other people to read the code. RStudio's automation 
+helps you to indent your code appropriately as you type in script files. 
+
+The `while` loop repeats a group of statements an indefinite number of times 
+under control of a
+logical condition. For example, the following program computes all powers of 2 
+that are less that
+1000 and writes the result as a vector `q`. Here `q` starts as an empty vector, 
+and we build `q` up by appending new entries to its right hand side: 
+
+```{r}
+s <- 2
+q <- c()
+while(s < 1000) {
+    q <- c(q, s)
+    s <- 2*s
+}
+q
+```
+
+The function file below approximates function $e^x$ by its $N$th Taylor 
+polynomial at 0, i.e. it computes
+
+$$1+x+\frac{x^2}{2!} + ... + \frac{x^n}{N!} = \sum_{k=0} ^N c_k $$
+where $c_k = x^k / k!$ can be computed recursively since $c_0 = 1$ and 
+$c_k = c_{k-1} x /k.$
+
+```{r}
+myexp <- function(x, N) {
+    f <- 1
+    c <- 1
+    for (k in 1:N) {
+        c <- c*x/k
+        f <- f+c
+    }
+    return(f)
+}
+myexp(1, 5)
+```
+
+### Exercise 1
+Write a function `mysum` that uses a loop to compute
+$$\frac{1}{1^2}+\frac{1}{2^2}+\frac{1}{3^2}+...+\frac{1}{N^2}$$
+for a given $N$. Compute the sum for $N=10, 50, 100.$
+
+### Exercise 2
+Use a `for` loop within which our `circle` function is repeatedly called, to 
+make a picture with seven concentric circles, of radii 1,2,..,7. 
+
+
+## If and Break
+
+The `if` statement evaluates a logical expression and executes a group of
+statements (surrounded in curly brackets) when the expression is `TRUE`. 
+The optional `else if` and `else` keywords provide for the
+execution of alternate groups of statements. 
+
+```{r}
+x <- 0
+if (x < 0) {
+   print("Negative number")
+} else if (x > 0) {
+   print("Positive number")
+} else {
+    print("Zero")
+}
+   
+```
+
+The command `break` inside a for or while loop terminates the execution of the 
+loop. In this example we iterate the logistic map $x \rightarrow 2.5 x (1-x)$ 
+until updating causes the value to change by less than $0.001.$
+
+```{r}
+x <- 0.5
+for (j in 1:100) {
+    y <- 2.5*x*(1-x)
+    if (abs(x-y) < 0.001) {
+        break
+    } else {
+        x <- y
+    }
+}
+y
+```
+
+
+### Exercise 3
+
+2) Write a function `mysin` which approximates $\sin(x)$ by its Taylor series at 
+$0$ with error less than $10^-4.$ The Taylor formula is
+$$\sin(x) = x - \frac{x^3}{3!} + \frac{x^5}{5!} + ... + (-1)^n \frac{x^{2n+1}}{(2n+1)!} + R_n,$$
+where 
+$$|R_n| \leq \frac{|x|^{2n+3}}{(2n+3)!}.$$
+
+[Hint: use if-else statement to break your loop when $|R| = \abs(R_n) < 10^{-4}.$]
+
+
+
+## Installing and loading Packages
+
+R is an extremely extensible language. Many capabilities are provided by
+additional packages, of which there are many thousands. Some of them will
+already be installed on your computer. You can see all the installed
+packages by going to the *Packages* tab in the pane on the lower right of
+your RStudio window.
+
+We will now use the plot3Drgl package that provides a nice way to
+produce three-dimensional plots. This is probably not yet installed on your
+machine but installing new packages is extremely simple. Just click on the
+*Install* button at the top of the *Packages* pane and type `plot3Drgl`,
+select the package and hit *Install*. Alternatively you can also do the same
+thing with following the R command:
+```{r eval=FALSE}
+install.packages("plot3Drgl")
+```
+
+Packages themselves often depend on other packages, and the installation
+process is clever enough to automatically install those required packages.
+In this case you probably saw also the packages `plot3D` and `rgl` getting
+installed.
+
+To conveniently use the new functions provided by a package, we load the 
+package. To load the plot3Drgl` package you can either just click on the
+checkbox next to its name in the *Packages* tab, or you can use the R
+command
+```{r}
+library("plot3Drgl")
+```
+Again this automatically also loads the prerequisite packages `rgl` and
+`plot3D`. 
+
+
+## Three dimensional plots
+
+One of the functions provided by the 'plot3D' package is the 'persp3D()'
+function that produces surface plots. It takes arguments 'x', 'y' and 'z',
+where 'z' is a matrix which contains the  values of the function we want to 
+plot evaluated at the $x$ and $y$ values contained in the vectors 'x' and 'y'.
+
+So let's plot the function $x \exp(-x^2-y^2)$ for $x\in[-2.5,2.5]$ and 
+$y\in [-2,2]$
+First create vectors with equally-spaced $x$ and $y$ values,
+```{r}
+x <- seq(-2.5, 2.5, length.out = 100)
+y <- seq(-2, 2, length.out = 100)
+```
+Then we create the mesh of gridpoints
+```{r}
+xy <- mesh(x, y)
+```
+This is useful for now producing the matrix of function values
+```{r}
+z <- with(xy, x*exp(-x^2-y^2))
+```
+Now we can produce the plot
+```{r}
+persp3D(x, y, z)
+```
+It would be nice to be able to rotate this plot to see it from different angles.
+The command
+```{r eval=FALSE}
+plotrgl()
+```
+will open a separate window in which you can click with the mouse and then drag 
+the plot around.
+
+Perhaps you notice that the colour is not changing smoothly, which is due to the
+fact that we evaluated the function only at a discrete set of gridpoints. To
+improve the display you can use the `smooth` option:
+```{r eval=FALSE}
+plotrgl(smooth = TRUE)
+```
+
+### Exercise 4
+Choose a function of two arguments that you think will produce a particularly
+beautiful surface plot and display it.
+
+Now commit your R script with all your exercise solutions to your Github 
+repository.
