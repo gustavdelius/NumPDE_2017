@@ -83,7 +83,7 @@ u_{t}(x_k,t_j)=\lim_{\tau\to 0}\frac{u(x_k,t_j+\tau)-u(x_k,t_j)}{\tau}.
 \]
 It is natural to expect that
 \[
-u_{t}\approx \frac{u(x_k,t_j+\tau)-u(x_k,t_j)}{\tau}
+u_{t}(x_k,t_j)\approx \frac{u(x_k,t_j+\tau)-u(x_k,t_j)}{\tau}
 \]
 for sufficiently small $\tau$.
 
@@ -97,7 +97,7 @@ for sufficiently small $\tau$.
 
 \begin{frame}{Truncation error}
 
-The second Taylor polynomial for $u(x_k,t_j+\tau)$:
+The first Taylor polynomial for $u(x_k,t_j+\tau)$:
 \[
 u(x_k,t_j+\tau)=u(x_k,t_j)+\tau \frac{\pr u}{\pr t}(x_k,t_j)+
 \frac{\tau^2}{2}\frac{\pr^2 u}{\pr t^2}(x_k,\xi)
@@ -111,7 +111,6 @@ $\tau_{kj}$ is called the \textcolor{blue}{{\em truncation error }}.
 
 \vskip 5mm
 If $u_{tt}(x,t)$ is bounded, then
-we can write
 \[
 \tau_{kj}=O(\tau) \quad {\rm as} \quad \tau\to 0.
 \]
@@ -159,6 +158,8 @@ u(x_k-h,t_j)&=&u(x_k,t_j)-h u_{x}(x_k,t_j)+
 for some $\xi_{1}$ between $x_{k}$ and $x_{k}+h$
 and some $\xi_{2}$ between $x_{k}-h$ and $x_{k}$.
 
+Now take the sum of these.
+
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,7 +205,8 @@ u_{xx}(x_k,t_j)=\frac{u(x_{k+1},t_j)-2u(x_k,t_j)+u(x_{k-1},t_j)}{h^2}
 \]
 where $\xi\in(x_{k-1},x_{k+1})$.
 
-This ia called the {\bf central difference formula} for $u_{xx}$.
+This is called the {\bf central difference formula} for $u_{xx}$.
+If $u_{xxxx}$ is bounded, the truncation error is $O(h^2)$
 
 
 \end{frame}
@@ -223,7 +225,7 @@ Then
 \frac{w_{k,j+1}-w_{kj}}{\tau}-K
 \frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=0,
 \]
-for each interior grid point.
+for each interior grid point. Local truncation error is $O(\tau)$+$O(h^2)$.
 
 {\bf Boundary conditions:}
 \[
@@ -279,10 +281,6 @@ w_{N-1,j}
 \]
 The forward-difference method is an example of an {\bf explicit finite-difference method}.
 }
-
-
-
-
 
 \end{frame}
 
@@ -375,7 +373,7 @@ difference method in \textbf{unstable}. If they do not grow, it is stable.}
 
 \textbf{Matrix method.}
 
-\begin{itemize}[<+->]
+\begin{itemize}
 
 \item We have
 \[
@@ -399,14 +397,57 @@ Here $\Vert\cdot\Vert$ is any vector norm.
 \item This is
 equivalent to
 \[
-\vert\lambda_{i}\vert\leq 1 \quad \hbox{for} \quad i=1, 2, \dots, N-1.
+\vert\lambda_{i}\vert\leq 1 \quad \hbox{for} \quad i=1, 2, \dots, N-1,
 \]
-So, the stability problem reduces to the problem of finding eigenvalues of matrix $A$.
+where the $\lambda_i$ are the eigenvalues of matrix $A$.
 
 \end{itemize}
 }
 
 \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{frame}{\small Periodic boundary conditions}
+
+{\small
+If we impose $u(x,0)=u(x,L)$ then $w_N = w_0$. We also define
+$w_{N+1}=w_{1}$ Then we can use forward difference
+equation
+\[
+w_{k,j+1}=\left(1-2\gamma\right)w_{kj}+
+\gamma\left(
+w_{k+1, j}+w_{k-1,j}\right)
+\]
+for $k=1,\dots N$. Which can be written as
+${\bf w}^{(j)}=A{\bf w}^{(j-1)} $
+where now
+\[
+A=\left[
+\begin{array}{cccccc}
+1-2\gamma &\gamma &0      &\dots  &0 &\gamma \\
+\gamma &1-2\gamma &\gamma &\ddots  &\vdots &0\\
+0      &\gamma &1-2\gamma &\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+0 &       &\ddots &\ddots &\ddots &\gamma \\
+\gamma      &0  &\dots  &0      &\gamma &1-2\gamma
+\end{array}\right], \quad
+{\bf w}^{(j)}=\left[
+\begin{array}{c}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N,j}
+\end{array}\right].
+\label{bp7}
+\]
+}
+This is a circulant matrix and its eigenvectors are known.
+\end{frame}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
