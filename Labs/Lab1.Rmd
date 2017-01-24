@@ -480,7 +480,7 @@ We can use a similar method to create a picture of a circle. First we create a
 linearly spaced vector consisting of 100 angles:
 
 ```{r} 
-theta=(0:100)*2*pi/100;
+theta=(0:100)*2*pi/100
 ```
 
 Then we calculate the x and y coordinates of points on the circle:
@@ -506,7 +506,7 @@ par(pty="m")
 
 ### Exercise 5
 
-1) Use on-line help for R plot, to change the colour of the graph of unit 
+Use on-line help for R plot, to change the colour of the graph of unit 
 circle. To ask R for help press F1 when the cursor is on the desired command.
 
 
