@@ -1,0 +1,262 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Practical 4"
+author: "Richard Southwell, Gustav Delius"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+# Encapsulating code in a function
+
+In the last lab you wrote code to use the forward difference method to
+numerically solve the heat equation
+$$ u_{t}(x,t) = K u_{xx}(x,t)+f(x),$$
+for $0<x< L, 0<t<T$, subject to the boundary conditions
+$$ u(0, t) = u(L, t)=0, $$
+and initial condition
+$$ u(x, 0) = u_0(x). $$
+To make it easy to re-use that code to obtain solutions with different
+parameters and different choices for the initial condition $u_0(x)$ and
+the inhomogenous term $f(x)$ we encapsulate that code inside a function.
+The parameters that we may want to change we make into arguments for the
+function. 
+
+```{r}
+forwardDifference <- function(f=function(x) 0, 
+                              u0=function(x) 2*sin(2*pi*x), 
+                              K=1, L=1, N=30, T=0.1, M=200) {
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # set up vectors with initial condition and inhomogenous term
+    w <- u0(x)
+    F <- f(x)
+    
+    # Set up evolution matrix
+    gamma <- K*tau/(h^2)
+    A <- diag(1-2*gamma, N-1)
+    for (k in 1:(N-2)) {
+        A[k,k+1] <- gamma
+        A[k+1,k] <- gamma
+    }
+    
+    Temperature <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    Temperature[ , 1] <- w  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        w <- A %*% w + tau * F
+        Temperature[ , j+1] <- w
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=Temperature))
+}
+```
+
+There are two things to note about the function arguments:
+1) R allows the arguments to functions to themselves be functions. In the
+above function the arguments f and u0 are functions.
+2) R allows you to specify default values for some arguments. Then you can
+call the function without having to specify those arguments where you just
+want to use the default values
+
+Let us use this function to reproduce the first example from Lab 3
+
+```{r}
+sol <- forwardDifference()
+```
+
+Note that we did not have to specify any of the arguments because we were
+happy with the default values. 
+
+Next we plot the solution:
+
+```{r}
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+plotrgl(smooth=TRUE, lighting = TRUE)
+```
+
+Next let's reproduce the the example from the last exercise from Lab 3. 
+
+```{r}
+sol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                         u0=function(x) {-1.5*sin(2*pi*x)},
+                         T=0.2, M=600
+)
+persp3D(sol$x, sol$t, sol$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+```
+
+## Exercise 1
+Use the function `forwardDifference()` to solve the equation
+$$u_{t}(x,t) = \frac14 u_{xx}(x,t)-16\sin(8\pi x), \quad
+0<x< 1, \quad 0<t<0.2$$
+with initial condition
+$$u(0, t) = u(1, t)=0, \quad u(x, 0) = \sin(\pi x).$$
+Plot the solution.
+
+
+
+# Studying the error
+
+Consider again the example from the exercise in Lab 3:
+$$u_{t}(x,t) = u_{xx}(x,t)-25 \sin(3\pi x), \quad
+0<x< 1, \quad 0<t<0.2,$$
+with initial condition
+$$u(0, t) = u(1, t)=0, \quad u(x, 0) = -\frac32\sin(2\pi x).$$
+
+The exact solution is
+$$u(x,t) = -\frac32 \sin(2\pi x)e^{-4\pi^2 t}
+-\frac{25}{9\pi^2}\sin(3\pi x)\left(1-e^{-9\pi^2 t}\right).$$
+
+We will now compare the numerical solution to the exact solution. The numerical solution is
+
+```{r}
+numSol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                         u0=function(x) {-3/2*sin(2*pi*x)},
+                         T=0.2, M=360
+)
+```
+
+To evaluate the exact solution at the grid points we first construct the grid (mesh)
+
+```{r}
+x <- numSol$x
+t <- numSol$t
+xy <- mesh(x, t)
+```
+
+and then create the matrix of values at the grid points
+
+```{r}
+u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+                       -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+```
+
+When we plot the exact solution it looks just like the numerical solutions we
+had plotted already above.
+
+```{r}
+persp3D(x, t, u, zlab="u", ticktype="detailed", nticks=4) 
+```
+
+But when we plot the difference between the numerical solution and the exact
+solution we see that they were in fact not quite equal. 
+
+```{r}
+persp3D(x, t, u - numSol$w, zlab="u - w", ticktype="detailed", nticks=4)
+```
+
+There is quite a large error. The maximal error is
+
+```{r}
+max(abs(u - numSol$w))
+```
+
+This relatively large error is due to the large stepsize we used in the
+$x$ direction. When we double the number of steps from $n=60$ to $N=60$ we
+should see a reduction in the error. Unfortunately we will also need to
+reduce the step size in the $t$ direction, so that the stability condition
+$$ \tau < \frac{h^2}{2K}$$
+is satisfied. In our case $h=L/N=1/60$ and $K=1$, so we need $\tau=T/M<1/7200$
+or equivalently $M>7200 T$. With $T=0.2$ this gives $M > 1440$. 
+Just out of fun let us check that we really can't get away with fewer time steps.
+Let's see what happens if we use 1400 time steps instead of the required 1440.
+```{r}
+numSol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                         u0=function(x) {-3/2*sin(2*pi*x)},
+                         T=0.2, M=1400, N=60
+)
+persp3D(numSol$x, numSol$t, numSol$w, 
+        xlab="x", ylab="t", zlab="w", 
+        ticktype="detailed", nticks=4) 
+```
+
+As expected, we get nonsense. So let's redo the calculation with 1440 time steps.
+
+```{r}
+numSol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                         u0=function(x) {-3/2*sin(2*pi*x)},
+                         T=0.2, M=1440, N=60
+)
+persp3D(numSol$x, numSol$t, numSol$w, 
+        xlab="x", ylab="t", zlab="w", 
+        ticktype="detailed", nticks=4) 
+```
+
+Notice that now we have approximations $w$ at many more gridpoints. The
+resolution in the $t$ direction is much larger than we need to produce a nice
+plot. This unnecessarily slows down the production of the plot, so we will
+work only with a subset of all the $t$ values. Out of the
+1441 values we will plot only every 4th. Luckily selecting a subset of 
+entries of a vector or a matrix is very easy in R. We first introduce the
+technique in a simple example.
+```{r}
+v <- (1:10)^2
+v
+```
+Here is how we would select the third and sixth element from the vector `v`:
+```{r}
+v[c(3, 6)]
+```
+To select only all elements with odd indices we can do
+```{r}
+select <- seq(1, 10, by=2)
+v[select]
+```
+We can now apply this technique to extracting every 4th element in the $t$
+direction.
+```{r}
+tSelect <- seq(1, 1441, by=4)
+t <- numSol$t[tSelect]
+w <- numSol$w[, tSelect]
+```
+
+We calculate the exact solution at the same gridpoints
+
+```{r}
+x <- numSol$x
+xy <- mesh(x, t)
+u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+                       -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+```
+
+Now we can plot the difference between the exact solution and the numerical
+solution
+
+```{r}
+persp3D(x, t, u - w, zlab="u - w", ticktype="detailed", nticks=4)
+```
+The error has indeed been reduced by a factor of about $4$ by decreasing the 
+step-size $h$ by a factor of $2$. For example the maximal error is now
+
+```{r}
+max(abs(u - w))
+```
+
+## Exercise 2
+Determine the maximal error when you use a step-size of $h=1/120$. Keep on
+doubling the number of steps in the $x$ directions. Does the error continue
+to decrease as expected? What happens to the running time of the code?
+
+## Exercise 3
+Similarly calculate the maximal error in the numerical solution from
+exercise 1, again for a range of step-sizes.
+
+## Exercise 4 (Challenge)
+Write code that produces a plot of the maximal error against the number of
+steps $M$.
+
