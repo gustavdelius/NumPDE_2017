@@ -30,8 +30,7 @@ u(x, 0) = u_{0}(x),
 where $u_{0}(x)$ is a given function. In Eq. \eqref{a1}, $K$ is a positive
 constant.
 In what follows, we assume that (i) the initial condition \eqref{a3} is consistent with
-the boundary conditions (\ref{a2}) (i.e. $u_{0}(0)=u_{0}(L)=0$), (ii) $u_{0}(x)$ is continuous
-in $[0,L]$ and (iii) a unique solution of the initial boundary-value problem (\ref{a1})--(\ref{a3}) exists.
+the boundary conditions (\ref{a2}) (i.e. $u_{0}(0)=u_{0}(L)=0$), (ii) $u_{0}(x)$ is twice differentiable in $x$ on $[0,L]$ and (iii) a unique solution of the initial boundary-value problem (\ref{a1})--(\ref{a3}) exists.
  
 First we choose integers $N$ and $M$ and define
 $h$ and $\tau$ as
@@ -64,31 +63,30 @@ It is natural to expect that
 for sufficiently small $\tau$. What is the error of this formula?
 To find this, we assume that $u$ is sufficiently smooth (so that its first and second
 derivatives with respect to $t$ are continuous in the interval $(0,T)$ for some $T>0$)
-and write the second Taylor polynomial for $u(x_k,t_j+\tau)$:
+and write the first Taylor polynomial for $u(x_k,t_j+\tau)$:
 \[
 u(x_k,t_j+\tau)=u(x_k,t_j)+\tau \frac{\pr u}{\pr t}(x_k,t_j)+
 \frac{\tau^2}{2}\frac{\pr^2 u}{\pr t^2}(x_k,\xi)
 \]
 where $\xi$ is between $t_j$ and $t_j+\tau$. It follows that the error,
-which is called the {\em truncation error } and denoted by $\tau_{kj}$,
+which is called the {\bf truncation error } and denoted by $\tau_{kj}$,
 is given by
 \[
 \tau_{kj}=\frac{\pr u}{\pr t}(x_k,t_j)-\frac{u(x_k,t_j+\tau)-u(x_k,t_j)}{\tau}=
 -\frac{\tau}{2}\frac{\pr^2 u}{\pr t^2}(x_k,\xi).
 \]
 Thus, if $\frac{\pr^2 u}{\pr t^2}(x,t)$ is bounded for all $x$ and $t$, then
-we can write
 \[
 \tau_{kj}=O(\tau).
 \]
-Formula (\ref{a10}) with $\tau>0$ is called the {\it forward-difference formula}
+Formula (\ref{a10}) with $\tau>0$ is called the {\bf forward-difference formula}
 for the first derivative.
 If in (\ref{a10}) we replace $\tau$ by $-\tau$, we obtain the formula
 \begin{equation}
 \frac{\pr u}{\pr t}(x_k,t_j)\approx \frac{u(x_k,t_j)-u(x_k,t_j-\tau)}{\tau},
 \label{a11}
 \end{equation}
-which is called the {\it backward-difference formula} (for the first derivative).
+which is called the {\bf backward-difference formula} (for the first derivative).
  
 To derive a finite difference formula for $\pr^2 u(x_k,t_j)/\pr x^2$, we first write the Taylor series expansions
 of $u(x_k+h,t_j)$ and $u(x_k-h,t_j)$ at the point $(x_k,t_j)$:
@@ -125,7 +123,8 @@ $\frac{1}{2}\left(\frac{\pr^4 u}{\pr x^4}(\xi_{1},t_{j})+\frac{\pr^4 u}{\pr x^4}
 -\frac{h^2}{12}\frac{\pr^4 u}{\pr x^4}(\xi,t_{j}), \label{a17}
 \end{equation}
 where $\xi$ is a number between $x_{k}-h$ and $x_{k}+h$.
-
+This is called the {\bf central difference formula} for $u_xx$. When $u_{xxxx}$ is bounded,
+then the truncation error in the central difference approximation is $O(h^2)$.
   
  
 Now we are ready to obtain the finite-difference equations that approximate
@@ -337,8 +336,8 @@ Luckily this matrix is a
 circulant matrix, where each row is equal to the row above, just circularly
 shifted to the right by one. 
 The eigenvectors of such a matrix are of the form
-\[{\bf v} = (1,\omega,\omega^2,\dots,\omega^{N-1})\]
-where $\omega$ is any of the $N$-th roots of unity. This knowledge of the
+\[{\bf v} = (1,z,z^2,\dots,z^{N-1})\]
+where $z$ is any of the $N$-th roots of unity, $z=\exp(2\pi i n)$ for $n=1,\dots,N$. This knowledge of the
 eigenvectors of course makes it simple to calculate the eigenvalues
 of the matrix $A$ simply by acting with $A$ on each of the eigenvectors.
 

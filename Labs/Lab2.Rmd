@@ -246,13 +246,14 @@ y
 
 ### Exercise 3
 
-2) Write a function `mysin` which approximates $\sin(x)$ by its Taylor series at 
+Write a function `mysin` which approximates $\sin(x)$ by its Taylor series at 
 $0$ with error less than $10^-4.$ The Taylor formula is
 $$\sin(x) = x - \frac{x^3}{3!} + \frac{x^5}{5!} + ... + (-1)^n \frac{x^{2n+1}}{(2n+1)!} + R_n,$$
 where 
 $$|R_n| \leq \frac{|x|^{2n+3}}{(2n+3)!}.$$
 
-[Hint: use if-else statement to break your loop when $|R| = \abs(R_n) < 10^{-4}.$]
+[Hint: use if-else statement to break your loop when $|R_n| < 10^{-4}.$ or use 
+a while loop.]
 
 
 

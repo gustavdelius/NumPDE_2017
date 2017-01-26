@@ -283,10 +283,8 @@ y</code></pre>
 <pre><code>[1] 0.5997913</code></pre>
 <div id="exercise-3" class="section level3">
 <h3>Exercise 3</h3>
-<ol start="2" style="list-style-type: decimal">
-<li>Write a function <code>mysin</code> which approximates <span class="math inline">\(\sin(x)\)</span> by its Taylor series at <span class="math inline">\(0\)</span> with error less than <span class="math inline">\(10^-4.\)</span> The Taylor formula is <span class="math display">\[\sin(x) = x - \frac{x^3}{3!} + \frac{x^5}{5!} + ... + (-1)^n \frac{x^{2n+1}}{(2n+1)!} + R_n,\]</span> where <span class="math display">\[|R_n| \leq \frac{|x|^{2n+3}}{(2n+3)!}.\]</span></li>
-</ol>
-<p>[Hint: use if-else statement to break your loop when <span class="math inline">\(|R| = \abs(R_n) &lt; 10^{-4}.\)</span>]</p>
+<p>Write a function <code>mysin</code> which approximates <span class="math inline">\(\sin(x)\)</span> by its Taylor series at <span class="math inline">\(0\)</span> with error less than <span class="math inline">\(10^-4.\)</span> The Taylor formula is <span class="math display">\[\sin(x) = x - \frac{x^3}{3!} + \frac{x^5}{5!} + ... + (-1)^n \frac{x^{2n+1}}{(2n+1)!} + R_n,\]</span> where <span class="math display">\[|R_n| \leq \frac{|x|^{2n+3}}{(2n+3)!}.\]</span></p>
+<p>[Hint: use if-else statement to break your loop when <span class="math inline">\(|R_n| &lt; 10^{-4}.\)</span> or use a while loop.]</p>
 </div>
 </div>
 <div id="installing-and-loading-packages" class="section level2">
