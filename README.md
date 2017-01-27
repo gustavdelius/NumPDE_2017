@@ -72,3 +72,7 @@ We will dedicate time in the sessions to discussions of students' projects.
 Each student will present their application and the special features
 of the PDE that they will need to deal with. Other students should see if they
 can make helpful suggestions.
+
+# Instructions for using Git
+
+Coming
