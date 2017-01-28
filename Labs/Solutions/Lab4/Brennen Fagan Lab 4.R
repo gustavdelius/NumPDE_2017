@@ -66,6 +66,8 @@ plotrgl(smooth=TRUE, lighting = TRUE)
 sol <- forwardDifference(f = function(x){-16*sin(8*pi*x)},
                          u0 = function(x) {sin(pi*x)},
                          K = 1/4, L = 1, N=30, T = .2, M=200)
+
+
 #Plot the solution.
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
@@ -123,3 +125,76 @@ u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
 persp3D(x, t, u - w, zlab="u - w", ticktype="detailed", nticks=4)
 plotrgl()
 #Clear reduction in amount of error, as expected.
+
+#Exercise 2:
+#h = L/N, L is fixed, so we set N
+#h = 1/120 =>  N = 120
+#Note => for 480, we need .2/M < (1/480)^2/2
+#                 or .4/((1/480)^2)<M => M>92160
+#To be "fair", we do this for each run
+#Timer:
+timer <- proc.time()
+numSol120 <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                            u0=function(x) {-3/2*sin(2*pi*x)},
+                            T=0.2, M=92200, N=120
+)
+
+#Selection of points
+tSelect <- seq(1, 92201, by=100)
+t <- numSol120$t[tSelect]
+w <- numSol120$w[, tSelect]
+x <- numSol120$x
+xy <- mesh(x, t)
+u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+          -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+
+print("Amount of Time Spent Calculating for h = 1/120")
+print(proc.time()-timer)
+#Calculate Maximal Error:
+print("Maximal Error for h = 1/120")
+print(max(abs(u - w)))
+
+
+timer <- proc.time()
+numSol240 <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                               u0=function(x) {-3/2*sin(2*pi*x)},
+                               T=0.2, M=92200, N=240
+)
+
+#Selection of points
+tSelect <- seq(1, 92201, by=100)
+t <- numSol240$t[tSelect]
+w <- numSol240$w[, tSelect]
+x <- numSol240$x
+xy <- mesh(x, t)
+u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+          -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+
+print("Amount of Time Spent Calculating for h = 1/240")
+print(proc.time()-timer)
+#Calculate Maximal Error:
+print("Maximal Error for h = 1/240")
+print(max(abs(u - w)))
+
+
+timer <- proc.time()
+numSol480 <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                               u0=function(x) {-3/2*sin(2*pi*x)},
+                               T=0.2, M=92200, N=480
+)
+
+#Selection of points
+tSelect <- seq(1, 92201, by=100)
+t <- numSol480$t[tSelect]
+w <- numSol480$w[, tSelect]
+x <- numSol480$x
+xy <- mesh(x, t)
+u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+          -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+print("Amount of Time Spent Calculating for h = 1/480")
+print(proc.time()-timer)
+#Calculate Maximal Error:
+print("Maximal Error for h = 1/480")
+print(max(abs(u - w)))
+
+print("As expected, the amount of error decreases, although it appears to plateau. Also as expected, the amount of time taken increases quickly.")
