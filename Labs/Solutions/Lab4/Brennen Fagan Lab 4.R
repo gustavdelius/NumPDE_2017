@@ -231,7 +231,7 @@ title("Error as a function of the number of length divisions")
 
 #Exercise 4: Do the same, but for M
 m0 = 4000
-MaxErrorsM = matrix(0,nrow = 100, ncol = 1)
+MaxErrorsM = matrix(0,nrow = 91, ncol = 1)
 for(m in seq(0,90)){
   sol <- forwardDifference(f = function(x){-16*sin(8*pi*x)},
                            u0 = function(x) {sin(pi*x)},
@@ -242,7 +242,7 @@ for(m in seq(0,90)){
   x <- sol$x
   xy <- mesh(x, t) #=> y=t
   u <- with(xy, exp(-pi^2*y/4)*sin(pi*x)+sin(8*pi*x)/(pi^2)*(exp(-16*pi^2*t)-1))
-  MaxErrorsH[m] = max(abs(u - w))
+  MaxErrorsM[m+1] = max(abs(u - w))
 }
-plot(seq(4000,40000, by=400), MaxErrorsH, xlab="M", ylab="Maximum Error")
+plot(seq(4000,40000, by=400), MaxErrorsM, xlab="M", ylab="Maximum Error")
 title("Error as a function of the number of time divisions")
