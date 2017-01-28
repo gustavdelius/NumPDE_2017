@@ -198,3 +198,51 @@ print("Maximal Error for h = 1/480")
 print(max(abs(u - w)))
 
 print("As expected, the amount of error decreases, although it appears to plateau. Also as expected, the amount of time taken increases quickly.")
+
+
+#Exercises 3 and 4:
+#Calculate Maximal Error for range of step sizes h (=>N) and number of steps M
+#and plot.
+#Recall Exercise 1:
+# sol <- forwardDifference(f = function(x){-16*sin(8*pi*x)},
+#                          u0 = function(x) {sin(pi*x)},
+#                          K = 1/4, L = 1, N=30, T = .2, M=200)
+# Has exact solution e^(-pi^2*t/4)*sin(pi*x)-sin(8*pi*x)/pi^2+e^(-16*pi^2*t)*sin(8*pi*x)/pi^2
+#Say we stop at h = 1/100
+#Then we need M>.2*2/((1/100)^2)
+
+#First, exercise 3
+m = 4000
+MaxErrorsH = matrix(0,nrow = 90, ncol = 1)
+for(n in seq(10,100)){
+  sol <- forwardDifference(f = function(x){-16*sin(8*pi*x)},
+                           u0 = function(x) {sin(pi*x)},
+                           K = 1/4, L = 1, N=n, T = .2, M=m)
+  tSelect <- seq(1, m+1, by=4)
+  t <- sol$t[tSelect]
+  w <- sol$w[, tSelect]
+  x <- sol$x
+  xy <- mesh(x, t) #=> y=t
+  u <- with(xy, exp(-pi^2*y/4)*sin(pi*x)+sin(8*pi*x)/(pi^2)*(exp(-16*pi^2*t)-1))
+  MaxErrorsH[n-9] = max(abs(u - w))
+}
+plot(seq(10,100), MaxErrorsH, xlab="N", ylab="Maximum Error")
+title("Error as a function of the number of length divisions")
+
+#Exercise 4: Do the same, but for M
+m0 = 4000
+MaxErrorsM = matrix(0,nrow = 100, ncol = 1)
+for(m in seq(0,90)){
+  sol <- forwardDifference(f = function(x){-16*sin(8*pi*x)},
+                           u0 = function(x) {sin(pi*x)},
+                           K = 1/4, L = 1, N=100, T = .2, M=m0+m*400)
+  tSelect <- seq(1, m0+m*400+1, by=4)
+  t <- sol$t[tSelect]
+  w <- sol$w[, tSelect]
+  x <- sol$x
+  xy <- mesh(x, t) #=> y=t
+  u <- with(xy, exp(-pi^2*y/4)*sin(pi*x)+sin(8*pi*x)/(pi^2)*(exp(-16*pi^2*t)-1))
+  MaxErrorsH[m] = max(abs(u - w))
+}
+plot(seq(4000,40000, by=400), MaxErrorsH, xlab="M", ylab="Maximum Error")
+title("Error as a function of the number of time divisions")
