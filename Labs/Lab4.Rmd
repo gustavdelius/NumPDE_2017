@@ -1,9 +1,9 @@
 ---
-title: "Numerical Methods for PDEs (Spring 2017), Practical 4"
+title: "Numerical Methods for PDEs (Spring 2017), Lab 4"
 author: "Richard Southwell, Gustav Delius"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -63,8 +63,10 @@ forwardDifference <- function(f=function(x) 0,
 ```
 
 There are two things to note about the function arguments:
+
 1) R allows the arguments to functions to themselves be functions. In the
-above function the arguments f and u0 are functions.
+above function the arguments `f` and `u0` are functions.
+
 2) R allows you to specify default values for some arguments. Then you can
 call the function without having to specify those arguments where you just
 want to use the default values
@@ -85,6 +87,9 @@ library("plot3Drgl")
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
         ticktype="detailed", nticks=4)
+```
+We send the plot to a separate window so we can interact with it:
+```{r}
 plotrgl(smooth=TRUE, lighting = TRUE)
 ```
 
@@ -93,7 +98,7 @@ Next let's reproduce the the example from the last exercise from Lab 3.
 ```{r}
 sol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
                          u0=function(x) {-1.5*sin(2*pi*x)},
-                         T=0.2, M=600
+                         T=0.2, M=400
 )
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
@@ -102,10 +107,14 @@ persp3D(sol$x, sol$t, sol$w,
 
 ## Exercise 1
 Use the function `forwardDifference()` to solve the equation
-$$u_{t}(x,t) = \frac14 u_{xx}(x,t)-16\sin(8\pi x), \quad
-0<x< 1, \quad 0<t<0.2$$
+$$
+u_{t}(x,t) = \frac14 u_{xx}(x,t)-16\sin(8\pi x), \quad
+0<x< 1, \quad 0<t<0.2
+$$
 with initial condition
-$$u(0, t) = u(1, t)=0, \quad u(x, 0) = \sin(\pi x).$$
+$$
+u(0, t) = u(1, t)=0, \quad u(x, 0) = \sin(\pi x).
+$$
 Plot the solution.
 
 
@@ -113,14 +122,20 @@ Plot the solution.
 # Studying the error
 
 Consider again the example from the exercise in Lab 3:
-$$u_{t}(x,t) = u_{xx}(x,t)-25 \sin(3\pi x), \quad
-0<x< 1, \quad 0<t<0.2,$$
+$$
+u_{t}(x,t) = u_{xx}(x,t)-25 \sin(3\pi x), \quad
+0<x< 1, \quad 0<t<0.2,
+$$
 with initial condition
-$$u(0, t) = u(1, t)=0, \quad u(x, 0) = -\frac32\sin(2\pi x).$$
+$$
+u(0, t) = u(1, t)=0, \quad u(x, 0) = -\frac32\sin(2\pi x).
+$$
 
 The exact solution is
-$$u(x,t) = -\frac32 \sin(2\pi x)e^{-4\pi^2 t}
--\frac{25}{9\pi^2}\sin(3\pi x)\left(1-e^{-9\pi^2 t}\right).$$
+$$
+u(x,t) = -\frac32 \sin(2\pi x)e^{-4\pi^2 t}
+-\frac{25}{9\pi^2}\sin(3\pi x)\left(1-e^{-9\pi^2 t}\right).
+$$
 
 We will now compare the numerical solution to the exact solution. The numerical solution is
 
@@ -170,11 +185,14 @@ This relatively large error is due to the large stepsize we used in the
 $x$ direction. When we double the number of steps from $n=60$ to $N=60$ we
 should see a reduction in the error. Unfortunately we will also need to
 reduce the step size in the $t$ direction, so that the stability condition
-$$ \tau < \frac{h^2}{2K}$$
+$$
+\tau < \frac{h^2}{2K}
+$$
 is satisfied. In our case $h=L/N=1/60$ and $K=1$, so we need $\tau=T/M<1/7200$
 or equivalently $M>7200 T$. With $T=0.2$ this gives $M > 1440$. 
 Just out of fun let us check that we really can't get away with fewer time steps.
 Let's see what happens if we use 1400 time steps instead of the required 1440.
+
 ```{r}
 numSol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
                          u0=function(x) {-3/2*sin(2*pi*x)},
