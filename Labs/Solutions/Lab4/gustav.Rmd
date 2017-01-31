@@ -1,0 +1,171 @@
+---
+title: "Lab 4 Exercises"
+output: html_notebook
+---
+```{r}
+forwardDifference <- function(f=function(x) 0, 
+                              u0=function(x) 2*sin(2*pi*x), 
+                              K=1, L=1, N=30, T=0.1, M=200) {
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # set up vectors with initial condition and inhomogenous term
+    w <- u0(x)
+    F <- f(x)
+    
+    # Set up evolution matrix
+    gamma <- K*tau/(h^2)
+    A <- diag(1-2*gamma, N-1)
+    for (k in 1:(N-2)) {
+        A[k,k+1] <- gamma
+        A[k+1,k] <- gamma
+    }
+    
+    Temperature <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    Temperature[ , 1] <- w  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        w <- A %*% w + tau * F
+        Temperature[ , j+1] <- w
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=Temperature))
+}
+
+library(plot3Drgl)
+```
+
+## Exercise 1
+Use the function `forwardDifference()` to solve the equation
+$$u_{t}(x,t) = \frac14 u_{xx}(x,t)-16\sin(8\pi x), \quad
+0<x< 1, \quad 0<t<0.2$$
+with initial condition
+$$u(0, t) = u(1, t)=0, \quad u(x, 0) = \sin(\pi x).$$
+Plot the solution.
+```{r}
+sol <- forwardDifference(f=function(x) -16*sin(8*pi*x), 
+                  u0=function(x) sin(pi*x),
+                  K=1/4, T=0.2)
+persp3D(sol$x, sol$t, sol$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+plotrgl(smooth=TRUE, lighting = TRUE)
+```
+
+
+## Exercise 2
+Determine the maximal error when you use a step-size of $h=1/120$. Keep on
+doubling the number of steps in the $x$ directions. Does the error continue
+to decrease as expected? What happens to the running time of the code?
+
+For convenince I first encapsulate the code for calculating the maximal error
+into a function so that we can then easily call it with different step sizes.
+```{r}
+maxError <- function(h) {
+    # Determine number of steps and step size to guarantee stability
+    N <- ceiling(1/h)
+    K <- 1
+    tau <- h^2/(2*K)
+    T <- 0.2
+    M <- ceiling(T/tau)
+    
+    # numerical solution
+    numSol <- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                         u0=function(x) {-3/2*sin(2*pi*x)},
+                         T=T, M=M, N=N)
+    # exact solution
+    x <- numSol$x
+    t <- numSol$t
+    xy <- mesh(x, t)
+    u <- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+                       -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+    
+    return(max(abs(u - numSol$w)))
+}
+```
+
+With h=1/120 we obtain a maximum error of
+```{r}
+maxError(1/120)
+```
+We observe that the error has again decreased by a factor of about 1/4.
+So let's halve the step size again:
+
+```{r}
+maxError(1/240)
+```
+
+Another improvement by a factor of 1/4 but also a marked increase in runtime.
+
+
+## Exercise 3
+Similarly calculate the maximal error in the numerical solution from
+exercise 1, again for a range of step-sizes.
+
+The exact solution of the problem in exercise 1 is
+$$
+u(x,t) = \sin(\pi x)e^{-\pi^2 t}
+-\frac{1}{4\pi^2}\sin(8\pi x)\left(1-e^{-64\pi^2 t}\right).
+$$
+We modify the function `maxError()` appropriately to reflect the
+new problem.
+
+```{r}
+maxError <- function(h) {
+    # Determine number of steps and step size to guarantee stability
+    N <- ceiling(1/h)
+    K <- 1
+    tau <- h^2/(2*K)
+    T <- 0.2
+    M <- ceiling(T/tau)
+    
+    # numerical solution
+    numSol <- forwardDifference(f=function(x) -16*sin(8*pi*x), 
+                             u0=function(x) sin(pi*x),
+                             K=K, T=T, M=M, N=N)
+    # exact solution
+    x <- numSol$x
+    t <- numSol$t
+    xy <- mesh(x, t)
+    u <- with(xy, sin(pi*x)*exp(-pi^2*y)
+                       -1/(4*pi^2)*sin(8*pi*x)*(1-exp(-64*pi^2*y)))
+    
+    return(max(abs(u - numSol$w)))
+}
+```
+
+```{r}
+maxError(1/30)
+maxError(1/60)
+maxError(1/120)
+maxError(1/240)
+```
+
+
+## Exercise 4 (Challenge)
+Write code that produces a plot of the maximal error against the number of 
+steps $M$.
+
+```{r}
+h <- 1/(30*2^(0:3))
+error <- sapply(h, maxError)
+plot(h, error)
+```
+
+To see better that the error goes as $h^2$ it is a good idea to plot the log
+of the error against the log of $h^2$. That should produce a straight line
+with sloppe 2.
+```{r}
+plot(log(h), log(error))
+abline(lm(log(error) ~ log(h)))
+```
+```{r}
+summary(lm(log(error) ~ log(h)))
+```
+
