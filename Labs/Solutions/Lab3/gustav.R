@@ -196,8 +196,8 @@ w <- -1.5*sin(2*pi*x)
 F <- -25*sin(3*pi*x)
 
 # time grid
-T <- 0.1
-M <- 200
+T <- 0.2
+M <- 400
 tau <- T/M
 t <- tau*(0:M) 
 
