@@ -154,7 +154,7 @@ You notice that the code is very similar to the code for the function
 `forwardDifference()` from lab 4.
 
 ## Exercise 1
-Solve the initial value from the start of this lab with the same time step size $\tau=1/300$ but with a smaller space step size of $h=1/500$. Answer quiz question 1.
+Solve the initial value from the start of this lab with the same time step size $\tau=1/300$ but with a smaller space step size of $h=1/500$. 
  
 
 
