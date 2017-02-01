@@ -230,7 +230,7 @@ formula:
 \frac{\tau^2}{6}\frac{\pr^3 u}{\pr t^3}(x_k,\xi) \label{aa15}
 \end{equation}
 [It is an exercise for you to derive this formula.]
-This leads to the Richardson method, given by
+This leads to the Richardson method, which for the heat equation gives
 \begin{equation}
 \frac{w_{k,j+1}-w_{k,j-1}}{2\tau}-K \frac{w_{k+1,
 j}-2w_{kj}+w_{k-1,j}}{h^{2}}=0. \label{d4}
@@ -541,8 +541,9 @@ j=0,1,\dots,M-1, \quad\quad \label{c4}
 \end{multline}
 \begin{align}
 w_{0,j}&=w_{N,j}=0  \quad {\rm for}
-\quad j=0,1,\dots,M \quad {\rm and} \\w_{k,0}&=u_{0}(x_{k}) \quad {\rm for}
-\quad k=1,2,\dots,N-1. \label{c5}
+\quad j=0,1,\dots,M \quad {\rm and} 
+ \label{c5} \\w_{k,0}&=u_{0}(x_{k}) \quad {\rm for}
+\quad k=1,2,\dots,N-1.\notag
 \end{align}
 Here $\gamma\equiv K\tau/h^{2}$.
 Also, we know that the local truncation error for the method is
@@ -555,10 +556,12 @@ and that the method is stable under the condition
 \begin{equation}
 \gamma \leq \frac{1}{2}. \label{c7}
 \end{equation}
+
 \begin{theorem}
 If the stability condition (\ref{c7}) is satisfied,  the forward-difference method 
 (\ref{c4}), (\ref{c5}) is convergent.
 \end{theorem}
+
 \begin{proof}
 It follows from (\ref{c6}) that
 \begin{equation}
@@ -583,7 +586,8 @@ z_{k,0}=0, \quad k=1,2,\dots,N-1. \label{c11}
 If the stability condition (\ref{c7}) is satisfied, then
 all coefficients on the right side of (\ref{c10}) are positive.
 
-By definition of $O$, Eq. (\ref{c10}) implies that
+By definition of the big-$O$ notation, Eq. (\ref{c10}) implies that for
+sufficiently small $\tau$ and $h$
 \[
 \left\vert z_{k,j+1}-\left[(1-2\gamma)z_{kj}+\gamma
 \left(z_{k+1,j}+z_{k-1,j}\right)\right]\right\vert \leq A_{k,j+1} \, \vert\tau^2+h^{2}\tau\vert
@@ -593,12 +597,14 @@ for some positive $A_{k,j+1}$. This and the inequality
 \vert a\vert = \vert b +(a-b)\vert\leq \vert b\vert + \vert a-b\vert
 \]
 (which is valid for any $a$ and $b$)
-have a consequence that
+have the consequence that
 \begin{equation}
-\vert z_{k,j+1}\vert =\vert (1-2\gamma)z_{kj}+\gamma
+\vert z_{k,j+1}\vert \leq\vert (1-2\gamma)z_{kj}+\gamma
 \left(z_{k+1,j}+z_{k-1,j}\right)\vert +A_{k,j+1} \, \vert\tau^2+h^{2}\tau\vert  \label{c10a}
 \end{equation}
-for  $k=1,2,\dots,N-1$ and $j=0,1,\dots,M-1$.
+for  $k=1,2,\dots,N-1$ and $j=0,1,\dots,M-1$. 
+(Set $a=z_{k+1,j}$ and $b=\left[(1-2\gamma)z_{kj}+\gamma
+\left(z_{k+1,j}+z_{k-1,j}\right)\right]$.)
 
 \vskip 3mm  
 Let ${\bf z}^{(j)}=(z_{1j}, z_{2j}, \dots, z_{N-1,j})^{T}$ and let
@@ -609,7 +615,7 @@ Let ${\bf z}^{(j)}=(z_{1j}, z_{2j}, \dots, z_{N-1,j})^{T}$ and let
 It follows from Eq. (\ref{c10}) that
 \begin{eqnarray}
 \Vert {\bf z}^{(j+1)} \Vert&=&\max\limits_{k}\vert z_{k,j+1} \vert\nonumber\\
-&=&
+&\leq&
 \max\limits_{k}\left\{\left\vert
 (1-2\gamma)z_{kj}+\gamma
 \left(z_{k+1,j}+z_{k-1,j}\right)\right\vert + A_{j+1} \, \vert\tau^2+h^{2}\tau\vert\right\} \nonumber \\
@@ -618,7 +624,7 @@ It follows from Eq. (\ref{c10}) that
 \gamma\max\limits_{k}\vert z_{k-1,j}\vert\nonumber\\
 &&\qquad\qquad
 +A_{j+1} \, \vert\tau^2+h^{2}\tau\vert \nonumber \\
-&\leq&\Vert {\bf z}^{(j)} \Vert+A_{k,j+1} \, \vert\tau^2+h^{2}\tau\vert. \nonumber
+&\leq&\Vert {\bf z}^{(j)} \Vert+A_{j+1} \, \vert\tau^2+h^{2}\tau\vert. \nonumber
 \end{eqnarray}
 Here $A_{j+1}=\max\limits_{k}A_{k,j+1}$.
 This inequality is valid for all $j=0,1,\dots,M-1$.
