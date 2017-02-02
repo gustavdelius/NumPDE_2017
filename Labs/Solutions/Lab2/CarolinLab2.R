@@ -3,13 +3,13 @@
 #Lab2
 
 #Exercise1
-mysum<-function(N){
+mysum<-function(N) {
   f=0
-   for(n in 1:N){
-    s = 1/n^2
-  f=f+s
-  }
-   return(f) 
+    for (n in 1:N) {
+      s = 1/n^2
+      f=f+s
+    }
+  return(f) 
 }
 mysum(10)
 mysum(50)
@@ -26,10 +26,10 @@ circle <- function(N, r) {
 par(pty="s")
 coords <- circle(100, 7)
 plot(coords$x, coords$y,  xlab="X", ylab="Y", col="green") #plots the most outstanding circle 
- for(n in 1:6){ 
+for (n in 1:6) { 
    #loop plots the remaining inner circles in the same plot
-coords <- circle(100, n)
-lines(coords$x, coords$y,  xlab="X", ylab="Y")
+  coords <- circle(100, n)
+  lines(coords$x, coords$y,  xlab="X", ylab="Y")
 }
 par(pty="m")
 
@@ -41,20 +41,24 @@ mysin<-function(x){
   n=0
   r=1 #initial residue
 
-while (r>=10^-4){
-  s= (-1)^n *x^(2*n+1)/factorial(2*n+1)
-  sin = sin+s
-  r= abs(x)^(2*n+3)/factorial(2*n+3)
-  n=n+1
+  while (r>=10^-4) {
+    s= (-1)^n *x^(2*n+1)/factorial(2*n+1)
+    sin = sin+s
+    r= abs(x)^(2*n+3)/factorial(2*n+3)
+    n=n+1
+  }
+  return(sin)
 }
-    return(sin)
-}
+
+mysin(pi/2)
+mysin(pi/6)
 
 #Exercise 4
 #Plot Rosenbrockfunction
+library(plot3Drgl)
 x<-seq(-2,2,length.out=200)
 y<-seq(-2,2,length.out=200)
 xy<-mesh(x,y)
 z<-with(xy,(1-x)^2 +100*(y-x^2)^2)
 persp3D(x,y,z)
-plotrgl
+plotrgl()
