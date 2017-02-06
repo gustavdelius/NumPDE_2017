@@ -279,3 +279,29 @@ maxError <- function(N, M) {
 }
 
 #N, M increasing should result in decreasing errors.
+#I think I still expect space to predominate over time
+#if only due to the factor of h^2.
+#Due to the lack of interdependence though, I imagine
+#that the effects should be more similar than what I
+#had last time I tried to explore the errors.
+
+Nvals <- seq(100,1000, by = 100) -> Mvals
+NMmesh <- mesh(Nvals, Mvals)
+ErrorMat <- matrix(0, length(Nvals), length(Mvals))
+for (n in 1:length(Nvals)){
+  for (m in 1:length(Mvals)){
+    ErrorMat[n,m] <- maxError(Nvals[n], Mvals[m])
+  }
+}
+persp3D(Nvals, Mvals, ErrorMat,
+        xlab="Length Divisions", ylab="Time Divisions", zlab="Maximum Error", # Provides axis labels
+        ticktype="detailed", nticks=4) # Provides axis ticks
+plotrgl()
+
+#Well, that was unexpected.
+#Space appears to suffer quite much from diminishing
+#returns, and now appears to suffer from the same problem
+#that time suffered under the forward difference method.
+#Meanwhile, the time dimension is now more critical, and
+#plays the role that the space dimension did in 
+#the forward difference method's error!
