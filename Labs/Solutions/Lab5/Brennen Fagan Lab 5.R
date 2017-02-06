@@ -196,13 +196,8 @@ backwardDifference2 <- function(u0=function(x) 2*sin(2*pi*x),
   # set up vectors with initial condition
   w <- u0(x)
   
-  # Set up evolution matrix
+  # Set up evolution constant
   gamma <- K*tau/(h^2)
-  A <- diag(1+2*gamma, N-1)
-  for (k in 1:(N-2)) {
-    A[k,k+1] <- -gamma
-    A[k+1,k] <- -gamma
-  }
   
   #We seek to solve
   #w(j-1) = A*w(j)
