@@ -136,12 +136,12 @@ doublesweep <- function(A, B, C, F, a, b) {
   if ((length(B) != N-1) || (length(A) != N-1) || (length(F) != N-1)) {
     stop("The lengths of the vector arguments need to be equal")
   }
-  # if(any(C<=0)||any(B<=0)||any(A<=0)){
-  #   stop("Exists i: Ai or Bi or Ci <= 0")
-  # }
-  # if(any(C<A+B)){
-  #   stop("Exists i: Ci<Ai+Bi")
-  # }
+  if(any(C<=0)||any(B<=0)||any(A<=0)){
+   warning("Exists i: Ai or Bi or Ci <= 0")
+  }
+  if(any(C<A+B)){
+   warning("Exists i: Ci<Ai+Bi")
+  }
   
   alpha <- rep(0, N)
   beta <- rep(0, N)
