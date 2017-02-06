@@ -75,4 +75,27 @@ can make helpful suggestions.
 
 # Instructions for using Git
 
-Coming
+I recommend that you fork this repository before cloning your fork to your 
+computer. Forking the repository creates your own copy of the repository on
+Github over which you have full control. To do this you just have to click
+the "Fork" button near the top-right of the page.
+
+On the Github page of your forked repository you can then click the
+"Clone or download" button and copy the repository URL given there. You then
+ open R Studio, do "New Project -> Version Control -> Git", paste in the 
+repository URL and click "Create Project". This clones the repository onto
+your machine and creates an RStudio project at the same time.
+
+From time to time you will want to pull the changes from my repository into
+your own fork. For this you need to let your repository know about the URL
+of my repository on Github. You can not do this from the RStudio GUI but
+need to open a console window. In the RStudio Git window click the drop-down 
+menu "More". It has a picture of a gear. Click "Shell..."; this should open 
+up a console. In the console type
+
+`git remote add upstream https://github.com/gustavdelius/NumPDE_2017.git`
+
+Now you can pull changes from my repository and merge them into your
+master branch with the command
+
+`git pull upstream master`
