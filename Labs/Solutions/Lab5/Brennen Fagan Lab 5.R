@@ -281,7 +281,6 @@ maxError <- function(N, M) {
 #had last time I tried to explore the errors.
 
 Nvals <- seq(100,1000, by = 100) -> Mvals
-NMmesh <- mesh(Nvals, Mvals)
 ErrorMat <- matrix(0, length(Nvals), length(Mvals))
 for (n in 1:length(Nvals)){
   for (m in 1:length(Mvals)){

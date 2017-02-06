@@ -145,3 +145,80 @@ CrankNicolson <- function(u0=function(x) 2*sin(2*pi*x),
 solbd <- backwardDifference(N=300, M=300)
 solCN <- CrankNicolson(N=300, M=300)
 cat("Difference in methods: ", max(solbd$w - solCN$w))
+
+maxError <- function(N, M, method, u0 = function(x) 2*sin(2*pi*x)) {
+  # numerical solution
+  numSol <- method(M=M, N=N)
+  # exact solution
+  x <- numSol$x
+  t <- numSol$t
+  xy <- mesh(x, t)
+  u <- with(xy, 2*sin(2*pi*x)*exp(-4*pi^2*y))
+  
+  return(max(abs(u - numSol$w)))
+}
+
+N <- 15*2^(0:7) -> M
+#So this is the elegant way of doing what I did in lab 5, exercise 4
+#although restricted to one variable apparently.
+errbd <- sapply(N, function(N) maxError(N, N, backwardDifference))
+errCN <- sapply(N, function(N) maxError(N, N, CrankNicolson))
+plot(errbd ~ N, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
+lines(errCN ~ N, type="b", col="blue")
+
+#Retrieve the coefficients from the plot, since I don't trust my eyes.
+bd.lm <- lm(log(errbd) ~ log(N))
+CN.lm <- lm(log(errCN) ~ log(N))
+
+#Exercises 2 and 3
+#We resort to the methods of Lab 5. sapply and mapply do not do quite what I am
+#wanting to accomplish.
+
+N <- 15*2^(0:12) -> M
+
+ErrorMatbd <- matrix(0, length(N), length(M))
+ErrorMatCN <- matrix(0, length(N), length(M))
+for (n in 1:length(N)){
+  for (m in 1:length(M)){
+    ErrorMatbd[n,m] <- maxError(N[n],M[m], backwardDifference)
+    ErrorMatCN[n,m] <- maxError(N[n],M[m], CrankNicolson)
+  }
+}
+
+persp3D(N, M, ErrorMatbd-ErrorMatCN,
+        xlab="Length Divisions", ylab="Time Divisions", zlab="Difference in Maximum Errors", # Provides axis labels
+        ticktype="detailed", nticks=4) # Provides axis ticks
+
+#From which we can pull N=60 or M=60
+plot(ErrorMatbd[,3] ~ N, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
+lines(ErrorMatCN[,3] ~ N, type="b", col="blue")
+title("Error as a function of length divisions")
+
+plot(ErrorMatbd[3,] ~ M, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
+lines(ErrorMatCN[3,] ~ M, type="b", col="blue")
+title("Error as a function of time divisions")
+
+#Exercise 4
+N <- 15*2^(0:9) -> M
+
+ErrorMatbd <- matrix(0, length(N), length(M))
+ErrorMatCN <- matrix(0, length(N), length(M))
+for (n in 1:length(N)){
+  for (m in 1:length(M)){
+    ErrorMatbd[n,m] <- maxError(N[n],M[m], backwardDifference, u0 = function(x) 2*sin(8*pi*x))
+    ErrorMatCN[n,m] <- maxError(N[n],M[m], CrankNicolson, u0 = function(x) 2*sin(8*pi*x))
+  }
+}
+
+persp3D(N, M, ErrorMatbd-ErrorMatCN,
+        xlab="Length Divisions", ylab="Time Divisions", zlab="Difference in Maximum Errors", # Provides axis labels
+        ticktype="detailed", nticks=4) # Provides axis ticks
+
+#From which we can pull N=60 or M=60
+plot(ErrorMatbd[,3] ~ N, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
+lines(ErrorMatCN[,3] ~ N, type="b", col="blue")
+title("Error as a function of length divisions")
+
+plot(ErrorMatbd[3,] ~ M, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
+lines(ErrorMatCN[3,] ~ M, type="b", col="blue")
+title("Error as a function of time divisions")
