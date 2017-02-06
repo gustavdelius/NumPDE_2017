@@ -144,4 +144,4 @@ CrankNicolson <- function(u0=function(x) 2*sin(2*pi*x),
 
 solbd <- backwardDifference(N=300, M=300)
 solCN <- CrankNicolson(N=300, M=300)
-max(solbd$w - solCN$w)
+cat("Difference in methods: ", max(solbd$w - solCN$w))

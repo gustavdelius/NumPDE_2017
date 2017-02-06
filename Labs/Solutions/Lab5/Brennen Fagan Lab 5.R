@@ -300,3 +300,11 @@ plotrgl()
 #Meanwhile, the time dimension is now more critical, and
 #plays the role that the space dimension did in 
 #the forward difference method's error!
+
+#Looking back, I clearly got confused over the O(tau+h^2)
+#and thought backward difference was O(tau^2+h^2) instead.
+#This makes the dependence much more natural and highlights
+#the aberration that is the forward difference method.
+
+plot(Nvals, ErrorMat[,1])
+plot(Mvals, ErrorMat[1,])
