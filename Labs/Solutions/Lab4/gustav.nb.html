@@ -211,10 +211,6 @@ $(document).ready(function () {
 }
 library(plot3Drgl)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiTG9hZGluZyByZXF1aXJlZCBwYWNrYWdlOiByZ2xcbkxvYWRpbmcgcmVxdWlyZWQgcGFja2FnZTogcGxvdDNEXG4ifQ== -->
-<pre><code>Loading required package: rgl
-Loading required package: plot3D</code></pre>
-<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <div id="exercise-1" class="section level2">
@@ -223,19 +219,12 @@ Loading required package: plot3D</code></pre>
 0&lt;x&lt; 1, \quad 0&lt;t&lt;0.2\]</span> with initial condition <span class="math display">\[u(0, t) = u(1, t)=0, \quad u(x, 0) = \sin(\pi x).\]</span> Plot the solution.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc29sIDwtIGZvcndhcmREaWZmZXJlbmNlKGY9ZnVuY3Rpb24oeCkgLTE2KnNpbig4KnBpKngpLCBcbiAgICAgICAgICAgICAgICAgIHUwPWZ1bmN0aW9uKHgpIHNpbihwaSp4KSxcbiAgICAgICAgICAgICAgICAgIEs9MS80LCBUPTAuMilcbnBlcnNwM0Qoc29sJHgsIHNvbCR0LCBzb2wkdyxcbiAgICAgICAgeGxhYj1cInhcIiwgeWxhYj1cInRcIiwgemxhYj1cIndcIixcbiAgICAgICAgdGlja3R5cGU9XCJkZXRhaWxlZFwiLCBudGlja3M9NClcbmBgYCJ9 -->
-<pre class="r"><code>sol &lt;- forwardDifference(f=function(x) -16*sin(8*pi*x), 
-                  u0=function(x) sin(pi*x),
-                  K=1/4, T=0.2)
-persp3D(sol$x, sol$t, sol$w,
-        xlab=&quot;x&quot;, ylab=&quot;t&quot;, zlab=&quot;w&quot;,
-        ticktype=&quot;detailed&quot;, nticks=4)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-plot-begin eyJjb25kaXRpb25zIjpbXSwiaGVpZ2h0IjozNDkuODE0Niwic2l6ZV9iZWhhdmlvciI6MCwid2lkdGgiOjU2Nn0= -->
+<!-- rnb-plot-begin -->
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqoAAAGlCAMAAAAF5SQQAAABsFBMVEUAAAAAABcAACgAADoAAFgAAGYAAI8AAJgAAKEAAKoAALMAALwAAMUAAM4AANcAAOAAAOkAAPIAAPsABv8AEP8AG/8AJf8AL/8AOf8AOmYAOpAARP8ATv8AWLYAWP8AY/8AZmYAZrYAbf8Ad/8Agv8AjP8Alv8AoP8Aq/8Atf8Av/8Ayv8A1P8A3v8A6f8A8/8A/f8J//UT/+sd/+En/9cy/8w6AAA6ADo6AGY6Ojo6kNs8/8JG/7hR/61b/6Nl/5lmAABmOgBmtv9w/456/4SAAACE/3qKAACO/3CQOgCQOmaQZgCQ2/+UAACZ/2WeAACj/1upAACt/1GzAAC2SQC2ZgC2nGa2/7a2/9u2//+4/0a9AADC/zzHAADM/zLSAADX/yfbZhfbkDrbkGbbnGbbtrbb25Db/7bb///cAADh/x3mAADr/xPwAAD1/wn7AAD/BgD/EAD/GwD/JQD/LwD/OQD/RAD/TgD/WAD/YwD/bQD/dwD/ggD/jAD/lgD/oAD/qwD/tQD/tmb/vwD/ygD/1AD/25D/27b/29v/3gD/6QD/8wD//QD//7b//9v////AbVUhAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAgAElEQVR4nO2d+WMUR3qGK3GcgL2XOQwBRYqFTgSYO7uAhWKwwcnaXFF2l3uVi8UIhACx4vSKI8GA519Od9fdVX3NdM/UN/M+P9iMJFpdVQ9ff1VdB2sBQALW6xsAoBxQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACFAVEAGqAiJAVUAEqAqIAFUBEaAqIAJUBUSAqoAIUBUQAaoCIkBVQASoCogAVQERoCogAlQFRICqgAhQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACFAVEAGqAiJAVUAEqAqIAFUBEaAqIAJUBUSAqoAIUBUQAaoCIkBVQASoCogAVQERoCogAlQFtcJ81HPlWq4CgIB95QJVQYBAVUAEdsoFqoIAgaqACOxblyzJXv/6D/KPa4x98NuCK9d4lwBUUfX93IdS1bXI07UCV6EqqJXyqkaBVKr60zdHov/Of5Z/5ZrvFAw47IyLV7I1dmRNqvr68JfRfxdUkPVfufZ7BQONV9WMlwFa1X/6rfkx48pN3fIAUtdrGdKwcy5Z1aLc5GlqQbKKyq2LyFPWqu0tIlmgauBwQ5nx50GlLVWRAHQJ5SYzvjKoFcsuuBSrim5VNzCkZPbXB7Ju21IVg1XNY/uYrsxBDK7skkuhqngF0DRpEX2VOWi2Vlb1p2/iYLqAF6vN4XEwozIHKrhWUbXilWu5ysDhly+nMgfGVnbFBar2jCzt8itzMIIrVA2HHOGKK7P/bWXXXKBqL8hVrVRl9nlwhapBUCRZ6crsY1uhagAU61WlMvs1uLI/uUDVblJKrKqV2Y+2QtWeUlapNiqz74IrVO0h5V1qszL7ylb2vQtU7QaVNGq/MvsnuELV3lDRn84qsz90ZYsuULVhqpvTeWXStxWqdpu2nKmlMokHV6jaXdqUpbbKJGwru+MCVRuifU/qrEyqwRWqdo1OBKm7MinaypZcoGr9dOhGA5VJLrhC1S5QgxTN1CYpW6Fq49SiQ2O1SSe4srsuULU+SJysQMNWqNok9SnQdG0SCK5s2QWq1kKtjd+N2gzcVqjaDHU3e5dqM+TgClWboP727mJthmoru+cCVTuikabubm0GGVyhas001Mbdr83gbGX3XaBquzTXvD2pzbCCK1StjybbtWe1GY6sULUmGg5AvavNYNqRPXCBqlVp/kHZu6jaq1/sAFU7pxvPSKjaYisuULUCXep5QFWo2hld63T0qjYDakWo2j7dHMqBqi320AWqlqDLQ45QFaq2R9dHG6EqVG2HHgyL96g2Q2pE9mcX//2tmYeqLETPvy8LrlzrfQZFD4oGVcurah1VtRB/KHA1pFJ2wOtfqzMP9T9WRNUewFZdfPdnHQDIz64aiNMA38/5zpUbFFWDasOyqlrHqg6OqlEg9Z3WCVV7gFdVjfo5+7DqQUkA1tgR/xnIXS8cVG2xRy6+G+RPPpWsrg3MwZWpk+Wdf8NdojfzVXvxSzNpT9X5qP1eHz6Sf+X6b7YXKFWtGoCq3Yc9dvHmqmYCYD0LM6/cwN32AL+qXS9dqd/38uWr7v/SrlFaVdPOVDaQceUG7rYHpBIA+TE4Vf/y4sXLiFc1yhpYC5ZV1Rqs4t6uDVZUtR8lIan6/Icf/hLxIpG1RlcDa0H2xKX4FcAg5qrWP9auF8//654+ffbsecQPiazc1Xe3m/2dPaO0qvG71NhUMaYadYLzTQ2toO2y5nsF0Oq5qtHD78mTp09jV59pV398+/bdu9pcDawF2VMXTFcxSFTl/z4XzBG6nqn659XVR48ePU5cfaJdffXmzY8Rsas1qRpaA0LVdulu+aLftrLy8OHDeI7GqpRVuPoizlBfcVehajtXruUq4dKt8t27d+/+/fvx8szE1YeWqypFNVWtydXQGpA9c4GqZWi0fHfuLC0t3b17N97tjrt6P+WqmaIaqtYXVoNrP6jaNjUX8Nq1+Cjm77//fnFxMTnoRsmacjV57D+T3Smh6svaM4Dg2o89d4GqpeisgGfOnDl37tyFiEuXLl25cuVajHJ10eeqlaIaPf9mMoDg2g+qtk17BTx16tS3EWfOcFdTsvpcXYljKX/qc1eNsNpcBhBe80HV9qlewlMCKavt6hXL1SSU8t6UdtUTVn0ZwPleFK5p2A8uULUclUt46lS+q4tJILW6U8JVf1j1ZwAXL54/37mr4TUfVG2fiiU89dVXX6VclYFURlLLVVtVM6x6M4CXsapXL1++fDF2tduF6wLsLy5QtSSVihgLKlwVcdR46OsM1Qqr952wmtWxilW9fv3qVe5q56oG2HpQtQOqFFFE069OiUe+dLV0WM3PAG7djIhdhaptXLmWqwRNhSLKB/+5c0Z6WhBW1XsqfwbwVGYAt2/fvnXrVv+r+sIFqpalfBm5qGfOaVX9YfWO7WphBsCHUWNXhaqJqx33q0JsPKjaCeXL+O23iaqmqyXDamYGYAyjClXzwur1hgrWPdhLF6haltJljDv8sanS1aKwmupYpTMAMTSl304VZQDRdyq5GmLjQdWOKFvIb603VHZYvZYXVp0MQC9MMV+kuhmA+dt5wK3gapBtB1U7omQhL5w5I1WtFFatjpUcRDVG/N+kMoDrMqyeP6F+twi4lVwNsu3YKxeoWpqShRSOlgqrvo5Val2KGvG3MgAjWT158oRw9bYaHoi+913NxeouULUzSpXygtDzXOWw+sheQ2WrmpEBnP7666+5q+/4d4Sr30XUWKiuA1U7o0wpL1w6Z7paKqzKHpRy1QmrMgOwVf3udESs6skTb5Pv8G/dunX27Fnqqr5xgarlKVPKS1diLUuG1RXfEioeVgszgMRG7mrydcPV81A158q1XCV4iosZuahUzQyraqK/+2rKXpmapWo87H9euiqHXIWr+nt1lakXsB9doGoFiot55UqcgbopwIULxgjqsrEopUxYfWllAGI6FQ+dyZcNVy/K75VVNdCWg6odUljMRT4PJUpBE0GjCGosoEqN9heEVX8GIKdTcR+lwm+Eqsl3lMb1FKk3QNVOKSjn4vdK1Tt3LvCnvTUs5VmXWj4DEEOp8hWV3GJNuRp/w4y4pVwNtOXYWxeoWoX8ci5aqt5ZSlyNO1C5YbVcBnBLD/tHSl5MDLZcvWoH3JKqhtpwULVTcssZm2qpunQhP6wWZgAirBrjpYmq6j2WdtWIt/2h6jsXqFqJvIIu37v/YFGrGlt3wQqr6dmpno6VUlWG1bdyKFUO+yex1nY1ibaWqqWT1VAbDqp2TE5Bl2NVHyQzTXSAvJAZVu9n7/gjw6rsLqmx/Ztq20qRxMauWplBxX5VsO0GVTumqqpPLqXCatkM4KXZtedhVW2zYkxleZG8nZKqXrVUPdhRcXoLu+0CVauRWdIkUrqqPrkkw2rGfj8P3AxA5qBvxFBqHFbV5IBnz40UQCWx6Qzg7NmDEe2XptdA1c7JLOnDJKi6ql67VBhWjQzgB6u/JMMqv5LeDJi7ql/6e1Q9VEbVcJuN3XKBqtXIVvWeX9WnsasyrHqW/amwag36q1H/N3or4CdPzRQgeY2qVL1pq3ooAqr6r1zLVUiQUdSHD1fF899WNdLrmi+s3rPCqvloV6P+kat8wpWxbbX4OXt6SjpZPXr0KFTNvHItVyFBtqr3M1R9ei0nrJoOPjc2+4lcVSsBdYTmP/ejGhh45yarian0Vb3pAlUrkqVqJNWDDFWfXVvyhNXUNv/2JFXd01pNhVVzXMCXrB47dqysqgG3WnlVrWNVXx9mLP/g6pALXTvesj6MVX2cpeqfri0t31OqPrTXTtuD/rGrK6qnZbqahFVrdoonWf3iWJ+oet3Fe7vWUThr22603s8NwCHrJfGW9Wky0PTk6UOvqs++X1pa5uv8V8xx1FXr2Z6EVbFx5Yo3rIoTK97YGYBOVr+IGCxVrQPG+IfBOGO1FH5Vn3FVnz1PqSq0Wly663P1kaW0HhLwuZqeSOWqOjtbSdWQG62sqtaxjfy40aIr13ujYeMr7NNnj4Sq8RSTF9Z06ETVxaVl7aonBRDvBLSrQlX5Uy/Ma77x9atmZ21VD5FW9aqLV1XzMNy1D383NyinAZbDV9j42f04S9VYqjvXZArgurqsB6/03tVmWFXv+40MIJWsHj9+3FT1aD+qqlE/Zx1WvcAiZfkJeTlXbvS+A8NTWK5o9Bh/rlU1TkJ7G4mztHjXCqvC1bt6EYt+1ypdTcKqZ8qfm6wer65q0G3GLrv4bthW9QPzvPGsKzdwt+HiljYKqrFRT596gmryMI7EWVp0UgA+yrq8vGwsDUilAOY0qsxk9cSJE6aqxwZHVSsB4CkrT1+zr9zA3YaLW9rYoFimdFA9KgJcIs7d2FV1JNXSkngdIF31pADPrZOq3WSVTw88eWKAVTW7VdzYgs5V0MWuHZ+qspsaaZSoekwoY6h6cHFRpqt3OHcFy74UwJ7xl5msnox3rDBU1f2q6ampaqUICHbRpXCw6v1c7C0SAJN0cV++uypVTcY2eWxzVI1cTd6s3kmZ6gmr/GV/enKqm6x+zTdX8ak6PT2dp2rYTVZWVfsVwMK2G0LenCvXfq9Bk6PqbI6q42Nym0rb1LSr1tzUvGQ13rHKUtUYrZoeDFWjbn/yYpV3/NcYBqts0sW9fZWrKmTxqzo+Pj4WucpzVNtUYxDg3v0nqfl+2clqsguQX9WdO3fSVvW8C6ar5PNfN3xftct7i6s6O5uj6vh4ompkpXR12VE1cjU1NTUnWU32q7JUNUardhaqGniLQdWq/PTNB781p+68n4sHoD/zqjqbo+rEuFBVuxqZ6biavLkyp/tlJ6tqbzWPqjM7parZrgbeYuysC1TN4fXhD3//n2beLgdCUqpejlSdzVZ1YkKrKl1dTql6d9mcRJ2a8e8kq/Eqf1tVY7RqZmZGqJoTVgNvMahajYUoflqjIXogxCpwpOrsbKaqExM+Ve+lXOVTqK2wmpmsnj1r7FjpqDpTRtXQGwyqViF++KfGmFsLibLWW+hWrOpslqoTAq2qcPXePVNVc7q/s+YvparaPEWraoxW7dq1qy9U/c4Fqmbw+vDf/3MyNeIfWjqazv9GaGoV+HyWqpOTk15V70amGmF1dVWp+qgoWdV7p0hVrSGAXVrV3H5V6A0GVSvw0zcsnqjzx/g/Mll9P7ftRuRrnBKYJT4/61V1ctKrauzq/fuGq6s+Vf3Jqrl3ikfV3bt3l1M1+PZip12gah7v5/7KnLrDSUKspeoXHlUnJzNU/SSy80HsqlB1ddV0NS9ZTbZO0ao6QwC7HVVHRvzlCr69oGpFon6VNXWHk6SvBapOTWao+klEpOoDFVZXbVXTGYBW9bK1I5XTrzp+fI9WVSSrI1DVvXItVwmM93Psy1S3KoHbaxT5i7SqUxFeVT/5hKu6osLqapaqqQwg2ec3T9U9EbaqoyMjWa4G317saxeomsmCnHN+RA5WcW95iM1WdWoqQ9UNnwjurqzIsLqadtWrqtjnV6rqDAFwU4WqIgMYHR3NUjX85oKqbWBN3UmUTbpVmapOT2WoumGDUnVlRYbVVUdVTwYgN07JVvXzzz9Pqzo6mu1q+M3FTrpA1SKsqTvzUZAVk8xVmb8zVE0GM72qbjBUXadcLaHqdb11WqpfpVT9XKsq+1U7dghVh2JSqUD4zQVV60SV+ZhSdXo6S9UNG7Sq69a1WkLV1VXXVTsDuGnu8ucZAohU3bt3b1rVHTu4qqOGqqOjzp2HC1StE0fV6eksVTdYpsavu0RYfeRR9ZGh6s2bWtWr3n5VYmpa1R07pKvDMaOS9J2HCzvhAlXbRhaaqypeZXpU3bjBVHUd/4uJqo+yVOUZgD4xPVvVffv2cVWNZHVsTKpqmypdJdBaULVWTFXlmLur6saNpqrrhKmtJKw+9roqVBW7pnBVr2f0q/Z5VB0Tqu5wTB3dYt53yLDjLlC1bQxV9QSRtKobTVXXJw9//rciVR/7VU0yAH3+T46q+/cJVY0MYFfySixRdcQxdcuWFo3Ggqr1Ikp97IuZLFU3bjRVXb/OqKkorD52XJWqJvv7SFUz+1X79+93VR1Tqo7wzpRmK1SlUfr6karOZKi6caOp6vr1LauifKpyV429qNLJqqHqgf22qrGru9WcGJ+pW7fGqpJoKzbrAlXbR5TamiFqqLrRVHV9bKo1zXVl5UmsqhNW1Ra/PlV1v+rAgQOuqnpSDDdVDwUkpkJVIsWvH15say6TUnXTJlPVdEiNiVV1MoC39g5/WcnqgQO2qjwD4C9wE1WTMdUdO7SrW2mp+oULVO2ATFU3xWhV1/tMbUW9/LSqyZYpStXsftXBg0JVK1mVcw24qaOjO3YYrkJVceVarkIOQ9UZU9VNtqpcVLeOnqTC6o/GXpS+DECqGm/U4qpqzIsZTZkaubpVqkqjqaBq3STlTqu6aZOlqj+kxqTC6o9Fqop+1UGpqpWsihdjflN3bKWm6jEXqNoJHlU3b7ZU5aJmVNATo2OlN6LyJ6tSVbH9VVpVNd1gfJw/8fXwqjYVqkJVpermzbaq67Me/gk6rL55U6SqyAAO+VXV8w3GuZxeU7dSMRWq1k9c8FGl6ubNtqoffZT58OeosKpU9WYASlV1IIWVrO6dMqbG5Jm6lUxLsaMuULUjElWHh4ZmZrZ8GmGp+lFEKzukxoiwqrdMy09W5Q5YKVXVa1zbVOnqVqhqXrmWqxAkUXVkaChOA1OqclELqsZStSBZPXY0rSrPAPR73IkJ7ufYmOEqRVNb7JALVO0MxlXdnlb1o1KmJmH11atSqurzKCxVxTuHRNUxh5SpZBoKqtaPX1UlamHFSFX9GcAtlayqPbBSqqrXY9pUY3eMsTHbVDINBVXrx6tqyZAa8+QJ3zI1P1nVx1GkklX9Kndyctxj6th2y1QyDcUOukDVDmGOqlLUcrViqpqVAahdsNKqircOSVgVho5bqm7fTtJUqNoErLXJUvXjj0s//BPElqk6rDqqzqpDflKqqhdk0lSFNpWqqgdcoGqHRKpu0Kp+/HGsKv96SdKqppPV2SxVd+40XM0yVbracjcwDBmo2gRs04ZfCVU/TuBfLf3381XVuwuZqsauzpiqCkeNuVXS1O26S1UyzodAeVXN/e9j5rd5T2/QV67xLqkRq/rLX/7i5z//2c+0qFUqRJ9F4WQA4tyUWU+yak085Ioac6u0qdvV059SM7H9Lt67tza/iT8zqJqJrSr/UqULZCerx6WqTgYwI9/lJq5OGKgUYLtWVd4pnWYqq6q9/32yJR5UzcZQNflc2YiMDECfRuWomsw6kGF1YsJVdVyZGrvKfw0j1E5sn4vv5tMbNS5s+1eoms0Goar4WL0ujAxAq3rihD7iJ52sip0puaqTPlPHtxuq6hsj006lVbW3v40+IlfNgeV8KocnAzjpVzV2ddcuU1UxTWXSEtU0dbt5YyzeN56f7ZjujwSFV1WN+rk1a1PxOB2AqnkYpW8vHUyF1UhUfcKPkwEk+1IqV8WUKiGsT1XrJpNjY+JDjpz+SFiwvS6+qrVVjY8Dhqp5MM+fqmGrmpzv44ZVrqrYQ1WoOmmRF1PNzYyj3C7dHwmMsqpaCUDyAapqrAdn8kGVvu1q0BlAJKo+i8qTAey2VLVE1VHVNbXFzC3ioyjk2Tg+JNjnLoXdKrnN+Je5V27idsPEenCKD7z4nYwFqbBqHZvmqJpsS6lcNbbGslT1BVXr4I35D//gOY4jJMqq6j4cEFUlVt3ID7zH0sllb3JV5e6+J81kVWcAYgtVU9Up01Tu6tCQJ1G1h8mPpJK84CirqptyQ1WJ9cThHzznA1bn5uWLfM80dWyaG1blbr/c1SkDY71qZOqQa6rZnGuyVxWyqntc/DVs7X/fgqqadB4feRp96Pz1+s3riatmWE2p+vmePXuMsDplo8ZVhwxVxbVZy3zUryVjVaEnAKVVrXzlWq5CASsaqQ81lP9mtqqJq2JbShlW5dZYtqgTE0OGqvLS8d2pDtQCH1UNvVu12wWqVsOvag0VEIVVXwYgVZX7UgtX9TZutqpDHlWZ2fNYEP3j0AeroGrHuAN57pmr7aEzADdZFR0Lpaq55aATU6Wq4rrM7Hm8PnxEfDnwVwBQtWM83Sr+ofNsNTsD4PunqrAqj3JRp7mlTOWuissyq+chhh7jjwtBv1jd5QJVq+EdrOLf6rQSrAzAVHWvVJW7qjcd5raq7v+QqWqrnpvqEVC1BnyvAMS3OqwFfwZwfK/c6leoah7mEjPpVVVelGjLsBkXqFoVayDPfop2WA1XL3syAL0rNXd1507bVT3+P2SoWtMd9Qyo2jSd1cN1j6r7UqruTKmqX1UZpg6p+6HaMFC1cTpy42Y6AzixTx1MJVydSamqX6sOeVRlZBuG7XSBqjXTSVWoDECoun+/raqxoorLqueq+EwlNe/fBqp2gw7qws4A5Fb/ytWZmZSrxabyu3n963g47f1cPE4V6qC/DVTtCu1XxmkzrPJlmoaqKmmTbaenVQ0PZ5ia/Pf9XDLyy19Y0IBNu0DV2ukgX9Wqio1+jbAqZlObpkpXh01V1W3I+LnG+LzqYOemeICq3YB1IOvp41xVtSe1VtVa+ydNnZKmDrumyqkoa+wIl3SBxrM/gU25QNW66Wie9Ynjx44m2/ykXVVr/yxTE1eH/aoaQZT/cf43crFq+EDVLsCs/1Xl5PEvuKspVeXLRRVW9aTq4WHTVX0b5mTqWNX3c/Gk43karkLVpjCWBsqV9m1WiRNWY1F37zJVjWXVDThsqSovk5r3nw6wwcMmXaBqDZhTAdRK+/bqxBdW7VWqMVMZqsqr2PP+zT/yyWDBA1WbwZpgpScGtlcpbljVy6lyTB02TbXn/duq0hixYhMuULVzPIs/khjb1kDAiVRYVTOL802NXVXXYKkZ/omq/C6pJABQtRE8S+rm+Yc26uW0VJW7ukfPgpemGktVhr2qsvQMfzECELtLpVsFVRvBXai8JgeF2qiYOANQYVWt+9MJgDH9f9hSVV6AOSuOxb+i+aKdR8KBjbtA1c5xVF3Tb9qr14wZVq3l1FxWY6WKZepw+78xQKBqM6QTgDVzoL1y1ZxWYVWspdqjTd21y1hV5Te1P9qCuQcbjkHVzkl1qxbsV0KVO1eiY6XX/e1xTJ3uc1OhakPYqwEXnHywYu0cOhCpKuZSc1UdUyNX+9pUqNoU/pX2morVc/BAMkFFueoxdXpkpJ9NbbEdLlC1Dvwr7RUVc4BDB/abrqpU1TLVq2rftANU7Q1V140cOmi4qoeqbFNHvEG1XxqCjbpA1eZJFo5UqSIZVvdKU2NXU6aOeB///dIQULUnVJ8WqMLqXv2uytymYsRy1fpFfdISULUnsNT/SxCF1f37UqZqV0csVe3f0yctwUZcoGojeA+pLV9LIqzapu60TfWrmvyXr1AN+2SqfKBqt8g4pLZ0NR2Kw+rulKnC1RFbVfV3mPp1YoVq2NtS5sOGXaBqA2QeUlve1YMHXFMTV40wY5s6n1qhGvhmv/lA1S6RfUht2YGAQ7t9pu60TB2xn/7pFaqBb6GeD1TtEnmH1JarKtPU6Wnt6oitqvp55i5QCfxginzYkIu/5syEXB8gm3Plem+UOrmH1FZ1Nc5PvaaOaFN9y/4CP+4nn9Kqepe15V65/pulTP4htaUqq4yq+qdZa0BVzVjWlnfl+m+WMgWH1FZylQ9Q+UzVqrLUo74PEoDtLr5qy1rWlnPlem+UOkWH1JbpXAlTpwxVM01Nt1cfdKvKqpq5rC3zyvXeKHWKD6kt7eqUdjXL1BZL/7o//s0f/u8G7cGqrS5Mo34uZ1lb1pWbumWiFB9SW1xjiamTk0rVbFOdX/dv7B/nPqP9CsCnqufn8pa1ZVy53hulT/EhtYVVxk2dVGE1r0uVXqH618lLgKBPpsqnrKq5y9r8V673RgeB4nw1UnViUoXVzETV91cX6Cyj9sO2uJToVi0U73QIVatSYhfWyNQJFVYrmRozT2QrdT9lVS1a1ua5cq33OQiUmbG3ezx2NVE1J1HNYo19+PtvqOrKPnUpfAXgW9bmXrnW+xwEmPHfLLiqsavDw5VNTSbJ0BypalVQtWhZm3vlRu63jyk13XpsTIZVW1X3Mn1HeVUrX7mWq/Qp/yEPZDX+wbPXh/m5PPmuirAazysaKFNbbLMLVG0c0T+1zxHediN6QBe5KsPqkKmq/nYf1zpU7Ql8TNVzOjt3OG8ggKs6NICqbnKBqo3D9bRGAO29o7NrL1Z1YnL7kJEBGH+tj2sdqvaCZL4v2/bf5nuVtQ9/N2dMAs53NVJVh1X9rf5Z9O8Bqnaf+cTTG63//XfzbfVCPIz00zfFu7DGqm7nqg67Y//9W+1sowtUbZA4oG77n7nkFYo1sWLhg9TctawKHBsf37p1u84A9HegaptXruUq/cl7rqo1sYKnrObBPFmJ59j4FkNV/fUyrxAIwza4QNWmEV0oq1u15jlK2l+HQlXuqvHDxqw3PlpL6Qj1YqBqLxCB1Bqs4pE2tZjEX4mffqrDqv5RPUArR2uJHEhVEqjaC376F7E+33wFEC8N5PIaeGtxs1bV/EFrgDb+QHQRVQbsExeo2jWs+c9rvhXrvmoUqg4N20up5QCtSisoHaFeDFQNHV/nSoZV46da9nLY5AOlI9SLYb9ygaph4dakoyozRr3UEBipI9SLgarB43kFtXnzli2RqvpHPvCpyr/XNwkrVA0e5qnLJKwaP+Lsh2HsjkXjCPVi2C9doGpIeJex2Koye96LvQyub0asoGroeN9BxRmA8ROe2YTRB1JHqBfDfuECVQNCLWOx6zMKq+ZP2HO05QdKR6gXA1UDh3n+1ErCqvVla4BW7UtB6Aj1YqBqgFhnS+itJswa3bxZ/mlg6pn93AWq9hb7dWv8weeq+P/gVDNUDY5UH+kz/cGs0ycSPMEAAALKSURBVM3OV/odqBoc1mCTrarzlnWQKpn9zAWq9hR7CN9MAGKsah2oOoaqwZF+MZo+nT3jz30P+9gFqvYUW9V4b3B7j7CM4au+B6oGh33AhWf3/lKbW/UfUDU47BVXvuN7WJntLfsO9pELVO0pnnOXnPf4/b2M2g9UDQ/rFYCbqyb09T4qfth6F6jaY6wX+vP+RSeDV71QlSoDV79QlSoDV79snQtUJcGgVTBUJcugVTD7OxeoSoMBq2GoSg1rToD6kJ4p0IdAVWL4V1FRPua3LOxvXaBquPjXppI+PL0sUJUW/hX/vkktfQfzUc+Va7kKsHnt3Uclfa44qARUbQJrppX64J1/BcoCVZsAqjYAVG0CJAANAFWbYIC7Vc0BVZtggAermgOqNsLgvgJoDqjaDP6N1Bb6/8Vqc0BVQASoCogAVQERoCogAlQFRICqgAhQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACFAVEAGqAiJAVUAEqAqIAFUBEaAqIAJUBUSAqoAIUBUQAaoCIkBVQASoCogAVQERoCogAlQFRICqgAhQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACFAVEAGqAiJAVUAEqAqIAFUBEaAqIAJUBUSAqoAIUBUQAaoCIkBVQASoCogAVQERoCogAlQFRICqgAhQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACFAVEAGqAiJAVUAEqAqIAFUBEaAqIAJUBUSAqoAIUBUQAaoCIkBVQASoCogAVQERoCogAlQFRICqgAhQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACFAVEAGqAiJAVUAEqAqIAFUBEaAqIAJUBUSAqoAIUBUQAaoCIkBVQASoCogAVQERoCogAlQFRICqgAhQFRABqgIiQFVABKgKiABVARGgKiACVAVEgKqACP8PJx1Ps4lBSNEAAAAASUVORK5CYII=" /></p>
 <!-- rnb-plot-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdHJnbChzbW9vdGg9VFJVRSwgbGlnaHRpbmcgPSBUUlVFKVxuYGBgIn0= -->
-<pre class="r"><code>plotrgl(smooth=TRUE, lighting = TRUE)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucGxvdHJnbChzbW9vdGg9VFJVRSwgbGlnaHRpbmcgPSBUUlVFKVxuYGBgXG5gYGAifQ== -->
+<p><code>r</code>r plotrgl(smooth=TRUE, lighting = TRUE)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -246,36 +235,31 @@ persp3D(sol$x, sol$t, sol$w,
 <p>For convenince I first encapsulate the code for calculating the maximal error into a function so that we can then easily call it with different step sizes.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IgPC0gZnVuY3Rpb24oaCkge1xuICAgICMgRGV0ZXJtaW5lIG51bWJlciBvZiBzdGVwcyBhbmQgc3RlcCBzaXplIHRvIGd1YXJhbnRlZSBzdGFiaWxpdHlcbiAgICBOIDwtIGNlaWxpbmcoMS9oKVxuICAgIEsgPC0gMVxuICAgIHRhdSA8LSBoXjIvKDIqSylcbiAgICBUIDwtIDAuMlxuICAgIE0gPC0gY2VpbGluZyhUL3RhdSlcbiAgICBcbiAgICAjIG51bWVyaWNhbCBzb2x1dGlvblxuICAgIG51bVNvbCA8LSBmb3J3YXJkRGlmZmVyZW5jZShmPWZ1bmN0aW9uKHgpIHstMjUqc2luKDMqcGkqeCl9LFxuICAgICAgICAgICAgICAgICAgICAgICAgIHUwPWZ1bmN0aW9uKHgpIHstMy8yKnNpbigyKnBpKngpfSxcbiAgICAgICAgICAgICAgICAgICAgICAgICBUPVQsIE09TSwgTj1OKVxuICAgICMgZXhhY3Qgc29sdXRpb25cbiAgICB4IDwtIG51bVNvbCR4XG4gICAgdCA8LSBudW1Tb2wkdFxuICAgIHh5IDwtIG1lc2goeCwgdClcbiAgICB1IDwtIHdpdGgoeHksIC0zLzIqc2luKDIqcGkqeCkqZXhwKC00KnBpXjIqeSlcbiAgICAgICAgICAgICAgICAgICAgICAgLTI1Lyg5KnBpXjIpKnNpbigzKnBpKngpKigxLWV4cCgtOSpwaV4yKnkpKSlcbiAgICBcbiAgICByZXR1cm4obWF4KGFicyh1IC0gbnVtU29sJHcpKSlcbn1cbmBgYCJ9 -->
-<pre class="r"><code>maxError &lt;- function(h) {
-    # Determine number of steps and step size to guarantee stability
-    N &lt;- ceiling(1/h)
-    K &lt;- 1
-    tau &lt;- h^2/(2*K)
-    T &lt;- 0.2
-    M &lt;- ceiling(T/tau)
-    
-    # numerical solution
-    numSol &lt;- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
-                         u0=function(x) {-3/2*sin(2*pi*x)},
-                         T=T, M=M, N=N)
-    # exact solution
-    x &lt;- numSol$x
-    t &lt;- numSol$t
-    xy &lt;- mesh(x, t)
-    u &lt;- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
-                       -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
-    
-    return(max(abs(u - numSol$w)))
-}</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IgPC0gZnVuY3Rpb24oaCkge1xuICAgICMgRGV0ZXJtaW5lIG51bWJlciBvZiBzdGVwcyBhbmQgc3RlcCBzaXplIHRvIGd1YXJhbnRlZSBzdGFiaWxpdHlcbiAgICBOIDwtIGNlaWxpbmcoMS9oKVxuICAgIEsgPC0gMVxuICAgIHRhdSA8LSBoXjIvKDIqSylcbiAgICBUIDwtIDAuMlxuICAgIE0gPC0gY2VpbGluZyhUL3RhdSlcbiAgICBcbiAgICAjIG51bWVyaWNhbCBzb2x1dGlvblxuICAgIG51bVNvbCA8LSBmb3J3YXJkRGlmZmVyZW5jZShmPWZ1bmN0aW9uKHgpIHstMjUqc2luKDMqcGkqeCl9LFxuICAgICAgICAgICAgICAgICAgICAgICAgIHUwPWZ1bmN0aW9uKHgpIHstMy8yKnNpbigyKnBpKngpfSxcbiAgICAgICAgICAgICAgICAgICAgICAgICBUPVQsIE09TSwgTj1OKVxuICAgICMgZXhhY3Qgc29sdXRpb25cbiAgICB4IDwtIG51bVNvbCR4XG4gICAgdCA8LSBudW1Tb2wkdFxuICAgIHh5IDwtIG1lc2goeCwgdClcbiAgICB1IDwtIHdpdGgoeHksIC0zLzIqc2luKDIqcGkqeCkqZXhwKC00KnBpXjIqeSlcbiAgICAgICAgICAgICAgICAgICAgICAgLTI1Lyg5KnBpXjIpKnNpbigzKnBpKngpKigxLWV4cCgtOSpwaV4yKnkpKSlcbiAgICBcbiAgICByZXR1cm4obWF4KGFicyh1IC0gbnVtU29sJHcpKSlcbn1cbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r maxError &lt;- function(h) { # Determine number of steps and step size to guarantee stability N &lt;- ceiling(1/h) K &lt;- 1 tau &lt;- h^2/(2*K) T &lt;- 0.2 M &lt;- ceiling(T/tau)</p>
+<pre><code># numerical solution
+numSol &lt;- forwardDifference(f=function(x) {-25*sin(3*pi*x)},
+                     u0=function(x) {-3/2*sin(2*pi*x)},
+                     T=T, M=M, N=N)
+# exact solution
+x &lt;- numSol$x
+t &lt;- numSol$t
+xy &lt;- mesh(x, t)
+u &lt;- with(xy, -3/2*sin(2*pi*x)*exp(-4*pi^2*y)
+                   -25/(9*pi^2)*sin(3*pi*x)*(1-exp(-9*pi^2*y)))
+
+return(max(abs(u - numSol$w)))</code></pre>
+<p>}</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>With h=1/120 we obtain a maximum error of</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IoMS8xMjApXG5gYGAifQ== -->
-<pre class="r"><code>maxError(1/120)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IoMS8xMjApXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r maxError(1/120)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMDAwNDMyMTA3NFxuIn0= -->
 <pre><code>[1] 0.0004321074</code></pre>
@@ -285,8 +269,9 @@ persp3D(sol$x, sol$t, sol$w,
 <p>We observe that the error has again decreased by a factor of about 1/4. So let’s halve the step size again:</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IoMS8yNDApXG5gYGAifQ== -->
-<pre class="r"><code>maxError(1/240)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IoMS8yNDApXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r maxError(1/240)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMDAwMTA4MDM2MlxuIn0= -->
 <pre><code>[1] 0.0001080362</code></pre>
@@ -304,53 +289,51 @@ u(x,t) = \sin(\pi x)e^{-\pi^2 t}
 \]</span> We modify the function <code>maxError()</code> appropriately to reflect the new problem.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IgPC0gZnVuY3Rpb24oaCkge1xuICAgICMgRGV0ZXJtaW5lIG51bWJlciBvZiBzdGVwcyBhbmQgc3RlcCBzaXplIHRvIGd1YXJhbnRlZSBzdGFiaWxpdHlcbiAgICBOIDwtIGNlaWxpbmcoMS9oKVxuICAgIEsgPC0gMVxuICAgIHRhdSA8LSBoXjIvKDIqSylcbiAgICBUIDwtIDAuMlxuICAgIE0gPC0gY2VpbGluZyhUL3RhdSlcbiAgICBcbiAgICAjIG51bWVyaWNhbCBzb2x1dGlvblxuICAgIG51bVNvbCA8LSBmb3J3YXJkRGlmZmVyZW5jZShmPWZ1bmN0aW9uKHgpIC0xNipzaW4oOCpwaSp4KSwgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIHUwPWZ1bmN0aW9uKHgpIHNpbihwaSp4KSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSz1LLCBUPVQsIE09TSwgTj1OKVxuICAgICMgZXhhY3Qgc29sdXRpb25cbiAgICB4IDwtIG51bVNvbCR4XG4gICAgdCA8LSBudW1Tb2wkdFxuICAgIHh5IDwtIG1lc2goeCwgdClcbiAgICB1IDwtIHdpdGgoeHksIHNpbihwaSp4KSpleHAoLXBpXjIqeSlcbiAgICAgICAgICAgICAgICAgICAgICAgLTEvKDQqcGleMikqc2luKDgqcGkqeCkqKDEtZXhwKC02NCpwaV4yKnkpKSlcbiAgICBcbiAgICByZXR1cm4obWF4KGFicyh1IC0gbnVtU29sJHcpKSlcbn1cbmBgYCJ9 -->
-<pre class="r"><code>maxError &lt;- function(h) {
-    # Determine number of steps and step size to guarantee stability
-    N &lt;- ceiling(1/h)
-    K &lt;- 1
-    tau &lt;- h^2/(2*K)
-    T &lt;- 0.2
-    M &lt;- ceiling(T/tau)
-    
-    # numerical solution
-    numSol &lt;- forwardDifference(f=function(x) -16*sin(8*pi*x), 
-                             u0=function(x) sin(pi*x),
-                             K=K, T=T, M=M, N=N)
-    # exact solution
-    x &lt;- numSol$x
-    t &lt;- numSol$t
-    xy &lt;- mesh(x, t)
-    u &lt;- with(xy, sin(pi*x)*exp(-pi^2*y)
-                       -1/(4*pi^2)*sin(8*pi*x)*(1-exp(-64*pi^2*y)))
-    
-    return(max(abs(u - numSol$w)))
-}</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IgPC0gZnVuY3Rpb24oaCkge1xuICAgICMgRGV0ZXJtaW5lIG51bWJlciBvZiBzdGVwcyBhbmQgc3RlcCBzaXplIHRvIGd1YXJhbnRlZSBzdGFiaWxpdHlcbiAgICBOIDwtIGNlaWxpbmcoMS9oKVxuICAgIEsgPC0gMVxuICAgIHRhdSA8LSBoXjIvKDIqSylcbiAgICBUIDwtIDAuMlxuICAgIE0gPC0gY2VpbGluZyhUL3RhdSlcbiAgICBcbiAgICAjIG51bWVyaWNhbCBzb2x1dGlvblxuICAgIG51bVNvbCA8LSBmb3J3YXJkRGlmZmVyZW5jZShmPWZ1bmN0aW9uKHgpIC0xNipzaW4oOCpwaSp4KSwgXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgIHUwPWZ1bmN0aW9uKHgpIHNpbihwaSp4KSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSz1LLCBUPVQsIE09TSwgTj1OKVxuICAgICMgZXhhY3Qgc29sdXRpb25cbiAgICB4IDwtIG51bVNvbCR4XG4gICAgdCA8LSBudW1Tb2wkdFxuICAgIHh5IDwtIG1lc2goeCwgdClcbiAgICB1IDwtIHdpdGgoeHksIHNpbihwaSp4KSpleHAoLXBpXjIqeSlcbiAgICAgICAgICAgICAgICAgICAgICAgLTEvKDQqcGleMikqc2luKDgqcGkqeCkqKDEtZXhwKC02NCpwaV4yKnkpKSlcbiAgICBcbiAgICByZXR1cm4obWF4KGFicyh1IC0gbnVtU29sJHcpKSlcbn1cbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r maxError &lt;- function(h) { # Determine number of steps and step size to guarantee stability N &lt;- ceiling(1/h) K &lt;- 1 tau &lt;- h^2/(2*K) T &lt;- 0.2 M &lt;- ceiling(T/tau)</p>
+<pre><code># numerical solution
+numSol &lt;- forwardDifference(f=function(x) -16*sin(8*pi*x), 
+                         u0=function(x) sin(pi*x),
+                         K=K, T=T, M=M, N=N)
+# exact solution
+x &lt;- numSol$x
+t &lt;- numSol$t
+xy &lt;- mesh(x, t)
+u &lt;- with(xy, sin(pi*x)*exp(-pi^2*y)
+                   -1/(4*pi^2)*sin(8*pi*x)*(1-exp(-64*pi^2*y)))
+
+return(max(abs(u - numSol$w)))</code></pre>
+<p>}</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IoMS8zMClcbmBgYCJ9 -->
-<pre class="r"><code>maxError(1/30)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IoMS8zMClcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r maxError(1/30)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMDAyMzk4MjdcbiJ9 -->
 <pre><code>[1] 0.00239827</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IoMS82MClcbmBgYCJ9 -->
-<pre class="r"><code>maxError(1/60)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IoMS82MClcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r maxError(1/60)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMDAwNTU1NTMxNVxuIn0= -->
 <pre><code>[1] 0.0005555315</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IoMS8xMjApXG5gYGAifQ== -->
-<pre class="r"><code>maxError(1/120)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IoMS8xMjApXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r maxError(1/120)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuMDAwMTM2NTQyMVxuIn0= -->
 <pre><code>[1] 0.0001365421</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWF4RXJyb3IoMS8yNDApXG5gYGAifQ== -->
-<pre class="r"><code>maxError(1/240)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxubWF4RXJyb3IoMS8yNDApXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r maxError(1/240)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-begin eyJkYXRhIjoiWzFdIDMuNDE3NTM3ZS0wNVxuIn0= -->
 <pre><code>[1] 3.417537e-05</code></pre>
@@ -363,12 +346,11 @@ u(x,t) = \sin(\pi x)e^{-\pi^2 t}
 <p>Write code that produces a plot of the maximal error against the number of steps <span class="math inline">\(M\)</span>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaCA8LSAxLygzMCoyXigwOjMpKVxuZXJyb3IgPC0gc2FwcGx5KHNpemVzLCBtYXhFcnJvcilcbnBsb3QoaCwgZXJyb3IpXG5gYGAifQ== -->
-<pre class="r"><code>h &lt;- 1/(30*2^(0:3))
-error &lt;- sapply(sizes, maxError)
-plot(h, error)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuaCA8LSAxLygzMCoyXigwOjMpKVxuZXJyb3IgPC0gc2FwcGx5KHNpemVzLCBtYXhFcnJvcilcbnBsb3QoaCwgZXJyb3IpXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r h &lt;- 1/(30*2^(0:3)) error &lt;- sapply(sizes, maxError) plot(h, error)</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-plot-begin eyJjb25kaXRpb25zIjpbXSwiaGVpZ2h0Ijo0MjEuNTA4LCJzaXplX2JlaGF2aW9yIjowLCJ3aWR0aCI6NjgyfQ== -->
+<!-- rnb-plot-begin -->
 <p><img src="data:image/png;base64,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" /></p>
 <!-- rnb-plot-end -->
 <!-- rnb-chunk-end -->
@@ -376,19 +358,20 @@ plot(h, error)</code></pre>
 <p>To see better that the error goes as <span class="math inline">\(h^2\)</span> it is a good idea to plot the log of the error against the log of <span class="math inline">\(h^2\)</span>. That should produce a straight line with sloppe 2.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucGxvdChsb2coaCksIGxvZyhlcnJvcikpXG5hYmxpbmUobG0obG9nKGVycm9yKSB+IGxvZyhoKSkpXG5gYGAifQ== -->
-<pre class="r"><code>plot(log(h), log(error))
-abline(lm(log(error) ~ log(h)))</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxucGxvdChsb2coaCksIGxvZyhlcnJvcikpXG5hYmxpbmUobG0obG9nKGVycm9yKSB+IGxvZyhoKSkpXG5gYGBcbmBgYCJ9 -->
+<p><code>r</code>r plot(log(h), log(error)) abline(lm(log(error) ~ log(h)))</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-plot-begin eyJjb25kaXRpb25zIjpbXSwiaGVpZ2h0Ijo0MjEuNTA4LCJzaXplX2JlaGF2aW9yIjowLCJ3aWR0aCI6NjgyfQ== -->
+<!-- rnb-plot-begin -->
 <p><img src="data:image/png;base64,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" /></p>
 <!-- rnb-plot-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShsbShsb2coZXJyb3IpIH4gbG9nKGgpKSlcbmBgYCJ9 -->
-<pre class="r"><code>summary(lm(log(error) ~ log(h)))</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYGBgclxuc3VtbWFyeShsbShsb2coZXJyb3IpIH4gbG9nKGgpKSlcbmBgYFxuYGBgIn0= -->
+<p><code>r</code>r summary(lm(log(error) ~ log(h)))</p>
+<pre><code></code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxubG0oZm9ybXVsYSA9IGxvZyhlcnJvcikgfiBsb2coaCkpXG5cblJlc2lkdWFsczpcbiAgICAgICAxICAgICAgICAyICAgICAgICAzICAgICAgICA0IFxuIDAuMDIxNDIgLTAuMDI1NTMgLTAuMDEzMTkgIDAuMDE3MzEgXG5cbkNvZWZmaWNpZW50czpcbiAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgdCB2YWx1ZSBQcig+fHR8KSAgICBcbihJbnRlcmNlcHQpICAwLjg5MTkxICAgIDAuMDgxODYgICAgMTAuOSAgMC4wMDgzMiAqKiBcbmxvZyhoKSAgICAgICAyLjA0MjMyICAgIDAuMDE4MTYgICAxMTIuNSAgNy45ZS0wNSAqKipcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAg4oCYKioq4oCZIDAuMDAxIOKAmCoq4oCZIDAuMDEg4oCYKuKAmSAwLjA1IOKAmC7igJkgMC4xIOKAmCDigJkgMVxuXG5SZXNpZHVhbCBzdGFuZGFyZCBlcnJvcjogMC4wMjgxNCBvbiAyIGRlZ3JlZXMgb2YgZnJlZWRvbVxuTXVsdGlwbGUgUi1zcXVhcmVkOiAgMC45OTk4LFx0QWRqdXN0ZWQgUi1zcXVhcmVkOiAgMC45OTk4IFxuRi1zdGF0aXN0aWM6IDEuMjY1ZSswNCBvbiAxIGFuZCAyIERGLCAgcC12YWx1ZTogNy45MDRlLTA1XG4ifQ== -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxubG0oZm9ybXVsYSA9IGxvZyhlcnJvcikgfiBsb2coaCkpXG5cblJlc2lkdWFsczpcbiAgICAgICAxICAgICAgICAyICAgICAgICAzICAgICAgICA0IFxuIDAuMDIxNDIgLTAuMDI1NTMgLTAuMDEzMTkgIDAuMDE3MzEgXG5cbkNvZWZmaWNpZW50czpcbiAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgdCB2YWx1ZSBQcig+fHR8KSAgICBcbihJbnRlcmNlcHQpICAwLjg5MTkxICAgIDAuMDgxODYgICAgMTAuOSAgMC4wMDgzMiAqKiBcbmxvZyhoKSAgICAgICAyLjA0MjMyICAgIDAuMDE4MTYgICAxMTIuNSAgNy45ZS0wNSAqKipcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAgw6LigqzLnCoqKsOi4oKs4oSiIDAuMDAxIMOi4oKsy5wqKsOi4oKs4oSiIDAuMDEgw6LigqzLnCrDouKCrOKEoiAwLjA1IMOi4oKsy5wuw6LigqzihKIgMC4xIMOi4oKsy5wgw6LigqzihKIgMVxuXG5SZXNpZHVhbCBzdGFuZGFyZCBlcnJvcjogMC4wMjgxNCBvbiAyIGRlZ3JlZXMgb2YgZnJlZWRvbVxuTXVsdGlwbGUgUi1zcXVhcmVkOiAgMC45OTk4LFx0QWRqdXN0ZWQgUi1zcXVhcmVkOiAgMC45OTk4IFxuRi1zdGF0aXN0aWM6IDEuMjY1ZSswNCBvbiAxIGFuZCAyIERGLCAgcC12YWx1ZTogNy45MDRlLTA1XG4ifQ== -->
 <pre><code>
 Call:
 lm(formula = log(error) ~ log(h))
@@ -402,7 +385,7 @@ Coefficients:
 (Intercept)  0.89191    0.08186    10.9  0.00832 ** 
 log(h)       2.04232    0.01816   112.5  7.9e-05 ***
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 â€˜***â€™ 0.001 â€˜**â€™ 0.01 â€˜*â€™ 0.05 â€˜.â€™ 0.1 â€˜ â€™ 1
 
 Residual standard error: 0.02814 on 2 degrees of freedom
 Multiple R-squared:  0.9998,    Adjusted R-squared:  0.9998 

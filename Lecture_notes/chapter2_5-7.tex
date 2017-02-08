@@ -11,10 +11,9 @@
 
 \subsection{Non-homogeneous heat equation with non-homogeneous boundary conditions}
 
- 
-So far, we considered the homogeneous heat equation with homogeneous
-(zero) boundary conditions. Consider first
-the non-homogeneous heat equation with homogeneous
+\subsubsection{Non-homogeneous heat equation}
+
+Consider first the non-homogeneous heat equation with homogeneous
 boundary conditions, given by
 \begin{eqnarray}
 &&\frac{\pr u}{\pr t}(x,t) - K\frac{\pr^{2} u}{\pr x^{2}}(x,t)=f(x,t), \quad
@@ -22,23 +21,21 @@ boundary conditions, given by
 &&u(0, t) = u(L, t)=0 \quad \hbox{for} \quad t>0,   \label{d2} \\
 &&u(x, 0) = u_{0}(x).   \label{d3}
 \end{eqnarray}
-The generalisation of the forward-difference and backward-difference methods is straightforward.
-
-
-\vskip 3mm
+The generalisation of the finite-difference methods is straightforward.
  
 \underline{Forward-difference method}:
 \begin{equation}
 \frac{w_{k,j+1}-w_{k,j}}{\tau}-K
 \frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=f(x_k,t_j). \label{d10}
 \end{equation}
+
 \underline{Backward-difference method}:
 \begin{equation}
 \frac{w_{k,j}-w_{k,j-1}}{\tau}-K
 \frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=f(x_k,t_j). \label{d11}
 \end{equation}
-The non-homogeneous version of the \underline{Crank-Nicolson method} is given
-by
+
+\underline{Crank-Nicolson method}:
 \begin{multline}
 \frac{w_{k,j+1}-w_{k,j}}{\tau}-
 K \frac{w_{k+1,j}-2w_{kj}+w_{k-1,j}+
@@ -50,19 +47,18 @@ $[f(x_k,t_j)+f(x_k,t_{j+1})]/2$ because
 \[
 f(x_k,t_j+\tau/2)-\frac{1}{2}[f(x_k,t_j)+f(x_k,t_{j+1})]=O(\tau^2).
 \]
-
-  
  
 Do the above modifications affect the stability of the methods? The answer is NO, because
 in spite of the fact that the difference equations are non-homogeneous, the corresponding equations for perturbation
 $z_{kj}$ remain the same homogeneous equations as before.
 
 
-
-
   
  
-\textbf{Non-homogeneous boundary conditions}. Consider
+\subsubsection{Non-homogeneous boundary conditions}
+
+So far, we considered the homogeneous heat equation with homogeneous
+(zero) boundary conditions \eqref{d2}. Now consider
 the initial boundary value problem
 \begin{eqnarray}
 &&\frac{\pr u}{\pr t}(x,t) - K\frac{\pr^{2} u}{\pr x^{2}}(x,t)=f(x,t), \quad
@@ -71,6 +67,7 @@ the initial boundary value problem
 &&u(x, 0) = u_{0}(x),   \label{d15}
 \end{eqnarray}
 where $\mu_{1}(t)$ and $\mu_{2}(t)$ are some given functions.
+
 The non-homogeneous boundary conditions (\ref{d14}) can be
 dealt with in two ways. First, one can simply change
 the boundary conditions for $w_{kj}$ by letting
@@ -79,10 +76,8 @@ w_{0,j}=\mu_{1}(t_j), \quad w_{N,j}=\mu_{2}(t_j). \label{d16}
 \end{equation}
 Note that for implicit schemes where we employ the double-sweep method, the latter should be modified
 in order to allow non-zero boundary conditions.
-
-\vskip 3mm
  
-Second, one can reduce problem (\ref{d13})--(\ref{d15}) to an initial boundary
+Second, one can reduce the initial boundary value problem (\ref{d13})--(\ref{d15}) to an equivalent
 problem with homogeneous boundary conditions. To do this, we choose any function
 $g(x,t)$ satisfying the boundary conditions
 \begin{equation}
@@ -114,7 +109,7 @@ g(x,t)=\mu_{1}(t)+[\mu_{2}(t)-\mu_{1}(t)]\frac{x}{L}.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Boundary conditions of other types}.
+\subsection{Boundary conditions of other types}
 
  
 In all the problems we discussed so far, the
@@ -127,8 +122,6 @@ of $u$:
 \end{equation}
 These are known as Dirichlet boundary conditions.
 Evidently, we need to approximate these conditions.
-
-\vskip 3mm
  
 Consider the non-homogeneous heat equation
 \begin{equation}
@@ -142,7 +135,7 @@ u(x, 0) = u_{0}(x).   \label{dd2}
 As in the case of non-homogeneous boundary conditions for $u$, the problem
 (\ref{d21})--(\ref{dd2}) with non-homogeneous boundary conditions for $u_{x}$
 can be reduced to
-a problem with homogeneous boundary condition. To do this, we write
+a problem with homogeneous boundary conditions for $u_{x}$. To do this, we write
 $u(x,t)=v(x,t)+g(x,t)$ with any fixed function $g(x,t)$ satisfying conditions
 (\ref{d21}). Then for $v(x,t)$, we obtain the problem
 \begin{eqnarray}
@@ -152,13 +145,16 @@ $u(x,t)=v(x,t)+g(x,t)$ with any fixed function $g(x,t)$ satisfying conditions
 \frac{\pr v}{\pr x}(L,t)=0, \quad
 v(x, 0) = v_{0}(x), \nonumber
 \end{eqnarray}
-where $\tilde{f}(x,t)=f(x,t)-g_{t}(x,t)+Kg_{xx}(x,t)$ and $v_{0}(x)=u_{0}(x)-g(x,0)$.
+where 
+$$\tilde{f}(x,t)=f(x,t)-\frac{\pr g}{\pr t}(x,t)+K\frac{\pr^2 g}{\pr x^2}(x,t)$$ 
+and $v_{0}(x)=u_{0}(x)-g(x,0)$.
 [An example of function $g$: $g(x,t)=\mu_{1}(t)x+[\mu_{2}(t)-\mu_{1}(t)]x^2/(2L)$.]
 Therefore, we will discuss here only the homogeneous conditions
 \begin{equation}
 \frac{\pr u}{\pr x}(0,t)=0, \quad
 \frac{\pr u}{\pr x}(L,t)=0. \label{d22}
 \end{equation}
+
 In what follows we restrict our analysis to the boundary condition at $x=0$
 (the other boundary condition can be treated similarly).
 If we use the two-point forward-difference formula for the derivative
@@ -228,101 +224,7 @@ f(x_0,t_j)\right)\nonumber\\
 \end{eqnarray}
 The last equation leads to the difference equation (\ref{d25}).
  
-What about the stability of this method?
-Evidently, the Fourier method would produce the same answer as before,
-because boundary conditions are ignored. The stability can be investigated with the help
-of the matrix stability analysis\footnote{See W. F. Ames, Numerical methods for partial differential equation,
-Academic Press, 1977.}. The forward-difference method described above can be written in the matrix form
-\begin{equation}
-{\bf w}^{(j)}=A{\bf w}^{(j-1)}+\tau {\bf F}^{(j-1)} \quad \hbox{for} \quad j=1,2,\dots, \label{d106}
-\end{equation}
-where
-\begin{gather}
-A=\left[
-\begin{array}{ccccccc}
-1-2\gamma &2\gamma &0      &\dots  &\dots  &\dots &0 \\
-\gamma &1-2\gamma &\gamma &\ddots  &       &     &\vdots \\
-0      &\gamma &1-2\gamma &\gamma &\ddots &      &\vdots \\
-\vdots &\ddots &\ddots &\ddots &\ddots &\ddots &\vdots  \\
-\vdots &       &\ddots &\ddots &\ddots &\gamma &0 \\
-\vdots &       &       &\ddots &\gamma &1-2\gamma &\gamma \\
-0      &\dots  &\dots  &\dots  &0      &2\gamma &1-2\gamma
-\end{array}\right], \\
-{\bf w}^{(j)}=\left[
-\begin{array}{c}
-w_{0,j} \\
-w_{1,j} \\
-w_{2,j} \\
-\vdots \\
-\vdots \\
-\vdots \\
-w_{N-1,j} \\
-w_{N,j}
-\end{array}\right], \qquad
-{\bf F}^{(j)}=\left[
-\begin{array}{c}
-f_{0,j} \\
-f_{1,j} \\
-f_{2,j} \\
-\vdots \\
-\vdots \\
-\vdots \\
-f_{N-1,j} \\
-f_{N,j}
-\end{array}\right].
-\label{d107}
-\end{gather}
-The method will be stable if for all eigenvalues $\lambda$ of $A$,
-\[
-\vert \lambda\vert\leq 1,
-\]
-and it can be shown (see W. F. Ames, Numerical methods for partial differential equations)
-that this results in the same stability condition $\gamma\leq 1/2$.
 
-
-  
- 
-The implicit backward-difference method  for problem
-(\ref{d21})--(\ref{dd2}) can be written in the matrix form as follows
-\begin{equation}
-B{\bf w}^{(j)}={\bf w}^{(j-1)}+\tau {\bf F}^{(j)} \quad \hbox{for} \quad j=1,2,\dots,
-\end{equation}
-where
-\begin{gather}
-B=\left[
-\begin{array}{ccccccc}
-1+2\gamma &-2\gamma &0      &\dots  &\dots  &\dots &0 \\
--\gamma &1+2\gamma &-\gamma &\ddots  &       &     &\vdots \\
-0      &-\gamma &1+2\gamma &-\gamma &\ddots &      &\vdots \\
-\vdots &\ddots &\ddots &\ddots &\ddots &\ddots &\vdots  \\
-\vdots &       &\ddots &\ddots &\ddots &-\gamma &0 \\
-\vdots &       &       &\ddots &-\gamma &1+2\gamma &-\gamma \\
-0      &\dots  &\dots  &\dots  &0      &-2\gamma &1+2\gamma
-\end{array}\right], \\
-{\bf w}^{(j)}=\left[
-\begin{array}{c}
-w_{0,j} \\
-w_{1,j} \\
-w_{2,j} \\
-\vdots \\
-\vdots \\
-\vdots \\
-w_{N-1,j} \\
-w_{N,j}
-\end{array}\right], \quad
-{\bf F}^{(j)}=\left[
-\begin{array}{c}
-f_{0,j} \\
-f_{1,j} \\
-f_{2,j} \\
-\vdots \\
-\vdots \\
-\vdots \\
-f_{N-1,j} \\
-f_{N,j}
-\end{array}\right].
-\end{gather}
-It can be shown that it remains unconditionally stable.
  
 More general boundary conditions (Robin boundary conditions)
 \begin{equation}
@@ -353,7 +255,7 @@ a(x,t)> 0 \quad {\rm for} \quad 0\leq x\leq L, \ \ 0<t<T. \label{e4}
 Most of the previously discussed methods can be generalized to the case of
 the initial boundary value problem (\ref{e1})--(\ref{e3}).  How to do this?
  
-Employing the two-point forward difference formula for $u_t$ and
+Employing the forward difference formula for $u_t$ and
 the central difference formulae for $u_x$ and $u_{xx}$, we obtain
 the following finite-difference approximation for Eq. (\ref{e1}):
 \begin{equation}
@@ -381,28 +283,32 @@ b_{kj}\frac{w_{k+1,j}-w_{k-1,j}}{2h}+c_{kj}w_{k,j}+d_{kj},   \label{e6}
 whose local truncation error is $O(\tau+h^2)$ and which is similar to the implicit
 backward-difference method for the heat equation.
  
-It can be shown that Crank-Nicolson's technique applied to (\ref{e1}) yields:
+Crank-Nicolson's technique applied to (\ref{e1}) yields:
 \begin{eqnarray}
 \frac{w_{k,j+1}-w_{k,j}}{\tau} &=& \frac{a_{k,j+1/2}}{2h^{2}} \,
 \delta_{x}^2 \, \left(w_{k,j}+w_{k,j+1}\right)
 +\frac{b_{k,j+1/2}}{4h} \, \delta_{x} \,  \left(w_{k,j}+w_{k,j+1}\right)\nonumber \\
-&&+\frac{c_{k,j+1/2}}{2} \, \left(w_{k,j}+w_{k,j+1}\right)+d_{k,j+1/2}, \nonumber
+&&+\frac{c_{k,j+1/2}}{2} \, \left(w_{k,j}+w_{k,j+1}\right)+d_{k,j+1/2}, \label{cnvc}
 \end{eqnarray}
 where
 \[
 a_{k,j+1/2}=\frac{a(x_{k},t_{j})+a(x_{k},t_{j+1})}{2}, \quad
-b_{k,j+1/2}=\frac{b(x_{k},t_{j})+b(x_{k},t_{j+1})}{2}, \ \ {\rm etc.}
+b_{k,j+1/2}=\frac{b(x_{k},t_{j})+b(x_{k},t_{j+1})}{2}, \ \ {\rm etc,}
 \]
+and we have denoted the central-difference operator for the first derivative by 
+$\delta_{x}$.
+The local truncation error of the approximation (\ref{cnvc}) can be shown to be
+$O(\tau^2+h^2)$.
  
-What about the stability of these methods?
-If the coefficients $a$, $b$, $c$ and $d$ do not
-involve $t$, the stability can be investigated
-\footnote{See W. F. Ames, Numerical methods for partial differential equation,
-Academic Press, 1977.}. In particular, it can be shown that the explicit method
-(\ref{e5}) is stable provided that
-\[
-\frac{\tau}{h^2}<\frac{1}{2a(x,t)} \quad {\rm for} \quad 0\leq x\leq L, \ \ t>0.
-\]
+%What about the stability of these methods?
+%If the coefficients $a$, $b$, $c$ and $d$ do not
+%involve $t$, the stability can be investigated
+%\footnote{See W. F. Ames, Numerical methods for partial differential equation,
+%Academic Press, 1977.}. In particular, it can be shown that the explicit method
+%(\ref{e5}) is stable provided that
+%\[
+%\frac{\tau}{h^2}<\frac{1}{2a(x,t)} \quad {\rm for} \quad 0\leq x\leq L, \ \ t>0.
+%\]
 
 \begin{example}
 Consider the two-dimensional heat equation
@@ -504,63 +410,61 @@ For grid points $(r_0,t_j)$, we use the same difference equations with $w_{-1,j}
 \end{equation}
 for $j=0, 1, \dots, M-1$.
 
-The local truncation error of the approximation (\ref{e13}) can be shown to be
-$O(\tau^2+h^2)$.
 \end{example}
  
-\begin{example} One of the most well-known equation in mathematical finance is the
-the Black-Scholes equation:
-\begin{equation}
-    \frac{\partial V}{\partial t}+\frac{1}{2}\sigma^{2}S^{2}\frac{\partial^{2} V}{\partial S^{2}}+rS\frac{\partial V}{\partial S}
-    -rV=0. \label{BS1}
-\end{equation}
-Here $V$ is the value of the option, $\sigma$ and $r$ are constants.
-$V$ depends on the current value $S$ of the underlying asset and on time $t$.
-
-When this equation describes European call option, it is solved subject
-to the following conditions:
-\begin{eqnarray}
-    &&V(0,t)=0 \ \ \text{for} \ \ t<T, \label{BS2} \\
-    &&V(S,t)\rightarrow S-Ee^{-r(T-t)}\text{ as }S\rightarrow\infty\, , \label{BS3} \\
-    &&V(S,T)=\max\{S-E,0\}. \label{BS4}
-\end{eqnarray}
-In Eq. (\ref{BS4}), $E$ is a given positive constant. The problem is to solve
-Eq. (\ref{BS1}) backwards in time, i.e. for $t<T$. In principle, Eq. (\ref{BS1})
-can be transformed to the heat equation on the whole lines and then solved exactly.
-Our task is to obtain a numerical solution.
-
-It is convenient to introduce a new independent variable $\tilde{t}=T-t$
-and a new dependent variable $\tilde{V}(S,\tilde{t})=V(S,t)-S+Ee^{-r(T-t)}(1-e^{-S})$. Then problem (\ref{BS1})--(\ref{BS4})
-takes the form
-\begin{eqnarray}
-    &&\frac{\partial \tilde{V}}{\partial \tilde{t}}=\frac{1}{2}\sigma^{2}S^{2}
-    \frac{\partial^{2} \tilde{V}}{\partial S^{2}}+rS\frac{\partial \tilde{V}}{\partial S}
-    -r\tilde{V}+ f(S, \tilde{t}), \label{BS5} \\
-    &&\tilde{V}(0,\tilde{t})=0 \ \ \text{for} \ \ t<T, \label{BS6} \\
-    &&\tilde{V}(S,\tilde{t})\rightarrow 0\text{ as }S\rightarrow\infty\, , \label{BS7} \\
-    &&\tilde{V}(S,0)=\max\{0,E-S\}-E e^{-S}. \label{BS8}
-\end{eqnarray}
-Here $f(S, \tilde{t})=E \left(\frac{1}{2}\sigma^2 S^2 - r S\right)\, e^{-r\tilde{t}-S}$.
-Problem (\ref{BS5})--(\ref{BS8}) is an initial boundary value problem for a parabolic
-equation with variable coefficients.
-
-To solve the problem, we choose sufficiently large $S_{0}$ and define the grid points:
-\[
-(S_k,\tilde{t}_j)=(hk, \tau j) \ \ \text{for} \ \ k=0,\dots,N \ \ \text{and} \ \ j=0, 1, \dots, M
-\]
-where $h=S_{0}/N$ and $\tau=T/M$ is the step length in time $\tilde{t}$.
-
-To make sure  that out scheme is stable, we employ the backward-difference formula
-for $\partial \tilde{V}/\partial \tilde{t}$ and central difference formulae for
-$\partial^{2} \tilde{V}/\partial S^{2}$ and $\partial \tilde{V}/\partial S$.
-As  a result, we have
-\begin{eqnarray}
-    &&\frac{w_{k,j}-w_{k,j-1}}{\tau}=\frac{1}{2}\sigma^{2}S_k^{2}
-    \frac{w_{k+1,j}-2w_{k,j}+w_{k-1,j}}{h^2}\nonumber\\
-    &&\qquad\qquad\qquad\qquad+rS_k\frac{w_{k+1,j}-w_{k-1,j}}{2h}
-    -r w_{k,j}+f_{k,j}, \label{BS9} \\
-    &&w_{0,j}=0, \quad w_{N,j}=0 , \label{BS11} \\
-    &&w_{k,0}=\max\{0,E-S_k\}-E e^{-S_k}. \label{BS12}
-\end{eqnarray}
-These equations can be solved using the standard double-sweep method.
-\end{example}
+%\begin{example} One of the most well-known equation in mathematical finance is the
+%the Black-Scholes equation:
+%\begin{equation}
+%    \frac{\partial V}{\partial t}+\frac{1}{2}\sigma^{2}S^{2}\frac{\partial^{2} V}{\partial S^{2}}+rS\frac{\partial V}{\partial S}
+%    -rV=0. \label{BS1}
+%\end{equation}
+%Here $V$ is the value of the option, $\sigma$ and $r$ are constants.
+%$V$ depends on the current value $S$ of the underlying asset and on time $t$.
+%
+%When this equation describes European call option, it is solved subject
+%to the following conditions:
+%\begin{eqnarray}
+%    &&V(0,t)=0 \ \ \text{for} \ \ t<T, \label{BS2} \\
+%    &&V(S,t)\rightarrow S-Ee^{-r(T-t)}\text{ as }S\rightarrow\infty\, , \label{BS3} \\
+%    &&V(S,T)=\max\{S-E,0\}. \label{BS4}
+%\end{eqnarray}
+%In Eq. (\ref{BS4}), $E$ is a given positive constant. The problem is to solve
+%Eq. (\ref{BS1}) backwards in time, i.e. for $t<T$. In principle, Eq. (\ref{BS1})
+%can be transformed to the heat equation on the whole lines and then solved exactly.
+%Our task is to obtain a numerical solution.
+%
+%It is convenient to introduce a new independent variable $\tilde{t}=T-t$
+%and a new dependent variable $\tilde{V}(S,\tilde{t})=V(S,t)-S+Ee^{-r(T-t)}(1-e^{-S})$. Then problem (\ref{BS1})--(\ref{BS4})
+%takes the form
+%\begin{eqnarray}
+%    &&\frac{\partial \tilde{V}}{\partial \tilde{t}}=\frac{1}{2}\sigma^{2}S^{2}
+%    \frac{\partial^{2} \tilde{V}}{\partial S^{2}}+rS\frac{\partial \tilde{V}}{\partial S}
+%    -r\tilde{V}+ f(S, \tilde{t}), \label{BS5} \\
+%    &&\tilde{V}(0,\tilde{t})=0 \ \ \text{for} \ \ t<T, \label{BS6} \\
+%    &&\tilde{V}(S,\tilde{t})\rightarrow 0\text{ as }S\rightarrow\infty\, , \label{BS7} \\
+%    &&\tilde{V}(S,0)=\max\{0,E-S\}-E e^{-S}. \label{BS8}
+%\end{eqnarray}
+%Here $f(S, \tilde{t})=E \left(\frac{1}{2}\sigma^2 S^2 - r S\right)\, e^{-r\tilde{t}-S}$.
+%Problem (\ref{BS5})--(\ref{BS8}) is an initial boundary value problem for a parabolic
+%equation with variable coefficients.
+%
+%To solve the problem, we choose sufficiently large $S_{0}$ and define the grid points:
+%\[
+%(S_k,\tilde{t}_j)=(hk, \tau j) \ \ \text{for} \ \ k=0,\dots,N \ \ \text{and} \ \ j=0, 1, \dots, M
+%\]
+%where $h=S_{0}/N$ and $\tau=T/M$ is the step length in time $\tilde{t}$.
+%
+%To make sure  that out scheme is stable, we employ the backward-difference formula
+%for $\partial \tilde{V}/\partial \tilde{t}$ and central difference formulae for
+%$\partial^{2} \tilde{V}/\partial S^{2}$ and $\partial \tilde{V}/\partial S$.
+%As  a result, we have
+%\begin{eqnarray}
+%    &&\frac{w_{k,j}-w_{k,j-1}}{\tau}=\frac{1}{2}\sigma^{2}S_k^{2}
+%    \frac{w_{k+1,j}-2w_{k,j}+w_{k-1,j}}{h^2}\nonumber\\
+%    &&\qquad\qquad\qquad\qquad+rS_k\frac{w_{k+1,j}-w_{k-1,j}}{2h}
+%    -r w_{k,j}+f_{k,j}, \label{BS9} \\
+%    &&w_{0,j}=0, \quad w_{N,j}=0 , \label{BS11} \\
+%    &&w_{k,0}=\max\{0,E-S_k\}-E e^{-S_k}. \label{BS12}
+%\end{eqnarray}
+%These equations can be solved using the standard double-sweep method.
+%\end{example}

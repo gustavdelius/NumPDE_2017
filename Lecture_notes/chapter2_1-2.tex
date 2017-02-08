@@ -123,7 +123,8 @@ $\frac{1}{2}\left(\frac{\pr^4 u}{\pr x^4}(\xi_{1},t_{j})+\frac{\pr^4 u}{\pr x^4}
 -\frac{h^2}{12}\frac{\pr^4 u}{\pr x^4}(\xi,t_{j}), \label{a17}
 \end{equation}
 where $\xi$ is a number between $x_{k}-h$ and $x_{k}+h$.
-This is called the {\bf central difference formula} for $u_xx$. When $u_{xxxx}$ is bounded,
+This is called the {\bf central difference formula} for the second derivative ${\pr^2 u}/{\pr x^2}$. 
+When ${\pr^4 u}/{\pr x^4}$ is bounded,
 then the truncation error in the central difference approximation is $O(h^2)$.
   
  
@@ -170,7 +171,7 @@ the difference equation (\ref{b4}) is given by
 \begin{eqnarray*}
 \tau_{kj} &=& (D_{f.d.}\,u)_{kj} =
 \frac{u_{k,j+1}-u_{kj}}{\tau}-K
-\frac{u_{k+1, j}-2u_{kj}-u_{k-1,j}}{h^{2}} \\
+\frac{u_{k+1, j}-2u_{kj}+u_{k-1,j}}{h^{2}} \\
 &=& \frac{\pr u}{\pr t}(x_{k},t_{j})-
 K\frac{\pr^2 u}{\pr x^2}(x_{k},t_{j})+
 \frac{\tau}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k},
