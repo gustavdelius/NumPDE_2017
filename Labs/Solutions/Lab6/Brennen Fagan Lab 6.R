@@ -174,7 +174,7 @@ CN.lm <- lm(log(errCN) ~ log(N))
 #We resort to the methods of Lab 5. sapply and mapply do not do quite what I am
 #wanting to accomplish.
 
-N <- 15*2^(0:12) -> M
+N <- 15*2^(0:8) -> M
 
 ErrorMatbd <- matrix(0, length(N), length(M))
 ErrorMatCN <- matrix(0, length(N), length(M))
@@ -199,7 +199,7 @@ lines(ErrorMatCN[3,] ~ M, type="b", col="blue")
 title("Error as a function of time divisions")
 
 #Exercise 4
-N <- 15*2^(0:9) -> M
+N <- 15*2^(0:8) -> M
 
 ErrorMatbd <- matrix(0, length(N), length(M))
 ErrorMatCN <- matrix(0, length(N), length(M))
