@@ -1,4 +1,4 @@
-forwardDifference <- function(f=function(x) 0,
+forwardDifference <- function(f=function(x,t) 0,
                               u0=function(x) 2*sin(2*pi*x),
                               K=1, L=1, N=30, T=0.1, M=200) {
   # set up space grid
@@ -11,7 +11,6 @@ forwardDifference <- function(f=function(x) 0,
   
   # set up vectors with initial condition and inhomogenous term
   w <- u0(x)
-  F <- f(x)
   
   # Set up evolution matrix
   gamma <- K*tau/(h^2)
@@ -25,6 +24,7 @@ forwardDifference <- function(f=function(x) 0,
   Temperature[ , 1] <- w  # Initial value
   # Loop over time steps
   for (j in 1:M) {
+    F <- f(x,t[j])
     w <- A %*% w + tau * F
     Temperature[ , j+1] <- w
   }
