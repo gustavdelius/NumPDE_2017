@@ -188,15 +188,16 @@ for (n in 1:length(N)){
 persp3D(N, M, ErrorMatbd-ErrorMatCN,
         xlab="Length Divisions", ylab="Time Divisions", zlab="Difference in Maximum Errors", # Provides axis labels
         ticktype="detailed", nticks=4) # Provides axis ticks
+plotrgl()
 
 #From which we can pull N=60 or M=60
 plot(ErrorMatbd[,3] ~ N, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
 lines(ErrorMatCN[,3] ~ N, type="b", col="blue")
-title("Error as a function of length divisions")
+title("Error as a function of length divisions, M=60")
 
 plot(ErrorMatbd[3,] ~ M, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
 lines(ErrorMatCN[3,] ~ M, type="b", col="blue")
-title("Error as a function of time divisions")
+title("Error as a function of time divisions, N=60")
 
 #Exercise 4
 N <- 15*2^(0:8) -> M
@@ -217,8 +218,34 @@ persp3D(N, M, ErrorMatbd-ErrorMatCN,
 #From which we can pull N=60 or M=60
 plot(ErrorMatbd[,3] ~ N, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
 lines(ErrorMatCN[,3] ~ N, type="b", col="blue")
-title("Error as a function of length divisions")
+title("Error as a function of length divisions, M=60")
 
 plot(ErrorMatbd[3,] ~ M, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
 lines(ErrorMatCN[3,] ~ M, type="b", col="blue")
-title("Error as a function of time divisions")
+title("Error as a function of time divisions, N=60")
+
+
+persp3D(N, M, ErrorMatCN,
+        xlab="Length Divisions", ylab="Time Divisions", zlab="Crank-Nicholson Maximum Errors", # Provides axis labels
+        ticktype="detailed", nticks=4) # Provides axis ticks
+plotrgl()
+
+persp3D(N, M, ErrorMatbd,
+        xlab="Length Divisions", ylab="Time Divisions", zlab="Backward Difference Maximum Errors", # Provides axis labels
+        ticktype="detailed", nticks=4) # Provides axis ticks
+plotrgl()
+
+#Some conclusions and comments from Exercises 2, 3, and 4:
+#   There are distinct diminishing returns in increasing the number of divisions.
+#   This holds true in all exercises.
+#   This partially is due to error's dependence on both length and time.
+#   We can observe this from the plots of the errors in 3-D.
+#     It appears that there is a minimum threshold in both length and time divisions
+#     that must be passed before we reach the diminishing returns, but this threshold
+#     is very small!
+#   I am still confused as to why there is a local minimum in terms of the errors when time/space
+#     has predefined divisions (M = 60 or N = 60). Perhaps it is due to terms neglected in big-O?
+#   The primary error reliance is on Space for Crank-Nicholson, but Time for Backward-Difference,
+#     which makes them suited for different problems. Since the drop off is so quick and so large,
+#     this is less important than it might immediately appear however.
+
