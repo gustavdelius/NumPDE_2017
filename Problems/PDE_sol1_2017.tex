@@ -1,0 +1,342 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsbsy}
+\usepackage{epsfig,array}
+
+
+\textwidth 17cm \textheight 24cm \setlength{\oddsidemargin}{-3mm}
+\setlength{\evensidemargin}{-3mm}
+\setlength{\headheight}{-0.7\baselineskip}
+\setlength{\headsep}{-1\baselineskip}
+
+\renewcommand{\section}{\subsection}
+
+\pagestyle{empty}
+
+
+% Definitions
+%================================================================
+\def\curl{{\rm curl}\,}
+\def\div{{\rm div}\,}
+\def\la{\lambda}
+\def\ba{{\bf a}}
+\def\bb{{\bf b}}
+\def\be{{\bf e}}
+\def\bj{{\bf j}}
+\def\bn{{\bf n}}
+\def\bV{{\bf V}}
+\def\bJ{{\bf J}}
+\def\bv{{\bf v}}
+\def\bu{{\bf u}}
+\def\bH{{\bf H}}
+\def\vf{{\bf f}}
+\def\bh{{\bf h}}
+\def\bU{{\bf U}}
+\def\bV{{\bf V}}
+\def\bx{{\bf x}}
+\def\by{{\bf y}}
+\def\bz{{\bf z}}
+\def\bX{{\bf X}}
+\def\bC{{\bf C}}
+
+\def\vx {{\bf x}}
+\def\vy {{\bf y}}
+\def\vz {{\bf z}}
+\def\vv {{\bf v}}
+\def\vu {{\bf u}}
+\def\vb {{\bf b}}
+\def\vc {{\bf c}}
+\def\vr {{\bf r}}
+
+\def\pr{{\partial}}
+\def\veta{\boldsymbol{\eta}}
+\def\bxi{\boldsymbol{\xi}}
+\def\bnu{\boldsymbol{\nu}}
+\def\Bom{\boldsymbol{\Omega}}
+\def\pd#1#2{\frac{\displaystyle\partial#1}{\displaystyle\partial#2}}
+\def\bfr#1#2{\frac{\displaystyle #1}{\displaystyle #2}}
+\def\vec#1{\boldsymbol{#1}}
+\def\Bbb{\mathbb}
+\def \shalf{{\textstyle \frac{1}{2}}}
+\def \half{\frac{1}{2}}
+\def \ssum{{\textstyle \sum}}
+
+%=======================================================================
+
+
+
+\begin{document}
+
+
+\begin{center}
+{\large{\bf Numerical Methods for PDEs (Spring 2017)}}
+\end{center}
+
+
+\begin{center}
+{\large{\bf Solutions 1}}
+\end{center}
+
+
+\centerline{}
+
+
+\vskip 0.5cm \noindent
+{\bf Problem 1.}
+Derive a finite-difference
+formula for the mixed derivative
+\[
+\frac{\partial^2 u}{\partial x\partial t}
+\]
+at $(x_{k},t_{j})$ based on the grid points $(x_{k},t_{j})$,
+$(x_{k+1},t_{j})$, $(x_{k},t_{j+1})$ and $(x_{k+1},t_{j+1})$,
+where $t_{j+1}=t_{j}+\tau$ and $x_{k+1}=x_{k}+h$.
+
+
+
+\vskip 0.5cm
+\noindent
+{\bf Solution.} Below we use the notation $u_{k,j}\equiv u(x_{k},t_{j})$.
+Assuming that function $u(x,t)$ is sufficiently smooth, we expand $u_{k+1,j}$,
+$u_{k,j+1}$ and $u_{k+1,j+1}$ in Taylor's series
+\begin{eqnarray}
+&&u_{k+1,j}=u(x_{k}+h,t_{j})=u(x_{k},t_{j})+ h\frac{\pr
+u}{\pr x}(x_{k},t_{j}) + \frac{h^{2}}{2}\frac{\pr^{2} u}{\pr
+x^{2}}(x_{k},t_{j})+O(h^3), \nonumber \\
+&&u_{k,j+1}=u(x_{k},t_{j}+\tau)=u(x_{k},t_{j})+ \tau\frac{\pr
+u}{\pr t}(x_{k},t_{j}) + \frac{\tau^{2}}{2}\frac{\pr^{2} u}{\pr
+t^{2}}(x_{k},t_{j})+O(\tau^3), \nonumber \\
+&&u_{k+1,j+1}=u(x_{k}+h,t_{j}+\tau)=u(x_{k},t_{j})+
+h\frac{\pr u}{\pr x}(x_{k},t_{j}) + \tau\frac{\pr u}{\pr t}(x_{k},t_{j})
++ \frac{h^{2}}{2}\frac{\pr^{2} u}{\pr x^{2}}(x_{k},t_{j})  \nonumber \\
+&&\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad
++ \, h \, \tau \, \frac{\pr^{2} u}{\pr x \pr t}(x_{k},t_{j})
++ \frac{\tau^{2}}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k},t_{j})
++O(h^3)+O(h^2\tau)+O(h \tau^2)+O(\tau^3). \nonumber
+\end{eqnarray}
+It follows that
+\[
+u_{k+1,j+1}-u_{k+1,j}-u_{k,j+1}+u_{kj}=\, h \, \tau \, \frac{\pr^{2} u}{\pr x \pr t}(x_{k},t_{j})
++O(h^3)+O(h^2\tau)+O(h \tau^2)+O(\tau^3).
+\]
+Hence,
+\[
+\frac{\pr^{2} u}{\pr x \pr t}(x_{k},t_{j})=\frac{u_{k+1,j+1}-u_{k+1,j}-u_{k,j+1}+u_{kj}}{h \, \tau}+
+O\left(\frac{h^2}{\tau}+h+\tau+\frac{\tau^2}{h}\right).
+\]
+
+
+
+
+\vskip 0.5cm
+ \noindent
+{\bf Problem 2.} The heat equation
+\begin{equation}
+\frac{\partial u}{\partial t}-K \frac{\partial^{2}u}{\partial
+x^{2}}=f(x,t) \quad \hbox{for} \quad 0<x<1, \ \ 0 < t < T, \label{1}
+\end{equation}
+subject to the boundary and initial conditions
+\[
+u(0,t)=0, \quad u(1, t)=0, \quad u(x,0)=u_{0}(x),
+\]
+is solved numerically using the Crank-Nicolson finite-difference method:
+\begin{eqnarray}
+&&w_{k0}=u_{0}(x_{k}), \quad w_{0j}=0, \quad w_{Nj}=0,   \nonumber \\
+&&w_{k,j+1}-w_{k,j}-\frac{\gamma}{2} \left(
+w_{k+1,j}-2w_{kj}+w_{k-1,j}+w_{k+1,j+1}-2w_{k,j+1}+w_{k-1,j+1}\right)
+=\tau f(x_{k}, t_{j}+\tau/2),  \nonumber
+\end{eqnarray}
+for $k=1, 2, \dots , N-1$ and $j=1, 2, \dots,M$.
+Here $w_{kj}$ is an approximation to $u(x_{k}, y_{j})$ and
+\[
+\gamma=K\tau/h^{2}, \quad x_{k}=k h \ \ (k=0,1,\dots,N), \quad
+t_{j}=j \tau \ \ (j=0,1,\dots,M), \quad h=\frac{1}{N}, \quad \tau=\frac{T}{M}.
+\]
+Show that the local truncation error, given by
+\begin{equation}
+\tau_{k,j}(h)=\frac{1}{\tau}\left[u_{k,j+1}-u_{kj}-\frac{\gamma}{2}
+\left(
+u_{k+1,j}-2u_{kj}+u_{k-1,j}+u_{k+1,j+1}-2u_{k,j+1}+u_{k-1,j+1}\right)\right]
+-f(x_{k}, t_{j}+\tau/2), \label{2}
+\end{equation}
+is $O(\tau^{2}+h^{2})$. (Here $u_{k,j}=u(x_{k}, t_{j})$.)
+
+
+
+\vskip 0.5cm \noindent
+{\bf Solution.} Assuming that the exact
+solution $u(x,t)$ is smooth enough, we expand $u_{k\pm 1,j}$ and
+$u_{k\pm 1,j+1}$ in Taylor's series
+\begin{eqnarray}
+&&u_{k\pm 1,j}=u(x_{k\pm 1},t_{j})=u(x_{k},t_{j})\pm h\frac{\pr
+u}{\pr x}(x_{k},t_{j}) + \frac{h^{2}}{2}\frac{\pr^{2} u}{\pr
+x^{2}}(x_{k},t_{j})\pm
+\frac{h^{3}}{6}\frac{\pr^{3} u}{\pr x^{3}}(x_{k},t_{j}) +O(h^{4}), \nonumber \\
+&&u_{k\pm 1,j+1}=u(x_{k\pm 1},t_{j+1})=u(x_{k},t_{j+1})\pm
+h\frac{\pr u}{\pr x}(x_{k},t_{j+1}) + \frac{h^{2}}{2}\frac{\pr^{2}
+u}{\pr x^{2}}(x_{k},t_{j+1})\pm \frac{h^{3}}{6}\frac{\pr^{3} u}{\pr
+x^{3}}(x_{k},t_{j+1}) +O(h^{4}) \nonumber
+\end{eqnarray}
+It follows that
+\begin{equation}
+u_{k+1,j}-2u_{kj}+u_{k-1,j}=
+2\frac{h^{2}}{2}\frac{\pr^{2} u}{\pr x^{2}}(x_{k},t_{j})
++O(h^{4})=h^{2}\left(\frac{\pr^{2} u}{\pr
+x^{2}}(x_{k},t_{j}) +O(h^{2})\right). \label{a11}
+\end{equation}
+Similarly,
+\begin{eqnarray}
+u_{k+1,j+1}-2u_{k,j+1}+u_{k-1,j+1}&=&h^{2}\left(\frac{\pr^{2} u}{\pr
+x^{2}}(x_{k},t_{j+1})
++O(h^{2})\right) \nonumber \\
+&=&h^{2}\left(\frac{\pr^{2} u}{\pr x^{2}}(x_{k},t_{j})+ \tau
+\frac{\pr^{3} u}{\pr x^{2}\pr t}(x_{k},t_{j})+O(\tau^{2})
++O(h^{2})\right) \label{a12}
+\end{eqnarray}
+Also, we have
+\begin{eqnarray}
+u_{k,j+1}-u_{kj}&=&u(x_{k},t_{j})+ \tau\frac{\pr u}{\pr
+t}(x_{k},t_{j}) + \frac{\tau^{2}}{2}\frac{\pr^{2} u}{\pr
+t^{2}}(x_{k},t_{j})+
+O(\tau^{3})-u_{kj} \nonumber \\
+&=& \tau\left(\frac{\pr u}{\pr t}(x_{k},t_{j}) +
+\frac{\tau}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k},t_{j})
++O(\tau^{2})\right), \label{a13}
+\end{eqnarray}
+Substituting (\ref{a11})--(\ref{a13}) into the formula for $\tau_{kj}$, we obtain
+\begin{eqnarray}
+\tau_{k,j}&=& \frac{\pr u}{\pr t}(x_{k},t_{j})
++ \frac{\tau}{2}\frac{\pr^{2} u}{\pr t^{2}}(x_{k},t_{j}) +O(\tau^{2}) \nonumber \\
+&& \quad\quad  -\frac{\gamma h^{2}}{2\tau} \left(2\frac{\pr^{2}
+u}{\pr x^{2}}(x_{k},t_{j}) +\tau \frac{\pr^{3} u}{\pr x^{2}\pr
+t}(x_{k},t_{j})+O(\tau^{2}) +O(h^{2})\right)
+-\left(f(x_{k}, t_{j})+\frac{\tau}{2}\frac{\pr f}{\pr t}(x_{k}, t_{j})+O(\tau^{2})\right) \nonumber \\
+&=& \frac{\pr u}{\pr t}(x_{k},t_{j})-K\frac{\pr^{2} u}{\pr
+x^{2}}(x_{k},t_{j}) -f(x_{k},t_{j}) +
+\frac{\tau}{2}\left(\frac{\pr^{2} u}{\pr t^{2}}(x_{k},t_{j})
+-K\frac{\pr^{3} u}{\pr x^{2}\pr t}(x_{k},t_{j})-\frac{\pr
+f}{\pr t}(x_{k}, t_{j})\right) +O(\tau^{2}+h^{2}). \nonumber
+\end{eqnarray}
+It follows from Eq. (\ref{1}) that
+\[
+\frac{\pr^{2} u}{\pr t^{2}}-K\frac{\pr^{3} u}{\pr x^{2}\pr
+t}=\frac{\pr f}{\pr t}.
+\]
+Hence, $\tau_{k,j}=O(\tau^{2}+h^{2})$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 3.} The equation
+\begin{equation}
+\frac{\partial u}{\partial t}=\frac{\partial^{2}u}{\partial x^{2}}+\alpha \,
+\frac{\partial u}{\partial x} \quad \hbox{for} \quad
+0<x<1, \ \ t>0, \label{11}
+\end{equation}
+where $\alpha$ is a real constant, subject to the boundary conditions
+\begin{equation}
+u(0,t)=0, \quad u(1, t)=0,  \label{12}
+\end{equation}
+and the initial condition
+\begin{equation}
+u(x,0)=u_{0}(x),  \label{13}
+\end{equation}
+is solved numerically using the finite-difference method:
+\begin{eqnarray}
+&&w_{k0}=u_{0}(x_{k}), \quad w_{0j}=0, \quad w_{Nj}=0,   \nonumber \\
+&&\frac{w_{k,j}-w_{k,j-1}}{\tau}-\frac{w_{k+1,j}-2w_{kj}+w_{k-1,j}}{h^{2}}
+-\alpha \, \frac{w_{k+1,j}-w_{k-1,j}}{2h}=0,   \label{15}
+\end{eqnarray}
+for $k=1, 2, \dots , N-1$ and $j=1, 2, \dots$.
+Here $w_{kj}$ is an approximation to $u(x_{k}, y_{j})$ and
+$x_{k}=k h$ $(k=0,1,\dots,N)$, $t_{j}=j \tau$ $(j=0,1,\dots)$, $h=\frac{1}{N}$.
+
+\vskip 0.2cm \noindent (a) Find the local truncation error of this
+finite-difference scheme.
+
+\vskip 0.2cm \noindent (b) Investigate the stability of the scheme
+(using the Fourier method).
+
+
+
+\vskip 0.5cm
+\noindent
+{\bf Solution.} (a) Let $u(x, t)$ be sufficiently smooth solution of the initial boundary-value problem
+(\ref{11})--(\ref{13}). The truncation error of the method (\ref{15}) is
+\begin{equation}
+\tau_{kj}=\frac{u_{k,j}-u_{k,j-1}}{\tau}-\frac{u_{k+1,j}-2u_{kj}+u_{k-1,j}}{h^{2}}
+-\alpha \, \frac{u_{k+1,j}-u_{k-1,j}}{2h}.   \label{32}
+\end{equation}
+We have
+\begin{equation}
+\frac{u_{k,j}-u_{k,j-1}}{\tau}=\frac{1}{\tau}\left(
+u_{k,j}-u(x_{k},t_{j})+\tau\frac{\pr u}{\pr t}(x_{k},t_{j})+O(\tau^{2})\right)=
+\frac{\pr u}{\pr t}(x_{k},t_{j})+O(\tau).  \label{33}
+\end{equation}
+Also,
+\begin{equation}
+\frac{u_{k+1,j}-u_{k-1,j}}{2h}=\frac{1}{2h}\left(
+2h\frac{\pr u}{\pr x}(x_{k},t_{j})+O(h^{3})\right)=
+\frac{\pr u}{\pr x}(x_{k},t_{j})+O(h^2).  \label{33a}
+\end{equation}
+Substituting (\ref{33}), (\ref{33a}) and (\ref{a11}) into (\ref{32}) yields
+\begin{eqnarray}
+\tau_{kj}&=&\frac{\pr u}{\pr t}(x_{k},t_{j})+O(\tau)
+-\frac{\pr^{2} u}{\pr x^{2}}(x_{k},t_{j}) -\alpha \, \frac{\pr u}{\pr x}(x_{k},t_{j})+O(h^{2}) \nonumber \\
+&=&\frac{\pr u}{\pr t}(x_{k},t_{j})
+-\frac{\pr^{2} u}{\pr x^{2}}(x_{k},t_{j}) -\alpha \, \frac{\pr u}{\pr x}(x_{k},t_{j})
++ O(\tau)+O(h^{2})=O(\tau+h^{2}). \nonumber   \label{34}
+\end{eqnarray}
+
+\vskip 0.2cm
+\noindent
+(b) Let $w_{k0}$ and $\tilde{w}_{k0}$ be two solutions of Eq. (\ref{15}) corresponding to slightly different
+initial conditions and let $z_{kj}=\tilde{w}_{kj}-w_{kj}$ be
+the perturbation at the mesh point $(x_{k}, t_{j})$ for each $k=0,1,2, \dots, N$ and $j=0,1, \dots$.
+It follows from (\ref{15}) that $z_{kj}$ satisfies the difference equation
+\begin{equation}
+\frac{z_{k,j}-z_{k,j-1}}{\tau}-\frac{z_{k+1,j}-2z_{kj}+z_{k-1,j}}{h^{2}}
+-\alpha \, \frac{z_{k+1,j}-z_{k-1,j}}{2h}=0 \label{35}
+\end{equation}
+for $k=1,2, \dots, N-1$ and $j=1,2, \dots$. We will seek a particular solution of
+(\ref{35}) in the form
+\begin{equation}
+z_{k,j}=\rho_{q}^{j}e^{iqx_{k}}, \quad q\in{\mathbb R}. \label{29}
+\end{equation}
+Here $i=\sqrt{-1}$.
+
+\vskip 0.2cm
+\noindent
+The finite-difference method (\ref{15}) is stable with respect to
+initial condition, if
+\[
+\vert\rho_{q}\vert\leq 1 \quad {\rm for \ all} \ \ q\in{\mathbb R}.
+\]
+Substitution of (\ref{29}) into (\ref{35}) yields
+\[
+\frac{e^{iqx_{k}}}{\tau}\left(\rho_{q}^{j}-\rho^{j-1}\right)-
+\frac{\rho_{q}^{j}}{h^{2}}\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)-
+\alpha \, \frac{\rho_{q}^{j}}{2h}\left(e^{iqx_{k+1}}-e^{iqx_{k-1}}\right)=0
+\]
+or
+\[
+1-\frac{1}{\rho_{q}}-
+\frac{\tau}{h^{2}}\left(e^{iqh}-2+e^{-iqh}\right) - \alpha \, \frac{\tau}{2h}\left(e^{iqh}-e^{-iqh}\right)=0.
+\]
+It follows that
+\[
+\rho_{q}=\frac{1}{1+
+\frac{4\tau}{h^{2}}\sin^{2} \frac{qh}{2}-\alpha \,\frac{i\tau}{h}\sin qh}
+\quad \Rightarrow \quad 
+\vert\rho_{q}\vert^{2}=\frac{1}{\left(1+
+\frac{4\tau}{h^{2}}\sin^{2} \frac{qh}{2}\right)^{2}+\alpha^2 \, \frac{\tau^{2}}{h^{2}}\sin^{2} qh}.
+\]
+Evidently, $\vert\rho_{q}\vert^{2}\leq 1$ for all $q$, and therefore it is (unconditionally)
+stable.
+
+
+
+
+\end{document}
