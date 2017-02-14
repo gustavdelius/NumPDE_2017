@@ -1,0 +1,371 @@
+---
+title: "Lab 6 with solutions"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+# Crank-Nicolson method
+
+In this lab you will explore the Crank-Nicolson method and its error.
+
+## Review
+
+Let's load the 3D graphics library because we will use it later.
+```{r}
+library(plot3Drgl)
+```
+
+
+As in previous labs, we consider again the heat equation
+$$
+u_{t}(x,t) = K u_{xx}(x,t), \quad 0<x< L, \quad 0<t<T, 
+$$
+subject to the boundary conditions
+$$
+u(0, t) = u(L, t)=0,
+$$
+and initial condition $u(x,t) = u_0(x)$.
+
+In lab 5 we investigated the backward-difference method which involves solving the matrix equation
+$$
+A{\bf w}^{(j+1)}={\bf w}^{(j)}
+$$
+for each $j=0,2,..,M-1$, where
+
+$$
+A=\left[
+\begin{array}{cccccc}
+1+2\gamma &-\gamma &0      &\dots  &\dots &0 \\
+-\gamma &1+2\gamma &-\gamma &\ddots  &     &\vdots \\
+0      &-\gamma &1+2\gamma &-\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma \\
+0      &\dots  &\dots  &0      &-\gamma &1+2\gamma
+\end{array}\right], \quad
+{\bf w}^{(j)}
+=\left[\begin{array}{c}
+w_{1,j} \\ w_{2,j} \\ \vdots \\ \vdots \\ \vdots \\ w_{N-1,j}
+\end{array}\right]
+$$
+and $\gamma = \frac{K \tau }{h^2}$.
+
+We used the double sweep method to solve this equation at each step, which we implemented
+with the following function:
+
+```{r}
+doublesweepOld <- function(A, B, C, F, a, b) {
+    # Solves the equation 
+    # A[i]*v[i-1] - C[i]*v[i] + B[i]*v[i+1] = F[i]
+    # for v[i], i = 1,...,N-1, with boundary conditions
+    # v[0]=a and v[N]=b
+    
+    # Check the lengths of the vectors
+    N <- length(C) + 1
+    if ((length(B) != N-1) || (length(A) != N-1) || (length(F) != N-1)) {
+        stop("The lengths of the vector arguments need to be equal")
+    }
+
+    alpha <- rep(0, N)
+    beta <- rep(0, N)
+    beta[1] <- a
+    
+    #sweep up to get alphas and betas
+    for (i in 1:(N-1)) {
+        alpha[i+1] <- B[i] / (C[i]-alpha[i]*A[i])
+        beta[i+1] <- (beta[i]*A[i] - F[i]) / (C[i] - alpha[i]*A[i])
+    }
+    
+    v <- rep(0, N-1 )
+    v[N-1] <- alpha[N]*b + beta[N]
+    
+    #sweep down to find v's
+    for (i in (N-1):2) {
+        v[i-1] <- alpha[i]*v[i] + beta[i]    
+    }
+    
+    return(v)
+}
+```
+
+This function is called once at every time step, so it is important that it runs fast. Unfortunately interpreted languages are always slow because the interpreter has to do a lot of translating and bookkeeping to do while running the code. 
+Luckily it is easy to translate the code to C++, which is a compiled language, and in R it is easy to include code written in C++.
+If you are interested in learning more about this, a good place to start is http://adv-r.had.co.nz/Rcpp.html
+
+```{r  engine='Rcpp'}
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
+
+NumericVector doublesweep(NumericVector A, NumericVector B, NumericVector C, 
+                          NumericVector F, double a, double b) {
+    int N = C.size() + 1;
+    if ((B.size() != N-1) || (A.size() != N-1) || (F.size() != N-1)) {
+        stop("The lengths of the vector arguments need to be equal");
+    }
+    
+    NumericVector alpha(N);
+    NumericVector beta(N);
+    alpha[0] = 0;
+    beta[0] = a;
+        
+    for (int i=0; i < (N-1); ++i) {
+        alpha[i+1] = B[i] / (C[i]-alpha[i]*A[i]);
+        beta[i+1] = (beta[i]*A[i] - F[i]) / (C[i] - alpha[i]*A[i]);
+    }
+    
+    NumericVector v(N-1);
+    v[N-2] = alpha[N-1]*b + beta[N-1];
+    
+    for (int i=N-2; i > 0; --i) {
+        v[i-1] = alpha[i]*v[i] + beta[i];
+    }
+
+    return v;
+}
+```
+
+
+The backward-difference method is then implemented by the function
+
+```{r}
+backwardDifference <- function(u0=function(x) 2*sin(2*pi*x), 
+                              K=1, L=1, N=30, T=0.1, M=30) {
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # set up vectors with initial condition
+    w <- u0(x)
+    
+    gamma <- K*tau/(h^2)
+    
+    Temperature <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    Temperature[ , 1] <- w  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        w <- doublesweep(rep(gamma, N-1), rep(gamma, N-1), 
+                         rep(1 + 2* gamma, N-1), -w, 0, 0)
+        Temperature[ , j+1] <- w
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=Temperature))
+}
+```
+
+## Coding the Crank-Nicolson method
+In this lab we want to instead use the Crank-Nicolson method, which corresponds to solving the matrix equation 
+$$
+A{\bf w}^{(j+1)}=B{\bf w}^{(j)}
+$$
+for each $j=0,2,..,M-1$, where
+$$
+\begin{split}
+A&=\left[
+\begin{array}{cccccc}
+1+\gamma &-\gamma/2 &0      &\dots  &\dots &0 \\
+-\gamma/2 &1+\gamma &-\gamma/2 &\ddots  &     &\vdots \\
+0      &-\gamma/2 &1+\gamma &-\gamma/2 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma/2 \\
+0      &\dots  &\dots  &0      &-\gamma/2 &1+\gamma
+\end{array}\right], \\
+B&=\left[
+\begin{array}{cccccc}
+1-\gamma &\gamma/2 &0      &\dots  &\dots &0 \\
+\gamma/2 &1-\gamma &\gamma/2 &\ddots  &     &\vdots \\
+0      &\gamma/2 &1-\gamma &\gamma/2 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &\gamma/2 \\
+0      &\dots  &\dots  &0      &\gamma/2 &1-\gamma
+\end{array}\right].
+\end{split}
+$$
+The only change with respect to the backward-difference method is that the matrix $A$ has changed a little bit and there is now also a matrix $B$ multiplying the right-hand side. So we only have to make very minimal changes to the code for the `backwardDifference()` function to create a function that implements the Crank-Nicolson method. 
+
+### Exercise 1
+Before looking at my code below, see if you can write a function for implementing the Crank-Nicolson method, based on the code for the backward-difference method. 
+
+Here is my solution. Look out for the comments starting with "# Crank-Nicolson" below to see where I made the modifications.
+
+```{r}
+CrankNicolson <- function(u0=function(x) 2*sin(2*pi*x), 
+                              K=1, L=1, N=30, T=0.1, M=30) {
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # set up vectors with initial condition
+    w <- u0(x)
+    
+    gamma <- K*tau/(h^2)
+    # Crank-Nicolson needs a matrix B
+    B <- diag(1-gamma, N-1)
+    for (k in 1:(N-2)){
+        B[k,k+1] <- gamma/2
+        B[k+1,k] <- gamma/2
+    }
+    
+    Temperature <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    Temperature[ , 1] <- w  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        # Crank-Nicolson needs different arguments to doublesweep
+        # backward-difference used:
+        # w <- doublesweep(rep(gamma, N-1), rep(gamma, N-1), 
+        #                  rep(1 + 2* gamma, N-1), -w, 0, 0)
+        # Crank-Nicolson uses:
+        w <- doublesweep(rep(gamma/2, N-1), rep(gamma/2, N-1), 
+                         rep(1 + gamma, N-1), -B%*%w, 0, 0)
+        Temperature[ , j+1] <- w
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=Temperature))
+}
+```
+
+Let us check that it gives more-or-less the same result as the backward-difference method.
+```{r}
+solbd <- backwardDifference(N=300, M=300)
+solCN <- CrankNicolson(N=300, M=300)
+max(solbd$w - solCN$w)
+```
+
+
+
+## Errors in the Crank-Nicolson method
+
+The reason we might prefer the Crank-Nicolson method to the backward-difference method is that the truncation error gets smaller faster as the time step $\tau$ is made smaller, because the truncation error is of $O(\tau^2+h^2)$ instead of $O(\tau+h^2)$. You are now asked to explore how that manifests itself in practice in the example of the heat equation.
+
+In the previous lab we wrote a function that calculates the error in the solution from the backward-difference method with a given number $N$ of space steps and the number $M$ of time steps. We now modify the function slightly so that it takes a third argument the function we use to solve the equation
+```{r}
+maxError <- function(N, M, method) {
+    # numerical solution
+    numSol <- method(M=M, N=N)
+    # exact solution
+    x <- numSol$x
+    t <- numSol$t
+    xy <- mesh(x, t)
+    u <- with(xy, 2*sin(2*pi*x)*exp(-4*pi^2*y))
+    
+    return(max(abs(u - numSol$w)))
+}
+```
+
+We can now see that also for a small number of steps the Crank-Nicolson method beats the backward-difference method:
+
+```{r}
+maxError(30, 30, backwardDifference)
+maxError(30, 30, CrankNicolson)
+```
+
+But more importantly: when we double the number of steps in both directions, the error in the backward-difference reduces only by a factor of 2 (due only being first order in $\tau$) whereas the error in the Crank-Nicolson method reduces by a factor of 4.
+
+```{r}
+maxError(60, 60, backwardDifference)
+maxError(60, 60, CrankNicolson)
+```
+
+Let's make a log-log plot of the error against the number $N$ of steps, where we keep $M=N$.
+You will need to be a bit patient while this code is running. 
+
+```{r}
+N <- 15*2^(0:6)
+errbd <- sapply(N, function(N) maxError(N, N, backwardDifference))
+errCN <- sapply(N, function(N) maxError(N, N, CrankNicolson))
+plot(errbd ~ N, type="b", log="xy", ylim=c(0.0000001, 0.1), ylab="Error")
+lines(errCN ~ N, type="b", col="blue")
+```
+
+While you are waiting, let's look more closely at the code. The `sapply` function is given a vector of values $N$ and a function and it applies the function to each value in the vector in turn and returns another vector with all the function values.
+
+For the plot command we chose to use the `~` notation. You should read this as "as a function of", so we are plotting the errors as a function of $N$. The `log="xy"` option told R to use logarithmic axes in both the x and the y direction.
+
+One the calculation completes you will see that the error in the backward difference method follows a line of slope -1 on the log-log plot, meaning that the error goes down as $1/N$, whereas the error in the Crank-Nicolson method follows a line of slope -2, meaning that the error goes down as $1/N^2$. 
+
+
+### Exercise 2
+Make a similar plot but keeping $M=60$ while varying $N$. Describe what you observe. Can you understand this observation?
+
+### Solution 2
+
+```{r}
+N <- 15*2^(0:6)
+M <- 60
+errbdN <- sapply(N, function(N) maxError(N, M, backwardDifference))
+errCNN <- sapply(N, function(N) maxError(N, M, CrankNicolson))
+plot(errbdN ~ N, type="b", log="xy", ylim=c(0.00001, 0.1), ylab="Error")
+lines(errCNN ~ N, type="b", col="blue")
+```
+
+We notice that the error of the backward difference method is determined by the time step size and decreasing the x step size does not make a difference. For the Crank Nicolson method the limiting error for the given time step is much smaller and is reached only when there are about 120 x steps.
+
+
+### Exercise 3
+Now make a similar plot keeping $N=60$ fixed and varying $M$. Again, can you understand the observation?
+
+### Solution 3
+
+```{r}
+M <- 15*2^(0:6)
+N <- 60
+errbdM <- sapply(M, function(M) maxError(N, M, backwardDifference))
+errCNM <- sapply(M, function(M) maxError(N, M, CrankNicolson))
+plot(errbdM ~ M, type="b", log="xy", ylim=c(0.00001, 0.1), ylab="Error")
+lines(errCNM ~ M, type="b", col="blue")
+```
+
+### Exercise 4
+Investigate how the error changes as the initial condition is more rapidly oscillating by
+changing it from $u_0(x) = 2\sin(2\pi x)$ to $u_0(x) = 2\sin(8\pi x)$.
+For this you will need to modify the function `maxError` appropriately.
+
+### Solution 4
+
+We have to change the call to the numerical method to include the `u0`argument and we have to change the expression for the exact solution `u`:
+```{r}
+maxError2 <- function(N, M, method) {
+    # numerical solution
+    numSol <- method(u0=function(x) 2*sin(8*pi*x), M=M, N=N)
+    # exact solution
+    x <- numSol$x
+    t <- numSol$t
+    xy <- mesh(x, t)
+    u <- with(xy, 2*sin(8*pi*x)*exp(-64*pi^2*y))
+    
+    return(max(abs(u - numSol$w)))
+}
+```
+
+We see that the errors are much larger now:
+
+```{r}
+maxError(30, 30, backwardDifference)
+maxError2(30, 30, backwardDifference)
+maxError(30, 30, CrankNicolson)
+maxError2(30, 30, CrankNicolson)
+```
+
+```{r}
+N <- 15*2^(0:6)
+errbd2 <- sapply(N, function(N) maxError2(N, N, backwardDifference))
+errCN2 <- sapply(N, function(N) maxError2(N, N, CrankNicolson))
+plot(errbd ~ N, type="b", log="xy", ylim=c(0.000001, 1), ylab="Error")
+lines(errCN ~ N, type="b", col="blue")
+lines(errbd2 ~ N, type="b", col="red")
+lines(errCN2 ~ N, type="b", col="green")
+```
