@@ -295,7 +295,31 @@ While you are waiting, let's look more closely at the code. The `sapply` functio
 
 For the plot command we chose to use the `~` notation. You should read this as "as a function of", so we are plotting the errors as a function of $N$. The `log="xy"` option told R to use logarithmic axes in both the x and the y direction.
 
-One the calculation completes you will see that the error in the backward difference method follows a line of slope -1 on the log-log plot, meaning that the error goes down as $1/N$, whereas the error in the Crank-Nicolson method follows a line of slope -2, meaning that the error goes down as $1/N^2$. 
+Once the calculation completes you will see that the error in the backward difference method follows a line of slope -1 on the log-log plot, meaning that the error goes down as $1/N$, whereas the error in the Crank-Nicolson method follows a line of slope -2, meaning that the error goes down as $1/N^2$. 
+
+Just out of interest I now also make a plot of the error as a function of $x$ and $t$, rather than just looking at the maximum error.
+
+```{r}
+plotError <- function(N, M, method) {
+    # numerical solution
+    numSol <- method(M=M, N=N, T=0.2)
+    # exact solution
+    x <- numSol$x
+    t <- numSol$t
+    xy <- mesh(x, t)
+    u <- with(xy, 2*sin(2*pi*x)*exp(-4*pi^2*y))
+    persp3D(x, t, u - numSol$w,
+        xlab="x", ylab="t", zlab="Error",
+        ticktype="detailed", nticks=4)
+}
+```
+
+```{r}
+plotError(60, 60, backwardDifference)
+```
+```{r}
+plotError(60, 60, CrankNicolson)
+```
 
 
 ### Exercise 2
