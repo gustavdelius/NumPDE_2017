@@ -1,0 +1,166 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsbsy}
+\usepackage{epsfig,array}
+
+
+\textwidth 17cm \textheight 24cm \setlength{\oddsidemargin}{-3mm}
+\setlength{\evensidemargin}{-3mm}
+\setlength{\headheight}{-1\baselineskip}
+\setlength{\headsep}{-1\baselineskip}
+
+\renewcommand{\section}{\subsection}
+
+\pagestyle{empty}
+
+
+
+% Definitions
+%================================================================
+\def\curl{{\rm curl}\,}
+\def\div{{\rm div}\,}
+\def\la{\lambda}
+\def\ba{{\bf a}}
+\def\bb{{\bf b}}
+\def\be{{\bf e}}
+\def\bj{{\bf j}}
+\def\bn{{\bf n}}
+\def\bV{{\bf V}}
+\def\bJ{{\bf J}}
+\def\bv{{\bf v}}
+\def\bu{{\bf u}}
+\def\bH{{\bf H}}
+\def\vf{{\bf f}}
+\def\bh{{\bf h}}
+\def\bU{{\bf U}}
+\def\bV{{\bf V}}
+\def\bx{{\bf x}}
+\def\by{{\bf y}}
+\def\bz{{\bf z}}
+\def\bX{{\bf X}}
+\def\bC{{\bf C}}
+
+\def\vx {{\bf x}}
+\def\vy {{\bf y}}
+\def\vz {{\bf z}}
+\def\vv {{\bf v}}
+\def\vu {{\bf u}}
+\def\vb {{\bf b}}
+\def\vc {{\bf c}}
+\def\vr {{\bf r}}
+
+\def\pr{{\partial}}
+\def\veta{\boldsymbol{\eta}}
+\def\bxi{\boldsymbol{\xi}}
+\def\bnu{\boldsymbol{\nu}}
+\def\Bom{\boldsymbol{\Omega}}
+\def\pd#1#2{\frac{\displaystyle\partial#1}{\displaystyle\partial#2}}
+\def\bfr#1#2{\frac{\displaystyle #1}{\displaystyle #2}}
+\def\vec#1{\boldsymbol{#1}}
+\def\Bbb{\mathbb}
+\def \shalf{{\textstyle \frac{1}{2}}}
+\def \half{\frac{1}{2}}
+\def \ssum{{\textstyle \sum}}
+
+%=======================================================================
+
+\begin{document}
+
+\begin{center}
+{\large{\bf Numerical Methods for PDEs (Spring 2017)}}
+\end{center}
+
+\begin{center}
+{\large{\bf Problems 2}}
+\end{center}
+
+\noindent
+{\bf Hand in written solutions to problems 6 and 7 at the start of the lecture on 21 February.}
+
+\noindent
+Consider the heat equation
+\begin{equation}
+u_{t}-K u_{xx}=0 \quad \hbox{for} \quad 0<x<1, \ \ t>0, \label{1}
+\end{equation}
+subject to the boundary conditions
+\begin{equation}
+u(0,t)=0, \quad u(1, t)=0,  \label{2}
+\end{equation}
+and the initial condition
+\begin{equation}
+u(x,0)=u_{0}(x).  \label{3}
+\end{equation}
+
+\vskip 0.5cm \noindent
+{\bf Problem 4.} Show that the Du Fort - Frankel method for Eq. (\ref{1}),
+given by
+\[
+\frac{w_{k,j+1}-w_{k,j-1}}{2\tau}-K \frac{w_{k+1,
+j}-w_{k,j-1}-w_{k,j+1}+w_{k-1,j}}{h^{2}}=0,
+\]
+has the local truncation error $O\left(\tau^2+h^2+\tau^2/h^2\right)$.
+
+\vskip 0.5cm \noindent
+{\bf Problem 5.} The initial boundary value
+problem (\ref{1})--(\ref{3}) is solved numerically using the
+finite-difference method:
+\begin{eqnarray}
+&&w_{k0}=u_{0}(x_{k}), \quad w_{0j}=0, \quad w_{Nj}=0,   \nonumber \\
+&&\frac{w_{k,j+1}-w_{k,j}}{\tau}-K(1-\sigma) \frac{w_{k+1,
+j}-2w_{kj}+w_{k-1,j}}{h^{2}}-K\sigma \frac{w_{k+1,
+j+1}-2w_{k,j+1}+w_{k-1,j+1}}{h^{2}}=0,   \label{4}
+\end{eqnarray}
+for $k=1, 2, \dots , N-1$ and $j=0, 1, \dots$. Here $w_{kj}$ is an
+approximation to $u(x_{k}, y_{j})$ and $x_{k}=k h$
+$(k=0,1,\dots,N)$, $t_{j}=j \tau$ $(j=0,1,\dots)$, $h=\frac{1}{N}$.
+In Eqs. (\ref{4}), $\sigma$ is a real parameter such that
+$0\leq \sigma\leq 1$. Show that the method is stable if
+\[
+\sigma\geq\frac{1}{2}\left(1-\frac{1}{2\gamma}\right)
+\]
+where $\gamma=K\tau/h^2$.
+
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 6.} Show that if
+\[
+\gamma\equiv\frac{K\tau}{h^2}=\frac{1}{6}
+\]
+in the explicit forward-difference method for Eq. (\ref{1}):
+\[
+\frac{w_{k,j+1}-w_{kj}}{\tau}-K
+\frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=0,
+\]
+then the local truncation error is $O(\tau^2)$ or, equivalently $O(h^4)$.
+
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 7.}
+Devise a backward difference scheme of $O(\tau+h^2)$ for the non-homogeneous heat
+equation eq.(2.73) in the notes with boundary conditions as given in eq.(2.80). This means
+you need to derive an expression for $w_{0,j+1}$ similar to eq.(2.78) and also a similar
+expression for $w_{N,j+1}$.
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 8.}
+Consider the equation
+\[
+\frac{\partial u}{\partial t}=3\frac{\partial^{2}u}{\partial x^{2}}-
+2a(x,t)\frac{\partial u}{\partial x}+b(x,t) \quad \hbox{for} \quad
+0<x<1, \ \ t > 0,
+\]
+subject to the initial and boundary conditions
+\[
+u(0,t)=\mu_{1}(t), \quad u(1, t)=\mu_{2}(t),
+\quad u(x, 0)=u_{0}(x) .
+\]
+Obtain a finite-difference approximation to this boundary-value
+problem and show that your finite-difference method is consistent with the equation,
+i.e. that the local truncation errors tend to zero as step sizes in $x$ and in $t$
+go to zero.
+
+
+\end{document}
