@@ -148,7 +148,7 @@ cat("Difference in methods: ", max(solbd$w - solCN$w))
 
 maxError <- function(N, M, method, u0 = function(x) 2*sin(2*pi*x), omega = 2) {
   # numerical solution
-  numSol <- method(M=M, N=N)
+  numSol <- method(M=M, N=N, u0 = u0)
   # exact solution
   x <- numSol$x
   t <- numSol$t
@@ -277,5 +277,5 @@ plotrgl()
 
 plotError(60,60,CrankNicolson)
 plotError(60,60,CrankNicolson, u0 = function(x) 2*sin(8*pi*x), omega = 8)
-
+maxError(60,60, CrankNicolson,  u0 = function(x) 2*sin(8*pi*x), omega = 8)
 
