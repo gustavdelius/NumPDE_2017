@@ -153,9 +153,33 @@ maxError <- function(N, M, method, u0 = function(x) 2*sin(2*pi*x)) {
   x <- numSol$x
   t <- numSol$t
   xy <- mesh(x, t)
-  u <- with(xy, 2*sin(2*pi*x)*exp(-4*pi^2*y))
+  u <- with(xy, u0(x)*exp(-4*pi^2*y))
   
   return(max(abs(u - numSol$w)))
+}
+
+plotError <- function(N, M, method, u0 = function(x) 2*sin(2*pi*x), omega = 2) {
+  #WARNING: Assumes Sine
+  # numerical solution
+  numSol <- method(M=M, N=N, u0 = u0)
+  # exact solution
+  x <- numSol$x
+  t <- numSol$t
+  xy <- mesh(x, t)
+  u <- with(xy, u0(x)*exp(-omega^2*pi^2*y))
+  
+  persp3D(x,t, numSol$w,
+          xlab="Length", ylab="Time", zlab="Approx. Temp.", # Provides axis labels
+          ticktype="detailed", nticks=4) # Provides axis ticks
+  
+  persp3D(x,t, u,
+          xlab="Length", ylab="Time", zlab="Exact Temp.", # Provides axis labels
+          ticktype="detailed", nticks=4) # Provides axis ticks
+  
+  persp3D(x, t, (u - numSol$w),
+          xlab="Length", ylab="Time", zlab="Errors", # Provides axis labels
+          ticktype="detailed", nticks=4) # Provides axis ticks
+  plotrgl()
 }
 
 N <- 15*2^(0:7) -> M
@@ -245,7 +269,13 @@ plotrgl()
 #     is very small!
 #   I am still confused as to why there is a local minimum in terms of the errors when time/space
 #     has predefined divisions (M = 60 or N = 60). Perhaps it is due to terms neglected in big-O?
+#       (Discussed in class)
 #   The primary error reliance is on Space for Crank-Nicholson, but Time for Backward-Difference,
 #     which makes them suited for different problems. Since the drop off is so quick and so large,
 #     this is less important than it might immediately appear however.
+
+
+plotError(60,60,CrankNicolson)
+plotError(60,60,CrankNicolson, u0 = function(x) 2*sin(4*pi*x), omega = 4)
+
 
