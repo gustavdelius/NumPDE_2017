@@ -146,14 +146,14 @@ solbd <- backwardDifference(N=300, M=300)
 solCN <- CrankNicolson(N=300, M=300)
 cat("Difference in methods: ", max(solbd$w - solCN$w))
 
-maxError <- function(N, M, method, u0 = function(x) 2*sin(2*pi*x)) {
+maxError <- function(N, M, method, u0 = function(x) 2*sin(2*pi*x), omega = 2) {
   # numerical solution
   numSol <- method(M=M, N=N)
   # exact solution
   x <- numSol$x
   t <- numSol$t
   xy <- mesh(x, t)
-  u <- with(xy, u0(x)*exp(-4*pi^2*y))
+  u <- with(xy, u0(x)*exp(-(omega^2)*pi^2*y))
   
   return(max(abs(u - numSol$w)))
 }
@@ -230,8 +230,8 @@ ErrorMatbd <- matrix(0, length(N), length(M))
 ErrorMatCN <- matrix(0, length(N), length(M))
 for (n in 1:length(N)){
   for (m in 1:length(M)){
-    ErrorMatbd[n,m] <- maxError(N[n],M[m], backwardDifference, u0 = function(x) 2*sin(8*pi*x))
-    ErrorMatCN[n,m] <- maxError(N[n],M[m], CrankNicolson, u0 = function(x) 2*sin(8*pi*x))
+    ErrorMatbd[n,m] <- maxError(N[n],M[m], backwardDifference, u0 = function(x) 2*sin(8*pi*x), omega = 8)
+    ErrorMatCN[n,m] <- maxError(N[n],M[m], CrankNicolson, u0 = function(x) 2*sin(8*pi*x), omega = 8)
   }
 }
 
@@ -276,6 +276,6 @@ plotrgl()
 
 
 plotError(60,60,CrankNicolson)
-plotError(60,60,CrankNicolson, u0 = function(x) 2*sin(4*pi*x), omega = 4)
+plotError(60,60,CrankNicolson, u0 = function(x) 2*sin(8*pi*x), omega = 8)
 
 
