@@ -119,11 +119,11 @@ persp3D(sol$x, sol$t, sol$w,
         ticktype="detailed", nticks=4)
 ```
 
-## Exercise 1
+### Exercise 1
 Solve the equation 
 $$
 \frac{\partial u}{\partial t} =\frac{\partial }{\partial x}\left(x\,t\,u^2
-\frac{\partial u}{\partial x}\right)+8x\sin(8\pi xt),  \quad 0<x< L, \quad t>0,
+\frac{\partial u}{\partial x}\right)+8x\sin(8\pi xt),  \quad 0<x< 1, \quad 0<t<1,
 $$
 with the same initial condition as above.
 
