@@ -236,5 +236,5 @@ sol$precision
 
 ### Exercise 2
 How many iterations are required for the example from exercise 1 with
-a tolerance of $10^{-6}$? What tolerance is achieved with just 4 iterations?
+a tolerance of $10^{-6}$? What precision is achieved with just 4 iterations?
 
