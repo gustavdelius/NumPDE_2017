@@ -319,7 +319,7 @@ h_{1}=\frac{L_{1}}{N_{1}}, \quad h_{2}=\frac{L_{2}}{N_{2}}, \quad
 Let $w_{kj}^{n}$ be the discrete approximation to
 $u_{kj}^n\equiv u(x_{k},y_{j},t_{n})$. Employing the central
 difference formula for $u_{xx}$ and $u_{yy}$
-and the two-point forward-difference formula for $u_tt$, we
+and the two-point forward-difference formula for $u_t$, we
 obtain the following difference equation
 \begin{equation}
 \frac{w_{kj}^{n+1}-w_{kj}^{n}}{\tau} -K\left(\frac{\delta_{x}^2}{h_{1}^2}
@@ -401,17 +401,17 @@ e^{iph_{2}}-2+e^{-iph_{2}}=-4\sin^{2} \frac{ph_{2}}{2},
 we obtain
 \[
 \rho=1-4\gamma_{1}\sin^{2} \frac{qh_{1}}{2}
--4\gamma_{2}\sin^{2} \frac{ph_{2}}{2}.
+-4\gamma_{2}\sin^{2} \frac{ph_{2}}{2},
 \]
 where
 \[
 \gamma_{1}=\frac{K\tau}{h_{1}^2}, \quad
 \gamma_{2}=\frac{K\tau}{h_{2}^2}.
 \]
-It follows that $\vert\rho\vert\leq 1$ if $-1\leq\rho$ or
+It follows that $\vert\rho\vert\leq 1$ if $-1\leq\rho$, i.e.,
 \[
 -1\leq 1-4\gamma_{1}\sin^{2} \frac{qh_{1}}{2}
--4\gamma_{2}\sin^{2} \frac{ph_{2}}{2}
+-4\gamma_{2}\sin^{2} \frac{ph_{2}}{2}.
 \]
 The last inequality holds for all $p$ and $q$ provided that $\gamma_{1}+\gamma_{2}\leq 1/2$
 or
@@ -422,7 +422,7 @@ K\tau
 Thus, the method (\ref{f4}) is conditionally stable. Note that if
 $h_{1}=h_{2}=h$, then the stability condition (\ref{f9}) becomes
 $K\tau/h^2\leq 1/4$. With $m$ space variables and equal space step
-sizes the stability condition becomes $K\tau/h^2\leq 1/2m$.
+sizes the stability condition becomes $K\tau/h^2\leq 1/(2m)$.
 
 
 
@@ -586,7 +586,7 @@ error is $O(\tau^2+h^2)$.
 \vskip 0.3cm
  
 We will show that the last term in
-(\ref{f14}), evaluated on the exact solution $u(x,y,t)$, is $O(\tau^2)$. To do this, we first observe that
+(\ref{f14}), evaluated on the exact solution $u(x,y,t)$, is $O(\tau^2+\tau h^2)$. To do this, we first observe that
 \begin{eqnarray}
 &&\frac{1}{h^2}\delta_{x}^2 \, u_{kj}^n=u_{xx}(x_k,y_j,t_n)
 +\frac{h^2}{12} \, u_{xxxx}(x_k,y_j,t_n)+O(h^4), \nonumber \\
@@ -609,7 +609,7 @@ Further, we have
 Hence,
 \[
 \frac{K^2\tau}{4h^4} \, \delta^2_{x}\delta^2_{y}\, \left(u^{n}_{k,j}-u^{n+1}_{k,j}\right)=
-\frac{K^2\tau^2}{4}\left[-u_{xxyyt}(x_k,y_j,t_n)+O(\tau)\right]+O(\tau h^2)=O(\tau^2).
+\frac{K^2\tau^2}{4}\left[-u_{xxyyt}(x_k,y_j,t_n)+O(\tau)\right]+O(\tau h^2)=O(\tau^2+\tau h^2).
 \]
 Therefore, the local truncation error
 of the ADI method is $O(\tau^2+h^2)$.
