@@ -317,7 +317,10 @@ h_{1}=\frac{L_{1}}{N_{1}}, \quad h_{2}=\frac{L_{2}}{N_{2}}, \quad
 \tau=\frac{T}{M}.
 \]
 Let $w_{kj}^{n}$ be the discrete approximation to
-$u_{kj}^n\equiv u(x_{k},y_{j},t_{n})$. Employing the central
+$u_{kj}^n\equiv u(x_{k},y_{j},t_{n})$. 
+
+\subsubsection{Forward difference method}
+Employing the central
 difference formula for $u_{xx}$ and $u_{yy}$
 and the two-point forward-difference formula for $u_t$, we
 obtain the following difference equation
@@ -425,8 +428,7 @@ $K\tau/h^2\leq 1/4$. With $m$ space variables and equal space step
 sizes the stability condition becomes $K\tau/h^2\leq 1/(2m)$.
 
 
-
-\vskip 0.3cm  
+\subsubsection{Backward difference method}
 To avoid stability problems, we can employ the backward difference
 formula to approximate $u_t$. This yields
 the implicit scheme
@@ -508,7 +510,7 @@ is not tridiagonal,
 which makes it difficult to solve if the step sizes are small.
 
 
-\vskip 0.3cm  
+\subsubsection{Crank-Nicolson method}
 The Crank-Nicolson scheme can be extended to the two-dimensional problem in the form
 \begin{equation}
 \frac{w_{kj}^{n+1}-w_{kj}^{n}}{\tau} -\frac{K}{2}
@@ -525,9 +527,7 @@ $O(\tau^2+h_{1}^2+h_{2}^2)$. Again, the linear system (\ref{f11})
 is not tridiagonal.
 
 
-\vskip 0.5cm
- 
-{\bf The alternating-direction implicit (ADI) method.}
+\subsubsection{The alternating-direction implicit (ADI) method}
 The ADI method is intended to
 simplify the solution of the algebraic equations while preserving the stability
 and accuracy requirements.
