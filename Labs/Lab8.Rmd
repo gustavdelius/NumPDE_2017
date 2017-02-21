@@ -1,0 +1,240 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Lab 8"
+author: "Richard Southwell, Gustav Delius"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+# Non-linear heat equation
+
+In this lab you will explore the backward difference method for the
+non-linear heat equation
+
+$$
+\frac{\partial u}{\partial t} =\frac{\partial }{\partial x}\left(K(x,t,u)
+\frac{\partial u}{\partial x}\right)+f(x,t,u),  \quad 0<x< L, \quad t>0,
+$$
+subject to the initial and boundary conditions
+$$
+u(x, 0) = u_{0}(x), \qquad u(0,t)=0, \quad u(L,t)=0.
+$$
+
+## Semi-implicit method
+
+We will extend the function `backwardDifference()` from Lab 5 to allow
+$K$ and $f$ to be functions of $x, t$ and $u$. Initially we will use
+the method from eq.(2.106) in the lecture notes, which evaluates
+$K$ and $f$ at the $w$ from the previous time step in order to avoid
+having to solve a non-linear equation at each time step. Such a method is
+sometimes called "semi-implicit". 
+
+```{r}
+backwardDifference2 <- function(u0, K, f, L=1, N=30, T=1, M=30) {
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    xFull <- h*(0:N)
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    gamma <- tau/h^2
+    
+    w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    w[ , 1] <- u0(x)  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        Kv <- K(xFull, t[j], c(0, w[, j], 0)) 
+        chi <- (Kv[1:N] + Kv[2:(N+1)])/2
+        a <- 1 + gamma*(chi[2:N]+chi[1:(N-1)])
+        b <- -gamma*chi[1:(N-1)]
+        w[, j+1] <- doublesweep(b[1:(N-1)], c(b[2:(N-1)],0), -a, 
+                                w[, j]+tau*f(x, t[j], w[, j]), 0, 0)
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=w))
+}
+```
+
+We will use the implementation of the doublesweep method from Lab 5:
+
+```{r}
+doublesweep <- function(A, B, C, F, a, b) {
+    # Solves the equation 
+    # A[i]*v[i-1] - C[i]*v[i] + B[i]*v[i+1] = F[i]
+    # for v[i], i = 1,...,N-1, with boundary conditions
+    # v[0]=a and v[N]=b
+    
+    # Check the lengths of the vectors
+    N <- length(C) + 1
+    if ((length(B) != N-1) || (length(A) != N-1) || (length(F) != N-1)) {
+        stop("The lengths of the vector arguments need to be equal")
+    }
+
+    alpha <- rep(0, N)
+    beta <- rep(0, N)
+    beta[1] <- a
+    
+    #sweep up to get alphas and betas
+    for (i in 1:(N-1)) {
+        alpha[i+1] <- B[i] / (C[i]-alpha[i]*A[i])
+        beta[i+1] <- (beta[i]*A[i] - F[i]) / (C[i] - alpha[i]*A[i])
+    }
+    
+    v <- rep(0, N-1 )
+    v[N-1] <- alpha[N]*b + beta[N]
+    
+    #sweep down to find v's
+    for (i in (N-1):2) {
+        v[i-1] <- alpha[i]*v[i] + beta[i]    
+    }
+    
+    return(v)
+}
+```
+Let us look at the solution of the equation
+$$
+\frac{\partial u}{\partial t} =\frac{\partial }{\partial x}\left(\frac12 u^2
+\frac{\partial u}{\partial x}\right)-u,  \quad 0<x< L, \quad t>0,
+$$
+with initial condition 
+$$
+u(x,0) = \max(0, 1-10|x-0.5|)
+$$
+
+```{r}
+sol <- backwardDifference2(u0=function(x) pmax(0, 1-10*abs(x-0.5)), 
+                           K=function(x, t, u) u^2/2,
+                           f=function(x, t, u) -u)
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+```
+
+### Exercise 1
+Solve the equation 
+$$
+\frac{\partial u}{\partial t} =\frac{\partial }{\partial x}\left(x\,t\,u^2
+\frac{\partial u}{\partial x}\right)+8x\sin(8\pi xt),  \quad 0<x< 1, \quad 0<t<1,
+$$
+with the same initial condition as above.
+
+
+## Method of successive approximations
+
+We now add another loop to our function `backwardDifference2()` that
+implements the method of successive approximations, see eq.(2.107) in
+the lecture notes.
+
+We introduce two extra arguments to the function: `max_iterations` is the
+maximum number of iterations for the successive approximation method and
+`tolerance` is the amount of error that is acceptable. So the iterations
+are stopped as soon as the result varies by less than `tolerance`.
+
+```{r}
+backwardDifference2 <- function(u0=function(x) pmax(0,1-10*abs(x-0.5)), 
+                                K=function(x, t, u) u^2/2,
+                                f=function(x, t, u) -u^2,
+                                L=1, N=30, T=1, M=30,
+                                max_iteration=20, tolerance=0.000001) {
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    xFull <- h*(0:N)
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    gamma <- tau/h^2
+    
+    w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    iterations <- rep(0, M)  # to hold number of iterations needed at each step
+    precision <- rep(0, M)  # to hold precision achieved
+    
+    w[ , 1] <- u0(x)  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        wn <- w[, j]  # initial guess for w_{j+1}
+        for (s in 1:max_iteration) {
+            ws <- wn
+            Kv <- K(xFull, t[j], c(0, ws, 0))
+            chi <- (Kv[1:N] + Kv[2:(N+1)])/2
+            a <- 1 + gamma*(chi[2:N]+chi[1:(N-1)])
+            b <- -gamma*chi[1:(N-1)]
+            # update guess for w_{j+1}
+            wn <- doublesweep(b[1:(N-1)], c(b[2:(N-1)],0), -a, 
+                              w[, j]+tau*f(x, t[j], ws), 0, 0)
+            # break if tolerance limit is reached
+            if (max(abs(wn-ws)) < tolerance) {
+                break
+            }
+        }
+        iterations[j] <- s
+        precision[j] <- max(abs(wn-ws))
+        w[, j+1] <- wn
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=w, iterations=iterations, precision=precision))
+}
+```
+
+Note that we have also added two more items to the returned list:
+`iterations` lists the number of iterations actually performed at each time
+step and `precision` is the amount by which the approximation changed during
+the final iteration at each time step.
+
+Let us use this modified function on our simple example
+
+```{r}
+sol <- backwardDifference2(u0=function(x) pmax(0, 1-10*abs(x-0.5)), 
+                           K=function(x, t, u) u^2/2,
+                           f=function(x, t, u) -u)
+
+persp3D(sol$x, sol$t, sol$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+```
+
+Let us look at how many iterations are used in the method of successive
+approximations in order to reach the tolerance limit of 0.000001
+```{r}
+sol$iterations
+```
+
+Not surprisingly we wee that more iterations are needed in the initial time steps during which the solution changes a lot between steps. 
+
+```{r}
+sol$precision
+```
+
+If we had allowed only a single iteration the precision would have been poor:
+
+```{r}
+sol <- backwardDifference2(u0=function(x) pmax(0, 1-10*abs(x-0.5)), 
+                           K=function(x, t, u) u^2/2,
+                           f=function(x, t, u) -u,
+                           max_iteration = 1)
+sol$precision
+```
+```{r}
+sol <- backwardDifference2(u0=function(x) pmax(0, 1-10*abs(x-0.5)), 
+                           K=function(x, t, u) u^2/2,
+                           f=function(x, t, u) -u,
+                           max_iteration = 2)
+sol$precision
+```
+
+### Exercise 2
+How many iterations are required for the example from exercise 1 with
+a tolerance of $10^{-6}$? What precision is achieved with just 4 iterations?
+
