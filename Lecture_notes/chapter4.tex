@@ -40,6 +40,9 @@ $(x_{k}, t_{j})$:
 x_{k}=a+hk \quad(k=0,1,\dots,N), \quad t_{j}=\tau j
 \quad(j=0,1,\dots,M).
 \]
+
+
+\subsubsection{Explicit method}
 We approximate the second partial derivatives with respect to $t$
 and $x$ at interior grid points using the central difference
 formulas
@@ -131,6 +134,9 @@ w_{N-1,j}
 \end{array}\right].
 \label{77}
 \end{gather}
+
+
+\subsubsection{Initial conditions}
 It is clear from Eq. (\ref{9}) that the $(j+1)$-st time step
 requires the values from the $j$-th and $(j-1)$-st time steps. For
 example, to compute $w_{k,2}$, we need values of $w_{k,0}$ and
@@ -196,7 +202,9 @@ This is an approximation with local truncation error $O(\tau^{2})$
 for each $k=1, 2, \dots, N-1$. If $f^{\prime\prime}(x_{k})$ is not
 readily available, we can use the central difference formula to
 approximate it.
-   
+
+
+\subsubsection{Stability}
 The finite-difference method described
 above is explicit and has local truncation error
 $O(\tau^{2}+h^{2})$. Now we will investigate the stability of the
@@ -251,7 +259,7 @@ Thus, the above explicit finite-difference method is conditionally
 stable.
 
 
-   
+\subsubsection{Implicit method}
 To obtain an {\it unconditionally} stable
 method, we consider the difference equation in which the second
 derivative with respect to $x$ is approximated by the central
