@@ -276,13 +276,28 @@ w_{k,j+1}-2w_{kj}+w_{k,j-1}-\gamma^{2} \left[\sigma \delta_{x}^2
 w_{k,j+1}+(1-2\sigma)\delta_{x}^2 w_{k,j} +\sigma \delta_{x}^2
 w_{k,j-1}\right]=\tau^2 F_{kj}, \label{15}
 \end{equation}
-where $\sigma$ is an arbitrary number such that $0\leq \sigma\leq
-1/2$. It can be shown that local truncation error of Eq.
-(\ref{15}) is $O(\tau^{2}+h^{2})$. Now we will try to choose
-$\sigma$ such that the implicit method given by Eq. (\ref{15}) is
-unconditionally stable.
+where $\sigma$ is an arbitrary parameter. 
+An alternative way of writing this is in terms of the second order central
+difference operator $\delta_t^2$,
+\begin{equation}
+w_{k,j+1}-2w_{kj}+w_{k,j-1}-\gamma^{2} \delta_{x}^2 w_{k,j} 
+-\sigma\gamma^2 \delta_t^2\delta_{x}^2w_{k,j}=\tau^2 F_{kj}.
+\end{equation}
+For $\sigma=0$ we have the 
+explicit method discussed in the previous section. 
+For $\sigma\neq 0$ there is an additional term
+\begin{equation}
+-\sigma \gamma^2\delta_t^2\delta_{x}^2w_{k,j}
+=-\sigma\tau^4\frac{\partial^4}{\partial_t^2\partial_x^2}u_{k,j}
++O(\tau^6+\tau^4h^2).\label{est}
+\end{equation}
+This only gives an $O(\tau^2)$ contribution to the truncation error
+and thus the truncation error of this method is still $O(\tau^2+h^2)$
+for any value of $\sigma$.
 
-    We will investigate the stability of the
+For positive $\sigma$ this extra term \eqref{est} will have a stabilising
+effect.
+We investigate the stability of the
 method by the Fourier method. The perturbation
 $z_{kj}$ satisfies the equation
 \[
