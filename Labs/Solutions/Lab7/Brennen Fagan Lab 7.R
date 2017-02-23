@@ -22,7 +22,8 @@ forwardDifference <- function(f=function(x, t) 0,
   
   # Set up evolution matrix
   gamma <- K*tau/(h^2)
-  A <- diag(1-2*gamma, N-1)
+  # Adjust for the matrix size
+  A <- diag(1-2*gamma, N+1)
   for (k in 1:(N-2)) {
     A[k,k+1] <- gamma
     A[k+1,k] <- gamma
@@ -62,6 +63,7 @@ sol <- forwardDifference(u0=function(x) x,
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
         ticktype="detailed", nticks=4)
+#Conditional Stability strikes again!
 
 sol <- forwardDifference(u0=function(x) x, 
                          f=function(x,t) 10*sin(10*pi*t)*exp(-10*(x-0.5)^2),
@@ -166,13 +168,13 @@ backwardDifferenceIMPROVED_EXCLAMATION_POINT <- function(
     #TODO: As above, Cautious about t[j] vs t[j+1]
     F <- f(x,t[j])
     #Temp names!
-    a <- a(t[j+1])
-    b <- b(t[j+1])
-    w <- doublesweep(rep(gamma, N-1), rep(gamma, N-1), 
-                     rep(1 + 2* gamma, N-1), -(w+F), a, b)
+    a_ <- a(t[j+1])
+    b_ <- b(t[j+1])
+    w <- doublesweep(rep(gamma, N+1), rep(gamma, N+1), 
+                     rep(1 + 2* gamma, N+1), -(w+tau*F), a_, b_)
     #TODO: Check to see if this step is really necessary?
-    w[1] <- a
-    w[N+1] <- b
+    w[1] <- a_
+    w[N+1] <- b_
     Temperature[ , j+1] <- w
   }
   
@@ -186,7 +188,7 @@ bd2 <- backwardDifferenceIMPROVED_EXCLAMATION_POINT
 sol <- bd2(u0=function(x) x, 
            f=function(x,t) 10*sin(10*pi*t)*exp(-10*(x-0.5)^2),
            a=function(t) sin(20*pi*t), b=function(t) cos(20*pi*t),
-           K=1, L=1, T=0.4, N=30, M=30)
+           K=1, L=1, T=0.4, N=30, M=720)
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
         ticktype="detailed", nticks=4)
