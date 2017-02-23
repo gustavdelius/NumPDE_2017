@@ -1,0 +1,184 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Lab 9"
+author: "Gustav Delius, Richard Southwell"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+# ADI method for the two-dimensional heat equation
+
+In this lab we will code the alternating-direction implicit (ADI) method to
+solve the two-dimensional heat equation. 
+
+## Two-dimensional heat equation
+
+We consider the equation
+$$
+\frac{\partial u}{\partial t}=K\left(\frac{\partial^{2}u}{\partial
+x^{2}} +\frac{\partial^{2}u}{\partial y^{2}}\right)+f(x,y,t)
+$$
+to be solved for $0 < t < T$ and in a rectangula region ${\cal D}$ of
+the $(x, y)$ plane,
+$$
+{\cal D}=\{(x,y) \, \vert \, 0\leq x\leq L_{1}, \ 0\leq y\leq L_{2}  \, \}.
+$$
+with boundary conditions
+$$
+u(0,y,t) = u(L_1,y,t) = u(x,0,t) = u(x,L_2,t) = 0
+$$
+and initial condition
+$$
+u(x,y,0) = u_0(x,y)
+$$
+
+
+## ADI method
+
+In the ADI method each time step is divided into two steps of size $\tau/2$ and
+we solve the two equations
+$$
+\begin{split}
+\frac{w^{n+\frac{1}{2}}_{k,j}-w^{n}_{k,j}}{\tau}
+&=\frac{K}{2h_1^2}\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\frac{K}{2h_2^2}\delta^2_{y}w^{n}_{k,j}+\frac{1}{2}f^{n+\frac{1}{2}}_{k,j}, 
+\\
+\frac{w^{n+1}_{k,j}-w^{n+\frac{1}{2}}_{k,j}}{\tau}
+&=\frac{K}{2h_1^2}\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\frac{K}{2h_2^2}\delta^2_{y}w^{n+1}_{k,j}+\frac{1}{2}f^{n+\frac12}_{k,j}.
+\end{split}
+$$
+We can write this in a form suitable for applying the double-sweep method:
+$$
+\begin{split}
+\frac{\gamma_1}{2}w_{k+1,j}^{n+\frac12}
+-(1+\gamma_1)w_{k,j}^{n+\frac12}
++\frac{\gamma_1}{2}w_{k-1,j}^{n+\frac12}
+&=\frac{\gamma_2}{2}\left(w_{k,j+1}^{n}+w_{k,j-1}^{n}\right)
++(1-\gamma_2)w_{k,j}^{n}
++\frac{\tau}{2} f_{kj}^{n+\frac12},
+\\
+\frac{\gamma_2}{2}w_{k,j+1}^{n+1}
+-(1+\gamma_2)w_{k,j}^{n+1}
++\frac{\gamma_2}{2}w_{k,j-1}^{n+1}
+&=\frac{\gamma_1}{2}\left(w_{k+1,j}^{n+\frac12}+w_{k-1,j}^{n+\frac12}\right)
++(1-\gamma_1)w_{k,j}^{n+\frac12}
++\frac{\tau}{2} f_{kj}^{n+\frac12},
+\end{split}
+$$
+We can use the double sweep method to first determine $w^{n+\frac12}$ using the first equation and then use that result to use the double sweep method again to determine $w^n$ using the second equation. We can use our old `doublesweep()` function that we load in from an external file.
+
+```{r}
+source('doublesweep.R')
+```
+We will also need the plot3Drgl library.
+```{r warning=FALSE}
+library(plot3Drgl)
+```
+
+We now write a function `ADI()` that implements the scheme. We will use `for` loops because they are easy to understand. A real R programmer would rewrite our code to avoid the loops over `j` and `k` below.
+
+```{r}
+ADI <- function(u0, K=1, f, L1=1, N1=30, L2=1, N2=30, T=1, M=30) {
+    # set up space grids
+    h1 <- L1/N1
+    x <- h1*(0:N1)
+    h2 <- L2/N2
+    y <- h2*(0:N2)
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    gamma1 <- K*tau/h1^2
+    gamma2 <- K*tau/h2^2
+    # Vectors to be later used in double sweep method
+    A1 <- rep(gamma1/2, N1-1)
+    C1 <- rep(1+gamma1, N1-1)
+    A2 <- rep(gamma2/2, N2-1)
+    C2 <- rep(1+gamma2, N2-1)
+    
+    w <- array(0, dim=c(N1+1, N2+1, M+1))  # Array to hold the solution
+    w[, , 1] <- outer(x, y, u0)  # Initial value
+    # Loop over time steps
+    for (n in 1:M) {
+        # Matrix with contributions from inhomogeneous term $\tau/2 f^{n+1/2}$
+        Fh = tau*(outer(x, y, f, t=t[n]) + outer(x, y, f, t=t[n+1]))/4
+        # first half step
+        wh <- matrix(0, nrow=N1+1, ncol=N2+1)  # matrix to hold w^{n+1/2}
+        for (j in 2:N2) {
+            F1 <- gamma2/2*(w[2:N1, j+1, n] + w[2:N1, j-1, n]) + 
+                (1-gamma2)*w[2:N1, j, n] + Fh[2:N1, j]
+            wh[2:N1, j] <- doublesweep(A1, A1, C1, F1, 0, 0)
+        }
+        # second half step
+        for (k in 2:N1) {
+            F2 <- gamma1/2*(wh[k+1, 2:N2] + wh[k-1, 2:N2]) + 
+                (1-gamma1)*wh[k, 2:N2] + Fh[k, 2:N2]
+            w[k, 2:N2, n+1] <- doublesweep(A2, A2, C2, F2, 0, 0)
+        }
+    }
+    
+    # Return a list consisting of grid and solution
+    return(list(x=x, y=y, t=t, w=w))
+}
+```
+
+One of the new features above is that now we have to use a three-dimensional array instead of a matrix to hold the solution. Arrays are straighforward extensions of matrices (or rather the other way around: matrices are just two-dimensional arrays).
+
+The other new feature is the use of the function `outer()` to evaluate a function on the entire $x,y$ grid.
+
+We now use our function `ADI()` to solve the two-dimensional heat equation with initial condition
+$$
+u_0(x,y) = \sin(\pi x)\sin(\pi y)
+$$
+and inhomogeneous term
+$$
+f(x,y,t) = 20\pi^2\sin(2\pi x)\sin(2\pi y)
+$$
+with $K=1$, $L_1=L_2=1$, $N_1=N_2=40$ and $T=0.2, M=20$.
+
+```{r}
+sol <- ADI(u0=function(x, y) sin(pi*x)*sin(pi*y), K=1, 
+           f=function(x, y, t) 20*pi^2*sin(2*pi*x)*sin(2*pi*y),
+           L1=1, L2=1, N1=40, N2=40, T=0.2, M=20)
+
+```
+
+Let us plot the solution at time $t=0$.
+
+```{r}
+persp3D(sol$x, sol$y, sol$w[, , 1],
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4, phi=10, theta=90)
+```
+
+Next we plot the solution at the final time $t=0.2$.
+
+```{r}
+persp3D(sol$x, sol$y, sol$w[, , 21],
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4, phi=10, theta=90)
+```
+
+To follow the time evolution of the solution we make a little movie. 
+
+```{r anim, fig.width=8, fig.height=5, fig.show='animate', interval=0.4, cache=TRUE}
+for (n in 1:21) {
+    persp3D(sol$x, sol$y, sol$w[, , n],
+        xlab="x", ylab="t", zlab="w", zlim=c(-0.7, 1), clim=c(-0.7, 1),
+        ticktype="detailed", nticks=4, phi=12, theta=90)
+}
+```
+
+## Exercise
+
+Solve the same equation but with boundary conditions
+$$
+u(0,y,t) = t\sin(2\pi y), ~~ u(L_1,y,t) = ty(1-y), ~~ u(x,0,t) = u(x,L_2,t) = 0
+$$
+This will require changes to the function `ADI()`.

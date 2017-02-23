@@ -1,0 +1,142 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsbsy}
+\usepackage{epsfig,array}
+
+
+\textwidth 17cm \textheight 24cm \setlength{\oddsidemargin}{-3mm}
+\setlength{\evensidemargin}{-3mm}
+\setlength{\headheight}{-1\baselineskip}
+\setlength{\headsep}{-1\baselineskip}
+
+\renewcommand{\section}{\subsection}
+
+\pagestyle{empty}
+
+
+
+% Definitions
+%================================================================
+\def\curl{{\rm curl}\,}
+\def\div{{\rm div}\,}
+\def\la{\lambda}
+\def\ba{{\bf a}}
+\def\bb{{\bf b}}
+\def\be{{\bf e}}
+\def\bj{{\bf j}}
+\def\bn{{\bf n}}
+\def\bV{{\bf V}}
+\def\bJ{{\bf J}}
+\def\bv{{\bf v}}
+\def\bu{{\bf u}}
+\def\bH{{\bf H}}
+\def\vf{{\bf f}}
+\def\bh{{\bf h}}
+\def\bU{{\bf U}}
+\def\bV{{\bf V}}
+\def\bx{{\bf x}}
+\def\by{{\bf y}}
+\def\bz{{\bf z}}
+\def\bX{{\bf X}}
+\def\bC{{\bf C}}
+
+\def\vx {{\bf x}}
+\def\vy {{\bf y}}
+\def\vz {{\bf z}}
+\def\vv {{\bf v}}
+\def\vu {{\bf u}}
+\def\vb {{\bf b}}
+\def\vc {{\bf c}}
+\def\vr {{\bf r}}
+
+\def\pr{{\partial}}
+\def\veta{\boldsymbol{\eta}}
+\def\bxi{\boldsymbol{\xi}}
+\def\bnu{\boldsymbol{\nu}}
+\def\Bom{\boldsymbol{\Omega}}
+\def\pd#1#2{\frac{\displaystyle\partial#1}{\displaystyle\partial#2}}
+\def\bfr#1#2{\frac{\displaystyle #1}{\displaystyle #2}}
+\def\vec#1{\boldsymbol{#1}}
+\def\Bbb{\mathbb}
+\def \shalf{{\textstyle \frac{1}{2}}}
+\def \half{\frac{1}{2}}
+\def \ssum{{\textstyle \sum}}
+
+%=======================================================================
+
+\begin{document}
+
+\begin{center}
+{\large{\bf Numerical Methods for PDEs (Spring 2017)}}
+\end{center}
+
+\begin{center}
+{\large{\bf Problems 3}}
+\end{center}
+
+\noindent
+{\bf Hand in your written solution to problem 11 at the start of the lecture on 7 March. Show me your code for that problem in the practical on 10 March.}
+
+\vskip 0.5cm \noindent
+{\bf Problem 9.} By  expanding $g(x\pm h)$, $Q(x\pm h)$ in Taylor's series at $x$,
+show that
+\[
+\frac{d }{d x}\left(Q(x)
+\frac{d g}{\pr x}\right)=\frac{1}{h^2}
+\left(Q_{+}\left[g(x+h)-g(x)\right]-
+Q_{-}\left[g(x)-g(x-h)\right]\right) +O(h^2),
+\]
+where
+\[
+Q_{\pm}=\frac{1}{2}\left[Q(x)+Q(x\pm h)\right].
+\]
+
+\vskip 0.5cm \noindent
+{\bf Problem 10.} Consider the two-dimensional heat equation
+\begin{equation}
+\frac{\partial u}{\partial t}-K \left(\frac{\partial^{2}u}{\partial
+x^{2}}+\frac{\partial^{2}u}{\partial
+y^{2}}\right)=0 \quad \hbox{for} \quad 0<x<L_{1}, \ \ y<x<L_{2}, \ \ t>0, \label{1}
+\end{equation}
+subject to the boundary conditions
+\[
+u(0,y,t)=0, \quad u(L_{1},y,t)=0, \quad
+u(x,0,t)=0, \quad u(x,L_{2},t)=0,
+\]
+and the initial condition
+\[
+u(x,y,0)=u_{0}(x,y).
+\]
+At interior grid points $(x_{x},y_{j},t_{n})$, equation (\ref{1}) is approximated by the finite-difference scheme
+\[
+\frac{w_{kj}^{n}-w_{kj}^{n-1}}{\tau} -K\left(\frac{\delta_{x}^2}{h_{1}^2}
++\frac{\delta_{y}^2}{h_{2}^2}\right)w_{kj}^{n}=0,
+\]
+where $w_{kj}^{n}$ are approximations to $u(x_{x},y_{j},t_{n})$; $x_{k}=k h_{1}$ for $k=0,1,\dots N_{1}$,
+$h_{1}=L_{1}/N_{1}$; $y_{j}=j h_{2}$ for $j=0,1,\dots N_{2}$,
+$h_{2}=L_{2}/N_{2}$; $t_{n}=n\tau$ for $n=0,1,\dots$ and $\tau$ in the length of the time step.
+
+\vskip 0.3cm
+\noindent
+Investigate the stability of this scheme by the Fourier method.
+
+\vskip 0.5cm \noindent
+{\bf Problem 11.} The nonlinear heat equation
+\[
+u_t -K u_{xx}=f(u) \quad \textrm{for} \quad 0 < x < L, \ \ 0 < t < T
+\]
+(where $K$ is a constant and $f(u)$ is a given function), subject to the initial and boundary conditions
+\[
+u(x,0)=u_0(x) \ \ \hbox{for} \ 0 < x < L, \quad u(0,t)=u(L,t)=0  \ \ \hbox{for} \ 0 < t < T,
+\]
+is solved using the finite-difference method:
+\begin{eqnarray}
+&&\frac{w_{k,j}-w_{k,j-1}}{\tau}-
+K \, \frac{w_{k+1,j}-2w_{k,j}+w_{k-1,j}}{h^{2}}=f(w_{kj}) \ \ \hbox{for} \ \ k=1,2,\dots,N-1 \  \hbox{and} \ j=1,2,\dots,M; \label{pp11} \\
+&&w_{k,0}=u_0(x_{k}) \ \ \hbox{for} \ k=0, \dots,N \ \ \hbox{and} \ \ w_{0,j}=w_{N,j}=0 \ \ \hbox{for} \ j=1, \dots,M . \label{pp22}
+\end{eqnarray}
+Obtain the computation formulae for solving the nonlinear equations (\ref{pp11}) by the Newton method and implement the solution method in R.
+
+
+
+\end{document}
