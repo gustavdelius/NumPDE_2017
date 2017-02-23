@@ -24,7 +24,7 @@ forwardDifference <- function(f=function(x, t) 0,
   gamma <- K*tau/(h^2)
   # Adjust for the matrix size
   A <- diag(1-2*gamma, N+1)
-  for (k in 1:(N-2)) {
+  for (k in 1:(N)) {
     A[k,k+1] <- gamma
     A[k+1,k] <- gamma
   }
@@ -41,9 +41,13 @@ forwardDifference <- function(f=function(x, t) 0,
     #Since we are now covering the whole grid
     #We also change our "boundaries" and force
     #them to the boundary conditions
-    #TODO Confused as to the t[j+1] though.
+    #Q: Confused as to the t[j+1] though.
     #Why is it here j+1, above j? Shouldn't
     #above be j+1 as well?
+    #A: Looking back at the notes, we are using
+    #equation 2.61, which has time of F the same
+    #as the time for w when computing the next w.
+    #So these make sense.
     w[1] <- a(t[j+1])
     #N-1 -> N+1
     w[N+1] <- b(t[j+1])
@@ -72,10 +76,10 @@ sol <- forwardDifference(u0=function(x) x,
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
         ticktype="detailed", nticks=4)
+plotrgl(smooth = TRUE)
 
 #Recall that this version does not control for errors
 #in the values of the vectors, as a warning!
-#TODO: Move the more warning prone version into this file
 doublesweep <- function(A, B, C, F, a, b) {
   # Solves the equation 
   # A[i]*v[i-1] - C[i]*v[i] + B[i]*v[i+1] = F[i]
@@ -86,6 +90,12 @@ doublesweep <- function(A, B, C, F, a, b) {
   N <- length(C) + 1
   if ((length(B) != N-1) || (length(A) != N-1) || (length(F) != N-1)) {
     stop("The lengths of the vector arguments need to be equal")
+  }
+  if(any(C<=0)||any(B<=0)||any(A<=0)){
+    warning("Exists i: Ai or Bi or Ci <= 0")
+  }
+  if(any(C<A+B)){
+    warning("Exists i: Ci<Ai+Bi")
   }
   
   alpha <- rep(0, N)
@@ -165,14 +175,15 @@ backwardDifferenceIMPROVED_EXCLAMATION_POINT <- function(
   # Loop over time steps
   for (j in 1:M) {
     #Compute F as necessary
-    #TODO: As above, Cautious about t[j] vs t[j+1]
-    F <- f(x,t[j])
+    #Q: As above, Cautious about t[j] vs t[j+1]
+    #A: We are now using Equation 2.62. In this case
+    #We should use the next time, rather than the previous.
+    F <- f(x,t[j+1])
     #Temp names!
     a_ <- a(t[j+1])
     b_ <- b(t[j+1])
     w <- doublesweep(rep(gamma, N+1), rep(gamma, N+1), 
                      rep(1 + 2* gamma, N+1), -(w+tau*F), a_, b_)
-    #TODO: Check to see if this step is really necessary?
     w[1] <- a_
     w[N+1] <- b_
     Temperature[ , j+1] <- w
@@ -188,7 +199,9 @@ bd2 <- backwardDifferenceIMPROVED_EXCLAMATION_POINT
 sol <- bd2(u0=function(x) x, 
            f=function(x,t) 10*sin(10*pi*t)*exp(-10*(x-0.5)^2),
            a=function(t) sin(20*pi*t), b=function(t) cos(20*pi*t),
-           K=1, L=1, T=0.4, N=30, M=720)
+           K=1, L=1, T=0.4, N=30, M=30)
 persp3D(sol$x, sol$t, sol$w,
         xlab="x", ylab="t", zlab="w",
         ticktype="detailed", nticks=4)
+plotrgl(smooth = TRUE)
+
