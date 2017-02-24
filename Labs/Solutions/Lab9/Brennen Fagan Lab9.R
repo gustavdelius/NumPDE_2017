@@ -148,4 +148,3 @@ for (n in 1:21) {
           xlab="x", ylab="y", zlab="w", zlim=c(-0.7, 1), clim=c(-0.7, 1),
           ticktype="detailed", nticks=4, phi=12, theta=90)
 }
-plotrgl()
