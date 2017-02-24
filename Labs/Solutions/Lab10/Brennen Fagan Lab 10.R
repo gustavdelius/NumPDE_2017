@@ -1,5 +1,6 @@
 #Lab 10:
 #From Lab prompt.        Forcing               Initial Condition  Initial Condition'
+#NOTE: Multiplying by x still due to the need for a return vector in the function itself.
 explicitWave <- function(F=function(x, t) 0*x, f=function(x) 0*x, g=function(x) 0*x,
                          alpha=1, a=0, b=1, N=30, T=1, M=30) {
   # set up space grid
@@ -95,3 +96,234 @@ title("Exercise 4")
 #shows that it initially looks "right" before quickly disappearing off the
 #boundaries.
 
+#From prompt:
+implicitWave <- function(F=function(x, t) 0*x, 
+                         f=function(x) 0*x, g=function(x) 0*x,
+                         alpha=1, a=0, b=1, N=30, T=1, M=30, sigma=0.5) {
+  # set up space grid
+  h <- (b-a)/N
+  x <- a + h*(1:(N-1))
+  xLong <- c(a, x, b)  # includes the endpoints
+  
+  # set up time grid
+  tau <- T/M
+  t <- tau*(0:M)
+  
+  # Set up matrices (these were not explicitly written in the notes.)
+  #TODO: Verify these matrices
+  gs <- (alpha*tau/h)^2
+  A <- diag(1+2*sigma*gs, N-1)
+  B <- diag(2-2*(1-2*sigma)*gs, N-1)
+  C <- diag(-1-2*sigma*gs, N-1)
+  for (k in 1:(N-2)) {
+    A[k,k+1] <- -sigma*gs
+    A[k+1,k] <- -sigma*gs
+    B[k,k+1] <- (1-2*sigma)*gs
+    B[k+1,k] <- (1-2*sigma)*gs
+    C[k,k+1] <- sigma*gs
+    C[k+1,k] <- sigma*gs
+  }
+  Ainv <- solve(A)
+  AinvB <- Ainv %*% B
+  AinvC <- Ainv %*% C
+  
+  w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+  
+  # Initial conditions
+  w[, 1] <- f(x)  # Initial value
+  fpp <- (f(x-h) -2*f(x) + f(x+h))/h^2  # Approximate derivative of f
+  w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
+  
+  # Loop over time steps
+  for (j in 2:M) {
+    w[, j+1] <- AinvB %*% w[, j] +AinvC %*% w[, j-1] + tau^2 * Ainv %*% F(x, t[j])
+  }
+  
+  # Return a list consisting of time grid, x grid and solution
+  return(list(x=xLong, t=t, w=rbind(0, w, 0)))
+}
+
+#Exercise 5:
+sol5 <- implicitWave(f = function(x) ifelse(abs(x)<1/4, (sin(4*pi*x))/2, 0),
+                     g = function(x) ifelse(abs(x)<1/4, -2*cos(4*pi*x), 0), 
+                     a=-1, N=80, T=4, M=160)
+
+persp3D(sol5$x, sol5$t, sol5$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 5a")
+#Much noisier than expected!
+
+sol5 <- implicitWave(f = function(x) ifelse(abs(x)<1/4, (sin(4*pi*x))/2, 0),
+                     g = function(x) ifelse(abs(x)<1/4, -2*cos(4*pi*x), 0), 
+                     a=-1, N=80, T=4, M=320)
+
+persp3D(sol5$x, sol5$t, sol5$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 5b")
+#Much safer though!
+
+
+sol5 <- implicitWave(f = function(x) ifelse(abs(x)<1/4, (sin(4*pi*x))/2, 0),
+                     g = function(x) ifelse(abs(x)<1/4, -2*cos(4*pi*x), 0), 
+                     a=-1, N=160, T=4, M=160)
+
+persp3D(sol5$x, sol5$t, sol5$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 5c")
+#Space doesn't look as important as time.
+
+
+sol5 <- implicitWave(f = function(x) ifelse(abs(x)<1/4, (sin(4*pi*x))/2, 0),
+                     g = function(x) ifelse(abs(x)<1/4, -2*cos(4*pi*x), 0), 
+                     a=-1, N=1000, T=4, M=1000)
+
+persp3D(sol5$x, sol5$t, sol5$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 5d")
+#Even with significant investment, we still do not recover a solution that is as nice.
+#Clearly, eliminating terms when possible can be very powerful, but, as mentioned
+#in the practical session, this is unusual and not very practical.
+
+#Exercise 6:
+#Experiment with adding inhomogeneous terms to the wave equation.
+#Since it says inhomogeneous terms as opposed to inhomogeneous conditions,
+#we examine changes in the sense that have already been incorporated into
+#implicitWave with the F forcing function.
+sol6 <- implicitWave(F = function(x, t) 0*x,
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6a")
+sol6 <- implicitWave(F = function(x, t) 0*x+1,
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6b")
+#Can still see the wave behaviour, but the forcing is obscuring it
+#by interacting with the wave differently.
+sol6 <- implicitWave(F = function(x, t) -10*sin(pi*t*1/4)*x,
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6c")
+#Seems like the tau^2 factor damps this more than I expected.
+#Also demonstrates the difficulty of deciphering waves when they
+#are layered.
+sol6 <- implicitWave(F = function(x, t) -15*x,
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6d")
+#Reversal of orientation of minor features.
+sol6 <- implicitWave(F = function(x, t) ifelse(0*x+t<.75, 2+0*x, 0*x),
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6e")
+#Temporary perturbations can have long lasting effects.
+#Piecewise
+sol6 <- implicitWave(F = function(x, t) ifelse(abs(x)<1/4, (abs(x)-.5)*10, cos(pi*x)),
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6f")
+
+#Piecewise discontinuous
+sol6 <- implicitWave(F = function(x, t) ifelse(abs(x)<1/4, (abs(x)-1)*7, abs(x)/x*exp(-t)),
+                     f = function(x) sin(pi*x),
+                     g = function(x) pi*cos(pi*x),
+                     a = -1, N = 80, T = 8, M = 320)
+
+persp3D(sol6$x, sol6$t, sol6$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 6g")
+#It can clearly handle irregular functions.
+
+#Exercise 7:
+#Modify the methods to allow variable wave speed and experiment.
+#Wave speed refers to alpha:
+implicitWave2 <- function(F=function(x, t) 0*x, 
+                         f=function(x) 0*x, g=function(x) 0*x,
+                         alpha=1, a=0, b=1, N=30, T=1, M=30, sigma=0.5) {
+  # set up space grid
+  h <- (b-a)/N
+  x <- a + h*(1:(N-1))
+  xLong <- c(a, x, b)  # includes the endpoints
+  
+  # set up time grid
+  tau <- T/M
+  t <- tau*(0:M)
+  
+  # Set up matrices (these were not explicitly written in the notes.)
+  #TODO: Verify these matrices
+  gs <- (alpha*tau/h)^2
+  A <- diag(1+2*sigma*gs, N-1)
+  B <- diag(2-2*(1-2*sigma)*gs, N-1)
+  C <- diag(-1-2*sigma*gs, N-1)
+  for (k in 1:(N-2)) {
+    A[k,k+1] <- -sigma*gs
+    A[k+1,k] <- -sigma*gs
+    B[k,k+1] <- (1-2*sigma)*gs
+    B[k+1,k] <- (1-2*sigma)*gs
+    C[k,k+1] <- sigma*gs
+    C[k+1,k] <- sigma*gs
+  }
+  Ainv <- solve(A)
+  AinvB <- Ainv %*% B
+  AinvC <- Ainv %*% C
+  
+  w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+  
+  # Initial conditions
+  w[, 1] <- f(x)  # Initial value
+  fpp <- (f(x-h) -2*f(x) + f(x+h))/h^2  # Approximate derivative of f
+  w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
+  
+  # Loop over time steps
+  for (j in 2:M) {
+    w[, j+1] <- AinvB %*% w[, j] +AinvC %*% w[, j-1] + tau^2 * Ainv %*% F(x, t[j])
+  }
+  
+  # Return a list consisting of time grid, x grid and solution
+  return(list(x=xLong, t=t, w=rbind(0, w, 0)))
+}
