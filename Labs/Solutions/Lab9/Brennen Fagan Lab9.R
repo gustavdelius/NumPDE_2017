@@ -75,10 +75,12 @@ ADI2 <- function(u0=function(x, y) sin(pi*x)*sin(pi*y),
                  x_at_L1 = function(y,t) t*y*(1-y),
                  y_at_0 = function (x,t) 0,
                  y_at_L2 = function (x,t) 0,
-                 K=1, L1=1, N1=30, L2=1, N2=30, T=1, M=30) {
+                 K=1, L1=1, N1=40, L2=1, N2=40, T=0.2, M=20) {
   # set up space grids
+  #X grid
   h1 <- L1/N1
   x <- h1*(0:N1)
+  #Y grid
   h2 <- L2/N2
   y <- h2*(0:N2)
   
@@ -105,16 +107,45 @@ ADI2 <- function(u0=function(x, y) sin(pi*x)*sin(pi*y),
     for (j in 2:N2) {
       F1 <- gamma2/2*(w[2:N1, j+1, n] + w[2:N1, j-1, n]) + 
         (1-gamma2)*w[2:N1, j, n] + Fh[2:N1, j]
-      wh[2:N1, j] <- doublesweep(A1, A1, C1, F1, 0, 0)
+      #Primary Changes ------------------------------V------------------V
+      wh[2:N1, j] <- doublesweep(A1, A1, C1, F1, x_at_0(y[j],t[n]), x_at_L1(y[j],t[n]))
     }
     # second half step
     for (k in 2:N1) {
       F2 <- gamma1/2*(wh[k+1, 2:N2] + wh[k-1, 2:N2]) + 
         (1-gamma1)*wh[k, 2:N2] + Fh[k, 2:N2]
-      w[k, 2:N2, n+1] <- doublesweep(A2, A2, C2, F2, 0, 0)
+      #Primary Changes ------------------------------V------------------V
+      w[k, 2:N2, n+1] <- doublesweep(A2, A2, C2, F2, y_at_0(x[j],t[n]), y_at_L2(x[j],t[n]))
     }
   }
   
   # Return a list consisting of grid and solution
   return(list(x=x, y=y, t=t, w=w))
 }
+
+#Verify we have done no harm
+sol <- ADI2(u0=function(x, y) sin(pi*x)*sin(pi*y), K=1, 
+           f=function(x, y, t) 20*pi^2*sin(2*pi*x)*sin(2*pi*y),
+           x_at_0 = function(y,t) 0,
+           x_at_L1 = function(y,t) 0,
+           y_at_0 = function (x,t) 0,
+           y_at_L2 = function (x,t) 0,
+           L1=1, L2=1, N1=40, N2=40, T=0.2, M=20)
+
+persp3D(sol$x, sol$y, sol$w[, , 1],
+        xlab="x", ylab="y", zlab="w",
+        ticktype="detailed", nticks=4, phi=10, theta=90)
+
+persp3D(sol$x, sol$y, sol$w[, , 21],
+        xlab="x", ylab="y", zlab="w",
+        ticktype="detailed", nticks=4, phi=10, theta=90)
+
+#See if we have addressed the question correctly.
+sol2 <- ADI2()
+
+for (n in 1:21) {
+  persp3D(sol2$x, sol2$y, sol2$w[, , n],
+          xlab="x", ylab="y", zlab="w", zlim=c(-0.7, 1), clim=c(-0.7, 1),
+          ticktype="detailed", nticks=4, phi=12, theta=90)
+}
+plotrgl()
