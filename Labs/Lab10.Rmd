@@ -1,0 +1,207 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Lab 10"
+author: "Gustav Delius, Richard Southwell"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+```
+
+# Wave equation
+
+In this lab we will code an explicit and an implicit method to
+solve the wave equation. 
+$$
+\frac{\partial^{2} u}{\partial t^{2}}(x,t) - \alpha^{2}\frac{\partial^{2} u}{\partial
+x^{2}}(x,t)=F(x,t),
+$$
+For $a<x< b$ and $0<t<T$, subject to the boundary conditions
+$$
+u(a, t) = u(b, t)=0 \quad \hbox{for} \quad t\in[0,T]
+$$
+and initial conditions
+$$
+u(x, 0) = f(x), ~~~
+\frac{\partial u}{\partial t}(x,0)=g(x)  \quad \hbox{for} \quad x\in[a,b],
+$$
+where $f(x)$ and $g(x)$ are given functions.
+
+## Explicit method
+
+```{r}
+explicitWave <- function(F=function(x, t) 0*x, f=function(x) 0*x, g=function(x) 0*x,
+                         alpha=1, a=0, b=1, N=30, T=1, M=30) {
+    # set up space grid
+    h <- (b-a)/N
+    x <- a + h*(1:(N-1))
+    xLong <- c(a, x, b)  # includes the endpoints
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # Set up evolution matrix eq.(4.10)
+    gs <- (alpha*tau/h)^2
+    A <- diag(2-2*gs, N-1)
+    for (k in 1:(N-2)) {
+        A[k,k+1] <- gs
+        A[k+1,k] <- gs
+    }
+    
+    w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    
+    # Initial conditions
+    w[, 1] <- f(x)  # Initial value
+    fpp <- (f(x-h) -2*f(x) + f(x+h))/h^2  # Approximate derivative of f
+    w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
+    
+    # Loop over time steps
+    for (j in 2:M) {
+        # Use eq.(4.9)
+        w[, j+1] <- A %*% w[, j] - w[, j-1] + tau^2 * F(x, t[j])
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=xLong, t=t, w=rbind(0, w, 0)))
+}
+```
+
+Let's use this to solve the homogeneous heat equation
+$$
+\frac{\partial^{2} u}{\partial t^{2}}(x,t) - \alpha^{2}\frac{\partial^{2} u}{\partial
+x^{2}}(x,t)=0,
+$$
+with initial condition
+$$
+u(x,0)=f(x)=\begin{cases}(1+\cos(4\pi x))/2 & \text{ if }|x|<1/4\\
+0& \text{ otherwise }\end{cases}
+$$
+and $\partial u(x,0)/\partial t=g(x)=0$.
+
+```{r warning=FALSE, message=FALSE}
+sol <- explicitWave(f=function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0), 
+                    a=-1, N=80, T=4, M=160)
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+plotrgl(smooth=TRUE, lighting = TRUE)
+```
+
+### Exercise 1
+Similarly solve the homogeneous wave equation with boundary condition
+$$
+u(x,0)=f(x)=\begin{cases}(1+\cos(4\pi x))/2 & \text{ if }|x|<1/4\\
+0& \text{ otherwise }\end{cases},\\
+\frac{\partial u}{\partial t}(x,0)
+=g(x)=\begin{cases}2\pi\sin(4\pi x) & \text{ if }|x|<1/4\\
+0& \text{ otherwise }\end{cases}.
+$$
+
+
+### Exercise 2
+Similarly solve the homogeneous wave equation with boundary condition
+$$
+u(x,0)=f(x)=\begin{cases}\sin(4\pi x)/2 & \text{ if }|x|<1/4\\
+0& \text{ otherwise }\end{cases},\\
+\frac{\partial u}{\partial t}(x,0)
+=g(x)=\begin{cases}-2\cos(4\pi x) & \text{ if }|x|<1/4\\
+0& \text{ otherwise }\end{cases}.
+$$
+
+
+
+### Exercise 3
+Now solve the same problem but with twice the resolution in the time direction,
+i.e., with $M=320$ steps instead of $M=160$. Keep the number of steps in the 
+x direction at $N=80$. Take a close look at the 3d plot of the solution.
+What do you observe? Can you explain this?
+
+
+
+### Exercise 4
+Next solve the same problem but with twice the resolution in the x direction, 
+but with the old resolution of $M=160$ in the time direction. What do you observe?
+Does this agree with your expectation?
+
+
+
+
+
+## Implicit method
+To avoid stability problems we can use the implicit method described in the
+notes in eq.(4.15). This requires the solution of a system of linear equations
+at each time step. When we restrict ourselves to the wave equation with 
+constant wave speed, the matrices involved do not change between time
+steps and therefore it is most efficient to use matrix inversion. This is
+coded up in the following function:
+
+```{r}
+implicitWave <- function(F=function(x, t) 0*x, 
+                         f=function(x) 0*x, g=function(x) 0*x,
+                         alpha=1, a=0, b=1, N=30, T=1, M=30, sigma=0.5) {
+    # set up space grid
+    h <- (b-a)/N
+    x <- a + h*(1:(N-1))
+    xLong <- c(a, x, b)  # includes the endpoints
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # Set up matrices
+    gs <- (alpha*tau/h)^2
+    A <- diag(1+2*sigma*gs, N-1)
+    B <- diag(2-2*(1-2*sigma)*gs, N-1)
+    C <- diag(-1-2*sigma*gs, N-1)
+    for (k in 1:(N-2)) {
+        A[k,k+1] <- -sigma*gs
+        A[k+1,k] <- -sigma*gs
+        B[k,k+1] <- (1-2*sigma)*gs
+        B[k+1,k] <- (1-2*sigma)*gs
+        C[k,k+1] <- sigma*gs
+        C[k+1,k] <- sigma*gs
+    }
+    Ainv <- solve(A)
+    AinvB <- Ainv %*% B
+    AinvC <- Ainv %*% C
+    
+    w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    
+    # Initial conditions
+    w[, 1] <- f(x)  # Initial value
+    fpp <- (f(x-h) -2*f(x) + f(x+h))/h^2  # Approximate derivative of f
+    w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
+    
+    # Loop over time steps
+    for (j in 2:M) {
+        w[, j+1] <- AinvB %*% w[, j] +AinvC %*% w[, j-1] + tau^2 * Ainv %*% F(x, t[j])
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=xLong, t=t, w=rbind(0, w, 0)))
+}
+```
+Note that we added the parameter $\sigma$ to the parameters of the function so that
+we can experiment easily with different values.
+
+
+### Exercise 5
+Use this implicit method to solve the homogeneous wave equation from our 
+first example above. When you compare the solution to the solution from the
+explicit method, what do you observe? Can you explain this? What happens
+when you double the number of steps in the time direction, as in exercise 4?
+
+
+## On your own
+
+
+### Exercise 6
+Experiment with adding inhomogenous terms to the wave equation.
+
+
+### Exercise 7
+Modify the methods to allow variable wave speed and experiment.
