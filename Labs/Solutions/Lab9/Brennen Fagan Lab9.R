@@ -67,6 +67,7 @@ for (n in 1:21) {
   persp3D(sol$x, sol$y, sol$w[, , n],
           xlab="x", ylab="y", zlab="w", zlim=c(-0.7, 1), clim=c(-0.7, 1),
           ticktype="detailed", nticks=4, phi=12, theta=90)
+  title(paste("Solution: n =" , n))
 }
 
 ADI2 <- function(u0=function(x, y) sin(pi*x)*sin(pi*y),
@@ -109,6 +110,9 @@ ADI2 <- function(u0=function(x, y) sin(pi*x)*sin(pi*y),
         (1-gamma2)*w[2:N1, j, n] + Fh[2:N1, j]
       #Primary Changes ------------------------------V------------------V
       wh[2:N1, j] <- doublesweep(A1, A1, C1, F1, x_at_0(y[j],t[n]), x_at_L1(y[j],t[n]))
+      #Make sure to place the boundaries in the result.
+      wh[1, j] <- x_at_0(y[j],t[n])
+      wh[N1+1,j] <- x_at_L1(y[j],t[n])
     }
     # second half step
     for (k in 2:N1) {
@@ -116,6 +120,9 @@ ADI2 <- function(u0=function(x, y) sin(pi*x)*sin(pi*y),
         (1-gamma1)*wh[k, 2:N2] + Fh[k, 2:N2]
       #Primary Changes ------------------------------V------------------V
       w[k, 2:N2, n+1] <- doublesweep(A2, A2, C2, F2, y_at_0(x[j],t[n]), y_at_L2(x[j],t[n]))
+      #Make sure to place the boundaries in the result.
+      w[k,1,n+1] <- y_at_0(x[j],t[n])
+      w[k,N2+1,n+1] <- y_at_L2(x[j],t[n])
     }
   }
   
@@ -147,4 +154,21 @@ for (n in 1:21) {
   persp3D(sol2$x, sol2$y, sol2$w[, , n],
           xlab="x", ylab="y", zlab="w", zlim=c(-0.7, 1), clim=c(-0.7, 1),
           ticktype="detailed", nticks=4, phi=12, theta=90)
+  title(paste("Exercise: n =" , n))
 }
+
+for (n in 1:21) {
+  persp3D(sol2$x, sol2$y, sol2$w[, , n]-sol$w[, , n],
+          xlab="x", ylab="y", zlab="w", zlim=c(-0.7, 1), clim=c(-0.7, 1),
+          ticktype="detailed", nticks=4, phi=12, theta=90)
+  title(paste("Difference made: n =" , n))
+}
+
+#As one can see, the difference made is _quite_ subtle.
+#If we remove the bounds on zlim and clim, we see the
+#the difference more clearly.
+persp3D(sol2$x, sol2$y, sol2$w[, , n]-sol$w[, , n],
+        xlab="x", ylab="y", zlab="w", 
+        ticktype="detailed", nticks=4, phi=0, theta=105)
+title(paste("Difference made: n =" , n))
+plotrgl()
