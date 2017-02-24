@@ -284,7 +284,8 @@ title("Exercise 6g")
 #Wave speed refers to alpha:
 implicitWave2 <- function(F=function(x, t) 0*x, 
                          f=function(x) 0*x, g=function(x) 0*x,
-                         alpha=1, a=0, b=1, N=30, T=1, M=30, sigma=0.5) {
+                         alpha=function(x,t) 0*x+1, 
+                         a=0, b=1, N=30, T=1, M=30, sigma=0.5) {
   # set up space grid
   h <- (b-a)/N
   x <- a + h*(1:(N-1))
