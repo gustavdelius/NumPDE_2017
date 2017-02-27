@@ -1,0 +1,69 @@
+---
+title: "Projects"
+author: "Gustav Delius"
+date: "27 February 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Brennen Fagan
+
+Düring, B., Markowich, P., Pietschmann, J.-F., and Wolfram, M.-T. (2009). Boltzmann and Fokker–Planck equations modelling opinion formation in the presence of strong leaders. Proceedings of the Royal Society of London A: Mathematical, Physical and Engineering Sciences 465, 3687–3708.
+
+A system of two coupled Fokker-Planck equations, with discretisation scheme given in eqs.(4.4). He wants to reproduce graphs in Figures 3 and following.
+
+
+## Nora Gilbertson
+White, P., and Powell, J. (1998). Spatial Invasion of Pine Beetles into Lodgepole Forests: A Numerical Approach. SIAM J. Sci. Comput. 20, 164–184.
+
+Six coupled equations, of which 3 are reaction-diffusion equations and 3 have now spatial derivatives.
+
+
+## Philip Ledwith
+Had found two interesting papers and will email me their titles so that I can give informed advice.
+
+
+## Ian Maweu
+I suggested 
+
+Barkley, D. (1991). A model for fast computer simulation of waves in excitable media. Physica D: Nonlinear Phenomena 49, 61–70.
+
+with the comment: "The spiral waves are the solution to the simple equation (1). This is a two-dimensional heat equation coupled to another equation without any space derivatives. The authors devise their own scheme for solving the equation, but you could ignore that and try our solution methods first. The authors say that that will be slow. Your project could be aimed at demonstrating that."
+
+Ian has not yet decided.
+
+
+## Carolin Natemeyer
+Carolin suggested a paper on polar ice, but I felt it was too difficult to extract a suitable PDE system from that. I have yet to make a better suggestion
+
+
+## Christian Porter
+Numerical solution of the KdV equation.
+
+Possible paper:
+Zabusky, N.J., and Kruskal, M.D. (1965). Interaction of“ solitons” in a collisionless plasma and the recurrence of initial states. Physical Review Letters 15, 240.
+
+He also found a talk online: http://www.lamfa.u-picardie.fr/chehab/CIMPA/MINI_PROJECTS/group4_Presentacion.pdf
+
+
+## Matthew Shenton
+Numerical solution of sine-Gordon equation
+
+Paper?
+
+
+## Daniel Swift
+Schrödinger equation or non-linear Schrödinger equation?
+
+
+## Ashleigh Trinh
+
+Beaghton, A., Beaghton, P.J., and Burt, A. (2016). Gene drive through a landscape: Reaction–diffusion models of population suppression and elimination by a sex ratio distorter. Theoretical Population Biology 108, 51–69.
+
+
+## Kyle Ward
+
+Chaplain, M. a. J., and Stuart, A.M. (1993). A model mechanism for the chemotactic response of endothelial cells to tumour angiogenesis factor. Math Med Biol 10, 149–168.
