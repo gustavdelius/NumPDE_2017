@@ -135,6 +135,12 @@ implicitWave <- function(F=function(x, t) 0*x,
   w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
   
   # Loop over time steps
+  #w_j+1 = A^-1*B*w_j + A^-1*C*w_j-1+tau^2*A^-1*F
+  #A*w_j+1 = B*w_j + C*w_j-1 + tau^2*F
+  #d^2(x) = w_k-1,j -2w_k,j + w_k+1,j
+  #w_j+1 - (alpha*tau/h)^2*(sigma*d^2 (w_j+1)) = 2 w_j - w_j-1 + (alpha*tau/h)^2*((1-2sigma)d^2(w_j) + sigma*d^2(w_j-1)) + tau^2*F 
+  #w_j+1 - 2w_j + w_j-1 - (alpha*tau/h)^2*(sigma*d^2 (w_j+1) + (1-2sigma)d^2(w_j) + sigma*d^2(w_j-1)) = tau^2*F 
+  #w_j+1 - 2w_j + w_j-1 - gamma^2*(sigma*d^2 (w_j+1) + (1-2sigma)d^2(w_j) + sigma*d^2(w_j-1)) = tau^2*F 
   for (j in 2:M) {
     w[, j+1] <- AinvB %*% w[, j] +AinvC %*% w[, j-1] + tau^2 * Ainv %*% F(x, t[j])
   }
