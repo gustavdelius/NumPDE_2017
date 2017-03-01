@@ -22,7 +22,7 @@ $$
 \frac{\partial u}{\partial t}=K\left(\frac{\partial^{2}u}{\partial
 x^{2}} +\frac{\partial^{2}u}{\partial y^{2}}\right)+f(x,y,t)
 $$
-to be solved for $0 < t < T$ and in a rectangula region ${\cal D}$ of
+to be solved for $0 < t < T$ and in a rectangular region ${\cal D}$ of
 the $(x, y)$ plane,
 $$
 {\cal D}=\{(x,y) \, \vert \, 0\leq x\leq L_{1}, \ 0\leq y\leq L_{2}  \, \}.
