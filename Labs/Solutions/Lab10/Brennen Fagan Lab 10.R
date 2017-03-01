@@ -110,7 +110,6 @@ implicitWave <- function(F=function(x, t) 0*x,
   t <- tau*(0:M)
   
   # Set up matrices (these were not explicitly written in the notes.)
-  #TODO: Verify these matrices
   gs <- (alpha*tau/h)^2
   A <- diag(1+2*sigma*gs, N-1)
   B <- diag(2-2*(1-2*sigma)*gs, N-1)
@@ -301,24 +300,6 @@ implicitWave2 <- function(F=function(x, t) 0*x,
   tau <- T/M
   t <- tau*(0:M)
   
-  # Set up matrices (these were not explicitly written in the notes.)
-  #TODO: Verify these matrices
-  gs <- (alpha*tau/h)^2
-  A <- diag(1+2*sigma*gs, N-1)
-  B <- diag(2-2*(1-2*sigma)*gs, N-1)
-  C <- diag(-1-2*sigma*gs, N-1)
-  for (k in 1:(N-2)) {
-    A[k,k+1] <- -sigma*gs
-    A[k+1,k] <- -sigma*gs
-    B[k,k+1] <- (1-2*sigma)*gs
-    B[k+1,k] <- (1-2*sigma)*gs
-    C[k,k+1] <- sigma*gs
-    C[k+1,k] <- sigma*gs
-  }
-  Ainv <- solve(A)
-  AinvB <- Ainv %*% B
-  AinvC <- Ainv %*% C
-  
   w <- matrix(0, N-1, M+1)  # Matrix to hold the solution
   
   # Initial conditions
@@ -327,7 +308,35 @@ implicitWave2 <- function(F=function(x, t) 0*x,
   w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
   
   # Loop over time steps
+  #w_j+1 = A^-1*B*w_j + A^-1*C*w_j-1+tau^2*A^-1*F
+  #A*w_j+1 = B*w_j + C*w_j-1 + tau^2*F
+  #d^2(x) = w_k-1,j -2w_k,j + w_k+1,j
+  #w_j+1 - (alpha*tau/h)^2*(sigma*d^2 (w_j+1)) = 2 w_j - w_j-1 + (alpha*tau/h)^2*((1-2sigma)d^2(w_j) + sigma*d^2(w_j-1)) + tau^2*F 
+  #w_j+1 - 2w_j + w_j-1 - (alpha*tau/h)^2*(sigma*d^2 (w_j+1) + (1-2sigma)d^2(w_j) + sigma*d^2(w_j-1)) = tau^2*F 
+  #w_j+1 - 2w_j + w_j-1 - gamma^2*(sigma*d^2 (w_j+1) + (1-2sigma)d^2(w_j) + sigma*d^2(w_j-1)) = tau^2*F 
   for (j in 2:M) {
+    # Set up matrices (these were not explicitly written in the notes.)
+    #These matrices, unfortunately, are now dependent on alpha as a function,
+    #and hence will need to be evaluated at each time step.
+    #The laziest implementation:
+    gs <- (alpha(x, t[j])*tau/h)^2
+    #Note that gs is a vector that is placed
+    #along the diagonal now.
+    A <- diag(1+2*sigma*gs, N-1)
+    B <- diag(2-2*(1-2*sigma)*gs, N-1)
+    C <- diag(-1-2*sigma*gs, N-1)
+    for (k in 1:(N-2)) {
+      A[k,k+1] <- -sigma*gs
+      A[k+1,k] <- -sigma*gs
+      B[k,k+1] <- (1-2*sigma)*gs
+      B[k+1,k] <- (1-2*sigma)*gs
+      C[k,k+1] <- sigma*gs
+      C[k+1,k] <- sigma*gs
+    }
+    Ainv <- solve(A)
+    AinvB <- Ainv %*% B
+    AinvC <- Ainv %*% C
+    
     w[, j+1] <- AinvB %*% w[, j] +AinvC %*% w[, j-1] + tau^2 * Ainv %*% F(x, t[j])
   }
   
