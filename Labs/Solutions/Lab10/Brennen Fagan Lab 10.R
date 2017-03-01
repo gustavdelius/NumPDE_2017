@@ -305,7 +305,7 @@ implicitWave2 <- function(F=function(x, t) 0*x,
   # Initial conditions
   w[, 1] <- f(x)  # Initial value
   fpp <- (f(x-h) -2*f(x) + f(x+h))/h^2  # Approximate derivative of f
-  w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha^2*fpp + F(x,0))  # eq.(4.14)
+  w[, 2] <- f(x) + tau*g(x) + tau^2/2*(alpha(x, t[2])^2*fpp + F(x,0))  # eq.(4.14)
   
   # Loop over time steps
   #w_j+1 = A^-1*B*w_j + A^-1*C*w_j-1+tau^2*A^-1*F
@@ -326,20 +326,192 @@ implicitWave2 <- function(F=function(x, t) 0*x,
     B <- diag(2-2*(1-2*sigma)*gs, N-1)
     C <- diag(-1-2*sigma*gs, N-1)
     for (k in 1:(N-2)) {
-      A[k,k+1] <- -sigma*gs
-      A[k+1,k] <- -sigma*gs
-      B[k,k+1] <- (1-2*sigma)*gs
-      B[k+1,k] <- (1-2*sigma)*gs
-      C[k,k+1] <- sigma*gs
-      C[k+1,k] <- sigma*gs
+      A[k,k+1] <- -sigma*gs[k]
+      A[k+1,k] <- -sigma*gs[k+1]
+      B[k,k+1] <- (1-2*sigma)*gs[k]
+      B[k+1,k] <- (1-2*sigma)*gs[k+1]
+      C[k,k+1] <- sigma*gs[k]
+      C[k+1,k] <- sigma*gs[k+1]
     }
     Ainv <- solve(A)
     AinvB <- Ainv %*% B
     AinvC <- Ainv %*% C
     
+    #Could potentially use doublesweep:
+    #A*w[,j+1] = B * w[,j] + C * w[, j-1] + tau^2 * F(x,t[j])
+    #Use the RHS as your (A)F, take (A)A, (A)B, and (A)C in the usual way.
     w[, j+1] <- AinvB %*% w[, j] +AinvC %*% w[, j-1] + tau^2 * Ainv %*% F(x, t[j])
   }
   
   # Return a list consisting of time grid, x grid and solution
   return(list(x=xLong, t=t, w=rbind(0, w, 0)))
 }
+
+#Verify did no harm:
+#Exercise 5:
+sol5 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (sin(4*pi*x))/2, 0),
+                     g = function(x) ifelse(abs(x)<1/4, -2*cos(4*pi*x), 0), 
+                     a=-1, N=80, T=4, M=160)
+
+persp3D(sol5$x, sol5$t, sol5$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4
+)
+title("Exercise 5a")
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                     g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                     a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7a")
+
+#Time
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(0*x + t<3, 1, 0),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7b")
+#we set utt = 0 <=> ut = constant <=> u experiences linear growth with time, no change in space
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(0*x + t<2, 1, 2),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7c")
+plotrgl(lighting = TRUE)
+#Appears as if the sudden change in speed causes errors and opposing waves to form.
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(0*x + t<2, 1, t^-1),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7d")
+plotrgl(lighting = TRUE)
+
+#Space
+#Propagate normally on right, but slowly on left
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(x>0, 1,.5),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7e")
+plotrgl(lighting = TRUE)
+
+#Propagate quickly further away from origin.
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) x,
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7fi")
+plotrgl(lighting = TRUE)
+#Can see the 0 point where nothing moves, but once outside of that point, the 0 points
+#appear to induce waves
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) abs(x),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7fii")
+plotrgl(lighting = TRUE)
+#Interesting how little difference the change in sign makes.
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) -x,
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7fiii")
+plotrgl(lighting = TRUE)
+
+#0 growth bands with increasing growth based on distance to origin
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(abs(x)<.75 && abs(x)>.5, 0, x+1),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7gi")
+plotrgl(lighting = TRUE)
+#Broke due to double condition?
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(abs(x)>.6, 0, x+1),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7gii")
+plotrgl(lighting = TRUE)
+#Appears so
+
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(abs(x)>.5, ifelse(abs(x)<.75,0,x+1), x+1),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7giii")
+plotrgl(lighting = TRUE)
+#Emergence of the second wave is interesting. Error or correct?
+
+#0 space square?
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) ifelse(0*x + abs(t-2)<1, ifelse(abs(x)<.5, 0, x+1),x+1),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7h")
+plotrgl(lighting = TRUE)
+#Can actually see the square
+
+#Mixed space, time control. Avoiding permanent 0 growth bands.
+sol7 <- implicitWave2(f = function(x) ifelse(abs(x)<1/4, (1+cos(4*pi*x))/2, 0),
+                      g = function(x) ifelse(abs(x)<1/4, 2*pi*sin(4*pi*x), 0),
+                      alpha = function(x,t) (cos(2*pi*x)+10^-1)*cos(t*pi),
+                      a=-1, N=80, T=4, M=160)
+
+persp3D(sol7$x, sol7$t, sol7$w,
+        xlab="x", ylab="t", zlab="w",
+        ticktype="detailed", nticks=4)
+title("Exercise 7i")
+plotrgl(lighting = TRUE)
+#Very odd sharp points. Not quite sure as to explanation.
