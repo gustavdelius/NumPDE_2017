@@ -10,7 +10,7 @@
 
 \section{Elliptic partial differential equations}
 
-\subsection{Poisson equation}
+\subsection{Finite-difference scheme for Poisson equation}
 
 We will illustrate the finite-difference
 method for elliptic PDEs with the Poisson equation
@@ -31,7 +31,7 @@ $f$ and $g$ are continuous
 in ${\cal D}$ and that a unique solution of
 the boundary-value problem (\ref{g1}), (\ref{g2}) exists.
 
-\vskip 0.3cm
+
  
 The first step in the finite-difference method is to choose integers $N_{1}$ and $N_{2}$ and define
 step sizes $h_{1}$ and $h_{2}$ by $h_{1}=(b-a)/N_{1}$ and $h_{2}=(d-c)/N_{2}$. Partitioning of
@@ -73,12 +73,10 @@ $w_{N_{1},0}$, $w_{N_{1},N_{2}}$ and $w_{0,N_{2}}$ corresponding to
 the vertices of the rectangle ${\cal D}$, because these points take
 no part in Eq. (\ref{g3}).
 
-\vskip 0.3cm
  
 Evidently, the local truncation
 error of the finite difference method, given by (\ref{g3})--(\ref{g4}), is $O(h_{1}^{2}+h_{2}^{2})$).
 
-\vskip 0.3cm
  
 The typical equation in (\ref{g3}) involves approximations to $u(x_{k}, y_{j})$ at the five
 points
@@ -91,7 +89,6 @@ whenever appropriate in the system (\ref{g3}), we have an
 $(N_{1}-1)(N_{2}-1)$ by $(N_{1}-1)(N_{2}-1)$ linear system with
 the unknowns $w_{ij}$ at the interior mesh points.
 
-\vskip 0.3cm
  
 For simplicity, consider the square domain ($c=a$, $d=b$) with the same number of grid lines
 in $x$ and $y$. Then $N_{1}=N_{2}\equiv N$ and $h_{1}=h_{2}\equiv h$. Equation (\ref{g3})
@@ -102,10 +99,9 @@ takes the form
 \end{equation}
 for each $k,j=1,2,\dots,N-1$.
 
-
-\vskip 0.3cm
  
-{\bf Example.} Consider the boundary value problem
+\begin{example}
+Consider the boundary value problem
 \begin{eqnarray}
 &&\Delta u = f(x,y) \quad {\rm for} \quad 0< x< 1, \ \ 0< y< 1;  \nonumber \\
 &&u(0,y)=0, \quad u(1,y)=1 \quad {\rm for} \quad 0< y< 1;  \nonumber \\
@@ -150,9 +146,7 @@ x_{1}-h^2f_{1,2} \\
 \end{equation}
 Thus, our problem is reduced to solving system (\ref{g7})
 of 4 linear equations for 4 unknowns.
-
-
-\vskip 0.5cm
+\end{example}
  
 In general, if we let
 \begin{equation}
@@ -230,21 +224,19 @@ to answer two questions: (i) does system (\ref{g9}) have a unique solution and (
 
 
 
-\vskip 0.5cm
- 
-{\bf The existence of a unique solution of the linear system} $A{\bf w}={\bf f}$.
-The existence of a unique solution of this system is equivalent to non-existence of nontrivial
+\subsection{Existence of a unique solution of the finite-difference equations} 
+
+The existence of a unique solution of the system $A{\bf w}={\bf f}$  is equivalent to non-existence of nontrivial
 (i.e. nonzero) solutions of the homogeneous equation
 \[
 A{\bf w}=0.
 \]
-To show this, we will use the maximum principle. The homogeneous version of the difference equations
-derived in the last lecture can be written as
+To show this non-existence, we will use the maximum principle. The equation can be written as
 \begin{equation}
 4w_{kj}-\left(w_{k+1,j}+w_{k-1,j}+w_{k,j+1}+w_{k,j-1}\right)
 =0, \label{g12}
 \end{equation}
-for each $k,j=1,2,\dots,N-1$.  Equation (\ref{g12}) is supplemented with homogeneous
+for each $k,j=1,2,\dots,N-1$.  Equation (\ref{g12}) are supplemented with homogeneous
 boundary conditions
 \begin{equation}
 w_{0j}=w_{N,j}=0 \quad \hbox{for} \quad j=0,1,\dots,N \quad \hbox{and} \quad
@@ -252,7 +244,7 @@ w_{k0}=w_{k,N}=0\label{g13}
 \end{equation}
 for $k=1,2,\dots,N-1$.
 Let $(m,n)$ be a point at which the maximum of $w_{kj}$ is attained. There may be several points at
-which the maximum is attained. If the maximum is attained a boundary point, then
+which the maximum is attained. If the maximum is attained at a boundary point then
 $\max_{0\leq k,j\leq N}w_{kj}=0$.
 Assume that the maximum is attained at an interior point $(m,n)$. Since, again,
 there may be several such points, we choose a point $(m,n)$ such than
@@ -261,9 +253,10 @@ it corresponds to the maximum value of index $m$, i.e.
 w_{m,n}=\max_{0\leq k,j\leq N}w_{kj} \quad \hbox{and} \quad
 w_{m,n}>w_{m+1,n}.
 \]
-Then, Eq. (\ref{g12}) yields
+Then the left-hand side of Eq. (\ref{g12}) at this maximum point will be strictly positive:
 \begin{multline}
-w_{mn}-w_{m+1,n}+(w_{mn}-w_{m-1,n})+(w_{mn}-w_{m,n+1})+(w_{mn}-w_{m,n-1})\\
+4w_{mn}-\left(w_{m+1,n}+w_{m-1,n}+w_{m,n+1}+w_{m,n-1}\right)\\
+=w_{mn}-w_{m+1,n}+(w_{mn}-w_{m-1,n})+(w_{mn}-w_{m,n+1})+(w_{mn}-w_{m,n-1})\\
 \geq w_{mn}-w_{m+1,n} > 0. \label{g14}
 \end{multline}
 Evidently, (\ref{g14}) is in contradiction with (\ref{g12}). Thus, our assumption that the maximum
@@ -281,7 +274,6 @@ zero solution, which proves that system $A{\bf w}={\bf f}$ has a unique
 solution.
 
 
-\vskip 0.3cm  
 The maximum principle can also be used
 to prove the convergence of the discrete approximations $w_{kj}$ to the solution. Namely, it is shown
 in Appendix A that if $u\in C^{4}(D)$ (where $D=\{(x,y)\, \vert \ 0<x<1, \ 0<y<1 \, \}$)
@@ -305,8 +297,7 @@ where $A$ is independent of $h$.
 
 
 
-\vskip 0.5cm  
-{\bf Iterative techniques for solving the linear system} $A{\bf w}={\bf f}$.
+\subsection{Iterative techniques for solving the finite-difference equations}
 For large systems ($N\gg 1$), an iterative
 method (e.g., the Jacobi method, the Gauss-Seidel method or the SOR method) should
 be used to solve system (\ref{gg5}). All these methods can be viewed as {\it relaxation methods}.
@@ -318,7 +309,7 @@ subject to boundary conditions (\ref{gg2}). An initial distribution $u_{0}(x,y)$
 an equilibrium solution as $t\to\infty$, and this equilibrium solution will be the solution of the
 original elliptic problem (\ref{gg1}), (\ref{gg2}).
 
-\vskip 0.5cm  
+
 Suppose that to solve (\ref{g17}) we employ the explicit forward-difference scheme
 \begin{equation}
 \frac{w_{kj}^{n+1}-w_{kj}^{n}}{\tau} -\frac{1}{h^2}\left(
@@ -339,7 +330,6 @@ This represent the Jacobi iterative technique for solving
 linear system (\ref{gg5}).
 
 
-\vskip 0.3cm  
 Another classical method, the Gauss-Seidel method, is obtained from Eq. (\ref{g19})
 by using $w_{kj}^{n+1}$ as soon as they become available. This leads to the formula
 \begin{equation}
@@ -349,7 +339,6 @@ w_{kj}^{n+1}=\frac{1}{4}\left(w^{n}_{k+1,j}+w^{n+1}_{k-1,j}+w^{n}_{k,j+1}+w^{n+1
 Both the Jacobi and Gauss-Seidel methods are slowly converging and rarely used in practice.
 A more appropriate method is the successive over-relaxation (SOR) method.
 
-\vskip 0.3cm  
 Another relaxation method for solving problem (\ref{gg1})--(\ref{gg2}) is to employ the alternating direction
 implicit (ADI) method to solve the two-dimensional heat equation (\ref{g17}).
 We know that this method is unconditionally stable, so that
@@ -366,9 +355,8 @@ to the Jacobi method is much smaller (for large $N$) and is given by
 \]
 
 
-\vskip 0.5cm  
-{\bf Direct methods for solving the linear system}  $A{\bf w}={\bf f}$.
-To describe two direct (rather than iterative) methods for solving Eq. (\ref{gg5}), we rewrite
+\subsection{Double sweep method for solving the finite-difference equations}
+To describe a direct (rather than iterative) methods for solving Eq. (\ref{gg5}), we rewrite
 it in the form
 \begin{eqnarray}
 &&A_{1}{\bf v}_{1}+B{\bf v}_{2}={\bf f}_{1}, \nonumber \\
@@ -380,12 +368,10 @@ it in the form
 \end{eqnarray}
 where ${\bf v}_{k}$ is the vector with components $w_{1,k},
 w_{2,k}, \dots, w_{N-1,k}$.
-
-\vskip 0.3cm  
-To solve equations (\ref{g21}), we can use
+We can solve these equations with
 the matrix form of the double-sweep method described below.
 
-\vskip 0.3cm  
+
 \textbf{Matrix double-sweep method.}
 Consider the following system:
 \begin{equation}
@@ -451,8 +437,7 @@ and $\beta_{i}$, we compute $\vv_{N-1}, \vv_{N-2}, \dots, \vv_{1}$ using formula
 This method works in practice but requires $N-1$ inversion of $(N-1)\times(N-1)$ matrices which
 can be quite expensive computationally.
 
-
-%\vskip 0.3cm  
+%\subsection{Cyclic reduction method}
 %Consider now another direct method which is
 %called the {\bf cyclic reduction} (CR) method. The idea of the method is as follows.
 %Recalling that $B=-I$, we obtain [from (\ref{g21})]
@@ -488,9 +473,10 @@ can be quite expensive computationally.
 %At step $(m-3)$ we solve four linear systems similar to these, etc. In total, we have to solve
 %$N-1$ linear system.
 
-\vskip 0.5cm
+
  
-{\bf Another type of boundary conditions.} Consider the Laplace equation
+\subsection{Neumann boundary conditions} 
+Consider the Laplace equation
 \begin{equation}
 u_{xx}+u_{yy} =0    \label{gg101}
 \end{equation}
