@@ -38,7 +38,7 @@ $$
 +\gamma\left(Z\frac{P^2}{P^2+\nu^2}-w\right).
 \end{split}
 $$
-Here $D, h__, h_+, \beta, \nu, \gamma$ are constant parameters. We choose
+Here $D, h_-, h_+, \beta, \nu, \gamma$ are constant parameters. We choose
 ```{r}
 D <- 0.04
 nu <- 0.053
@@ -108,11 +108,11 @@ wz <- matrix(0, nrow=N-1, ncol=M1+1)
 
 We will choose initial condition
 $$
-P(x,0) = 0.035 + \begin{cases}(\sin(4\pi x))/2 & \text{ if } x<1/4\\
+P(x,0) = 0.035 + \begin{cases}(\sin(4\pi x))/1000 & \text{ if } x<1/4\\
 0& \text{ otherwise }\end{cases}, ~~~ Z(x,0) = 0.046.
 $$
 ```{r}
-Pn <- 0.035 + ifelse(x<1/4, (sin(4*pi*x))/2, 0)
+Pn <- 0.035 + ifelse(x<1/4, (sin(4*pi*x))/1000, 0)
 Zn <- rep(0.046, length(x))
 ```
 
