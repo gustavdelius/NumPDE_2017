@@ -1,0 +1,174 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Lab 11"
+author: "Gustav Delius, Richard Southwell"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this short lab is to reassure everyone that the even if you have
+a complicated-looking system of parabolic PDEs, the forward-difference method
+is straightforward to apply. It only has the drawback of requiring a very small
+timestep. One may therefore like to later go to implicit methods, which are
+much more clever and tricky and can give an amazing speed-up while at the same
+time removing stability problems. However I recommend to always initially
+set up the simple forward-difference method, if only to have something simple
+to compare the more sophisticated methods against.
+
+For this lab I chose the paper
+
+Tsyganov, M.A., Brindley, J., Holden, A.V., and Biktashev, V.N. (2003). 
+Quasisoliton Interaction of Pursuit-Evasion Waves in a Predator-Prey System. 
+Phys. Rev. Lett. 91, 218102.
+
+It describes the abundance $Z$ of a predator (you can think of zooplankton if
+you like) and an abundance $P$ of prey (phytoplankton) by the set of
+coupled equations
+$$
+\begin{split}
+\frac{\partial P}{\partial t} &= D\frac{\partial^2 P}{\partial x^2}
++h_- \frac{\partial}{\partial x}P\frac{\partial Z}{\partial x}
++\beta P(1-P)-Z\frac{P^2}{P^2+\nu^2},\\
+\frac{\partial Z}{\partial t} &= D\frac{\partial^2 Z}{\partial x^2}
+-h_+ \frac{\partial}{\partial x}Z\frac{\partial P}{\partial x}
++\gamma\left(Z\frac{P^2}{P^2+\nu^2}-w\right).
+\end{split}
+$$
+Here $D, h__, h_+, \beta, \nu, \gamma$ are constant parameters. We choose
+```{r}
+D <- 0.04
+nu <- 0.053
+beta <- 0.43
+gamma <- 0.05
+w <- 0.34
+hp <- 1
+hm <- 1
+```
+
+We will impose Dirichlet boundary conditions.
+
+If this was a proper project report we would now discuss the meaning of
+these terms a bit, but for now we are only interested in implementing the
+forward difference method for this somewhat complicated looking set of equations.
+
+We introduce a grid of $x$ points
+```{r}
+h <- 0.02
+N <- 50
+x <- (1:(N-1))*h
+```
+
+We expect that we will need to choose a small time step $\tau$ for the explicit
+forward-difference method. Presumably it needs to satisfy the inequality
+$$
+\tau \leq \frac{h^2}{2D}
+$$
+as in eq.(2.17) in the notes.
+
+```{r}
+tau <- h^2/(2*D)
+```
+
+Let us assume we want to integrate up to time $T=10$. 
+
+```{r}
+T <- 10
+```
+
+That requires
+
+```{r}
+M <- 10/tau
+```
+
+time steps. We do not want to save and plot so many results, so we split this
+as $M = M_1 M_2$ and then only save $M_1 = 100$ results.
+
+```{r}
+M1 <- 100
+M2 <- round(M/M1)
+```
+
+We create the vector of times at which we save the results
+
+```{r}
+t <- (0:M1)*M2*tau
+```
+
+We initialise two matrices to hold the results
+
+```{r}
+wp <- matrix(0, nrow=N-1, ncol=M1+1)
+wz <- matrix(0, nrow=N-1, ncol=M1+1)
+```
+
+We will choose initial condition
+$$
+P(x,0) = 0.035 + \begin{cases}(\sin(4\pi x))/2 & \text{ if } x<1/4\\
+0& \text{ otherwise }\end{cases}, ~~~ Z(x,0) = 0.046.
+$$
+```{r}
+Pn <- 0.035 + ifelse(x<1/4, (sin(4*pi*x))/2, 0)
+Zn <- rep(0.046, length(x))
+```
+
+Now we are ready to step through time and at each step update the result
+according to the forward-difference formula and at every $M_2$-th step
+save the result.
+```{r}
+for (j in 1:M1) {
+    Pn <- wp[, j]
+    Zn <- wz[, j]
+    for (j2 in 1:M2) {
+        
+        P <- Pn
+        Pp <- c(P[2:(N-1)], P[N-1])
+        Pm <- c(P[1], P[1:(N-2)])
+        
+        Z <- Zn
+        Zp <- c(Z[2:(N-1)], Z[N-1])
+        Zm <- c(Z[1], Z[1:(N-2)])
+        
+        Pn <- P + tau * (
+            D/h^2 * (Pp - 2*P + Pm) + 
+            hm/(2*h^2) * ((Pp+P)*(Zp-Z)-(P+Pm)*(Z-Zm)) +
+            beta*P*(1-P)-Z*P^2/(P^2+nu^2)
+            )
+        
+        Zn <- Z + tau * (
+            D/h^2 * (Zp - 2*Z + Zm) - 
+            hm/(2*h^2) * ((Zp+Z)*(Pp-P)-(Z+Zm)*(P-Pm)) +
+            gamma*Z*(P^2/(P^2+nu^2) - w)
+            )
+    }
+    wp[, j+1] <- Pn
+    wz[, j+1] <- Zn
+}
+```
+
+Finally we make a plot of the result. Here is the predator abundance:
+```{r}
+library(plot3Drgl)
+persp3D(x, t, wz,
+        xlab="x", ylab="t", zlab="Z",
+        ticktype="detailed", nticks=4)
+
+plotrgl(lighting = TRUE)
+```
+
+Here is the prey abundance:
+```{r}
+persp3D(x, t, wp,
+        xlab="x", ylab="t", zlab="P",
+        ticktype="detailed", nticks=4)
+
+plotrgl(lighting = TRUE)
+```
+
+
+
+
