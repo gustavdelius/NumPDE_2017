@@ -134,7 +134,7 @@ $(document).ready(function () {
 -h_+ \frac{\partial}{\partial x}Z\frac{\partial P}{\partial x}
 +\gamma\left(Z\frac{P^2}{P^2+\nu^2}-w\right).
 \end{split}
-\]</span> Here <span class="math inline">\(D, h__, h_+, \beta, \nu, \gamma\)</span> are constant parameters. We choose</p>
+\]</span> Here <span class="math inline">\(D, h_-, h_+, \beta, \nu, \gamma\)</span> are constant parameters. We choose</p>
 <pre class="r"><code>D &lt;- 0.04
 nu &lt;- 0.053
 beta &lt;- 0.43
@@ -165,10 +165,10 @@ M2 &lt;- round(M/M1)</code></pre>
 <pre class="r"><code>wp &lt;- matrix(0, nrow=N-1, ncol=M1+1)
 wz &lt;- matrix(0, nrow=N-1, ncol=M1+1)</code></pre>
 <p>We will choose initial condition <span class="math display">\[
-P(x,0) = 0.035 + \begin{cases}(\sin(4\pi x))/2 &amp; \text{ if } x&lt;1/4\\
+P(x,0) = 0.035 + \begin{cases}(\sin(4\pi x))/1000 &amp; \text{ if } x&lt;1/4\\
 0&amp; \text{ otherwise }\end{cases}, ~~~ Z(x,0) = 0.046.
 \]</span></p>
-<pre class="r"><code>Pn &lt;- 0.035 + ifelse(x&lt;1/4, (sin(4*pi*x))/2, 0)
+<pre class="r"><code>Pn &lt;- 0.035 + ifelse(x&lt;1/4, (sin(4*pi*x))/1000, 0)
 Zn &lt;- rep(0.046, length(x))</code></pre>
 <p>Now we are ready to step through time and at each step update the result according to the forward-difference formula and at every <span class="math inline">\(M_2\)</span>-th step save the result.</p>
 <pre class="r"><code>for (j in 1:M1) {
