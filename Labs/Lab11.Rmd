@@ -3,7 +3,7 @@ title: "Numerical Methods for PDEs (Spring 2017), Lab 11"
 author: "Gustav Delius, Richard Southwell"
 output:
   html_document: default
-  pdf_document: default
+  html_notebook: default
 ---
 
 ```{r setup, include=FALSE}
@@ -49,17 +49,75 @@ hp <- 1
 hm <- 1
 ```
 
-We will impose Dirichlet boundary conditions.
-
 If this was a proper project report we would now discuss the meaning of
 these terms a bit, but for now we are only interested in implementing the
 forward difference method for this somewhat complicated looking set of equations.
+
+Each of the equations contains a linear second-order derivative term that
+we will discretize as in eq.(2.7) in the lecture notes:
+$$
+\frac{\partial^2 P}{\partial x^2}(x_k,t_j)=
+\frac{P_{k+1,j}-2P_{k,j}+P_{k-1,j}}{h^2}-O(h^2),
+$$
+and similarly for $\partial^2 Z/\partial x^2$.
+
+Each equation also has a non-linear second-order derivative term that we
+will discretize as in eq.(2.102) in the lecture notes:
+$$
+\frac{\partial}{\partial x}\left(P\frac{\partial Z}{\partial x}\right)(x_k,t_j)=
+\frac{(P_{k+1,j}-P_{k,j})(Z_{k+1,j}-Z_{k,j})
+-(P_{k,j}+P_{k-1,j})(Z_{k,j}-Z_{k-1,j})}{2h^2}+O(h^2),
+$$
+and similarly for $\partial/\partial x(Z\partial P/\partial x)$.
+
+For the time derivatives we use the forward difference formula
+$$
+\frac{\partial P}{\partial t}(x_k,t_j)=
+\frac{P_{k,j+1}-P_{k,j}}{\tau}+O(\tau)
+$$
+
+Putting this all together gives us the following explicit method:
+$$
+\begin{split}
+P_{k,j+1} = P_{k,j} + \tau\Bigg(
+&\frac{D}{h^2}(P_{k+1,j}-2P_{k,j}+P_{k-1,j})\\
+&+\frac{h_-}{2h^2}\Big((P_{k+1,j}-P_{k,j})(Z_{k+1,j}-Z_{k,j})
+-(P_{k,j}+P_{k-1,j})(Z_{k,j}-Z_{k-1,j})\Big)\\
+&+\beta P_{j,k}(1-P_{j,k})-Z_{j,k}\frac{P_{j,k}^2}{P_{j,k}^2+\nu^2}
+\Bigg)\\
+Z_{k,j+1} = Z_{k,j} + \tau\Bigg(
+&\frac{D}{h^2}(Z_{k+1,j}-2Z_{k,j}+Z_{k-1,j})\\
+&-\frac{h_+}{2h^2}\Big((Z_{k+1,j}-Z_{k,j})(P_{k+1,j}-P_{k,j})
+-(Z_{k,j}+Z_{k-1,j})(P_{k,j}-P_{k-1,j})\Big)\\
+&+\gamma Z_{j,k}\left(\frac{P_{j,k}^2}{P_{j,k}^2+\nu^2}-w\right)
+\Bigg)
+\end{split}
+$$
+This scheme has a truncation error of $O(\tau+h^2)$.
+
+We impose Dirichlet boundary conditions
+$$
+\frac{\partial P}{\partial x}(0,t)=\frac{\partial P}{\partial x}(L,t)
+=\frac{\partial Z}{\partial x}(0,t)=\frac{\partial Z}{\partial x}(L,t).
+$$
+
+In order to keep a truncation error of $O(h^2)$ we use the scheme from
+section 2.6 in the lecture notes: we introduce points $x_{-1}$ and $x_{N+1}$
+and use the central-difference formula
+for the derivative to translate the boundary conditions into expressions for
+the values of the solution at these points:
+$$
+P_{-1,j}=P_{1,j},~~P_{N+1,j}=P_{N-1,j},
+~~ Z_{-1,j}=Z_{1,j},~~Z_{N+1,j}=Z_{N-1,j},
+$$
+This allows us to use the finite difference equations above with $k=0$ and
+$k=N$.
 
 We introduce a grid of $x$ points
 ```{r}
 h <- 0.02
 N <- 50
-x <- (1:(N-1))*h
+x <- (0:N)*h
 ```
 
 We expect that we will need to choose a small time step $\tau$ for the explicit
@@ -67,10 +125,10 @@ forward-difference method. Presumably it needs to satisfy the inequality
 $$
 \tau \leq \frac{h^2}{2D}
 $$
-as in eq.(2.17) in the notes.
+as in eq.(2.17) in the notes. However by experimentation we discover that we need a smaller time step than predicted by that relation. We set
 
 ```{r}
-tau <- h^2/(2*D)/100
+tau <- h^2/(2*D)/12
 ```
 
 Let us assume we want to integrate up to time $T=10$. 
@@ -102,8 +160,8 @@ t <- (0:M1)*M2*tau
 We initialise two matrices to hold the results
 
 ```{r}
-wp <- matrix(0, nrow=N-1, ncol=M1+1)
-wz <- matrix(0, nrow=N-1, ncol=M1+1)
+wp <- matrix(0, nrow=N+1, ncol=M1+1)
+wz <- matrix(0, nrow=N+1, ncol=M1+1)
 ```
 
 We will choose initial condition
@@ -126,12 +184,12 @@ for (j in 1:M1) {
     for (j2 in 1:M2) {
         
         P <- Pn
-        Pp <- c(P[2:(N-1)], P[N-1])
-        Pm <- c(P[1], P[1:(N-2)])
+        Pp <- c(P[2:(N+1)], P[N])
+        Pm <- c(P[2], P[1:N])
         
         Z <- Zn
-        Zp <- c(Z[2:(N-1)], Z[N-1])
-        Zm <- c(Z[1], Z[1:(N-2)])
+        Zp <- c(Z[2:(N+1)], Z[N-1])
+        Zm <- c(Z[2], Z[1:N])
         
         Pn <- P + tau * (
             D/h^2 * (Pp - 2*P + Pm) + 
@@ -168,7 +226,4 @@ persp3D(x, t, wp,
 
 plotrgl(lighting = TRUE)
 ```
-
-
-
 
