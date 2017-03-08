@@ -1,0 +1,344 @@
+\documentclass[10pt]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsbsy}
+\usepackage{epsfig,array}
+
+
+\textwidth 17cm \textheight 24cm \setlength{\oddsidemargin}{-3mm}
+\setlength{\evensidemargin}{-3mm}
+\setlength{\headheight}{-1\baselineskip}
+\setlength{\headsep}{-1\baselineskip}
+
+\renewcommand{\section}{\subsection}
+
+
+\pagestyle{empty}
+
+
+% Definitions
+%================================================================
+\def\curl{{\rm curl}\,}
+\def\div{{\rm div}\,}
+\def\la{\lambda}
+\def\ba{{\bf a}}
+\def\bb{{\bf b}}
+\def\be{{\bf e}}
+\def\bj{{\bf j}}
+\def\bn{{\bf n}}
+\def\bV{{\bf V}}
+\def\bJ{{\bf J}}
+\def\bv{{\bf v}}
+\def\bu{{\bf u}}
+\def\bw{{\bf w}}
+\def\bH{{\bf H}}
+\def\vf{{\bf f}}
+\def\bh{{\bf h}}
+\def\bU{{\bf U}}
+\def\bV{{\bf V}}
+\def\bx{{\bf x}}
+\def\by{{\bf y}}
+\def\bz{{\bf z}}
+\def\bX{{\bf X}}
+\def\bF{{\bf F}}
+\def\bC{{\bf C}}
+
+\def\vx {{\bf x}}
+\def\vy {{\bf y}}
+\def\vz {{\bf z}}
+\def\vv {{\bf v}}
+\def\vu {{\bf u}}
+\def\vb {{\bf b}}
+\def\vc {{\bf c}}
+\def\vr {{\bf r}}
+
+\def\pr{{\partial}}
+\def\veta{\boldsymbol{\eta}}
+\def\bPhi{\boldsymbol{\Phi}}
+\def\bxi{\boldsymbol{\xi}}
+\def\bnu{\boldsymbol{\nu}}
+\def\Bom{\boldsymbol{\Omega}}
+\def\pd#1#2{\frac{\displaystyle\partial#1}{\displaystyle\partial#2}}
+\def\bfr#1#2{\frac{\displaystyle #1}{\displaystyle #2}}
+\def\vec#1{\boldsymbol{#1}}
+\def\Bbb{\mathbb}
+\def \shalf{{\textstyle \frac{1}{2}}}
+\def \half{\frac{1}{2}}
+\def \ssum{{\textstyle \sum}}
+
+%=======================================================================
+
+
+
+\begin{document}
+
+
+\begin{center}
+{{\bf Numerical Methods for PDEs (Spring 2017)}}
+\end{center}
+
+
+\begin{center}
+{\large{\bf Solutions 3}}
+\end{center}
+
+
+\centerline{}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Q1 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\noindent
+
+\vskip 0.5cm
+\noindent
+{\bf Problem 9.} By  expanding $g(x\pm
+h)$, $Q(x\pm h)$ in Taylor's series at $x$, show that
+\[
+\frac{d }{d x}\left(Q(x) \frac{d g}{\pr x}\right)=\frac{1}{h^2}
+\left(Q_{+}\left[g(x+h)-g(x)\right]-
+Q_{-}\left[g(x)-g(x-h)\right]\right) +O(h^2),
+\]
+where
+\[
+Q_{\pm}=\frac{1}{2}\left[Q(x)+Q(x\pm h)\right].
+\]
+
+
+\vskip 0.5cm \noindent
+{\bf Solution.} We have
+\[
+g(x\pm h)=g(x)\pm h g^{\prime}(x) +\frac{h^2}{2} g^{\prime\prime}(x)
+\pm\frac{h^3}{6} g^{\prime\prime\prime}(x) +O(h^4).
+\]
+Hence,
+\begin{eqnarray}
+&&g(x+h)-g(x)=h g^{\prime}(x)+\frac{h^2}{2} g^{\prime\prime}(x)
++\frac{h^3}{6} g^{\prime\prime\prime}(x) +O(h^4),  \nonumber \\
+&&g(x)-g(x-h)=h g^{\prime}(x)-\frac{h^2}{2} g^{\prime\prime}(x)
++\frac{h^3}{6} g^{\prime\prime\prime}(x) +O(h^4),  \label{sq1}
+\end{eqnarray}
+Also, since
+\[
+Q(x\pm h)=Q(x)\pm h Q^{\prime}(x) +\frac{h^2}{2} Q^{\prime\prime}(x)
+\pm\frac{h^3}{6} Q^{\prime\prime\prime}(x) +O(h^4),
+\]
+we obtain
+\begin{eqnarray}
+&&Q_{+}=Q(x)+ \frac{h}{2} Q^{\prime}(x) +\frac{h^2}{4} Q^{\prime\prime}(x)
++\frac{h^3}{12} Q^{\prime\prime\prime}(x) +O(h^4), \nonumber \\
+&&Q_{-}=Q(x)- \frac{h}{2} Q^{\prime}(x) +\frac{h^2}{4} Q^{\prime\prime}(x)
+-\frac{h^3}{12} Q^{\prime\prime\prime}(x) +O(h^4). \label{sq2}
+\end{eqnarray}
+Let
+\begin{equation}
+X=\frac{d }{d x}\left(Q(x) \frac{d g}{\pr x}\right)-\frac{1}{h^2}
+\left(Q_{+}\left[g(x+h)-g(x)\right]-
+Q_{-}\left[g(x)-g(x-h)\right]\right). \label{sq3}
+\end{equation}
+We need to show that $X=O(h^2)$. Substitution of (\ref{sq1}) and (\ref{sq2}) into (\ref{sq3}) yields
+\begin{eqnarray}
+X &=&\frac{d }{d x}\left(Q(x) \frac{d g}{\pr x}\right) \nonumber \\
+&&-\frac{1}{h^2}
+\Biggl\{
+\left(Q(x)+ \frac{h}{2} Q^{\prime}(x) +\frac{h^2}{4} Q^{\prime\prime}(x)
++\frac{h^3}{12} Q^{\prime\prime\prime}(x) +O(h^4)\right)
+\!\left(h g^{\prime}(x)+\frac{h^2}{2} g^{\prime\prime}(x)
++\frac{h^3}{6} g^{\prime\prime\prime}(x) +O(h^4)\right)  \nonumber \\
+&&-
+\left(Q(x)- \frac{h}{2} Q^{\prime}(x) +\frac{h^2}{4} Q^{\prime\prime}(x)
+-\frac{h^3}{12} Q^{\prime\prime\prime}(x) +O(h^4)\right)
+\!\left(h g^{\prime}(x)-\frac{h^2}{2} g^{\prime\prime}(x)
++\frac{h^3}{6} g^{\prime\prime\prime}(x) +O(h^4)\right)\Biggr\} \nonumber \\
+&=&\frac{d }{d x}\left(Q(x) \frac{d g}{\pr x}\right) -\frac{1}{h^2}
+\Biggl\{h Q g^{\prime}+\frac{h^2}{2}\left(Q g^{\prime\prime}+Q^{\prime}g^{\prime}\right)+
+h^3\left(\frac{1}{6}Q g^{\prime\prime\prime}+\frac{1}{4}Q^{\prime}g^{\prime\prime}
++\frac{1}{4}Q^{\prime\prime}g^{\prime}\right) \nonumber \\
+&&-\left(h Q g^{\prime}-\frac{h^2}{2}\left(Q g^{\prime\prime}+Q^{\prime}g^{\prime}\right)+
+h^3\left(\frac{1}{6}Q g^{\prime\prime\prime}+\frac{1}{4}Q^{\prime}g^{\prime\prime}
++\frac{1}{4}Q^{\prime\prime}g^{\prime}\right) \right)+ O(h^4) \Biggr\}  \nonumber \\
+&=&\frac{d }{d x}\left(Q(x) \frac{d g}{\pr x}\right)-\left(Q g^{\prime\prime}+Q^{\prime}g^{\prime}\right)
++ O(h^2)= O(h^2).
+\end{eqnarray}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Q2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vskip 0.5cm \noindent
+{\bf Problem 10.} Consider the two-dimensional heat equation
+\begin{equation}
+\frac{\partial u}{\partial t}-K \left(\frac{\partial^{2}u}{\partial
+x^{2}}+\frac{\partial^{2}u}{\partial
+y^{2}}\right)=0 \quad \hbox{for} \quad 0<x<L_{1}, \ \ y<x<L_{2}, \ \ t>0, \label{1}
+\end{equation}
+subject to the boundary conditions
+\[
+u(0,y,t)=0, \quad u(L_{1},y,t)=0, \quad
+u(x,0,t)=0, \quad u(x,L_{2},t)=0,
+\]
+and the initial condition
+\[
+u(x,y,0)=u_{0}(x,y).
+\]
+At interior grid points $(x_{x},y_{j},t_{n})$, equation (\ref{1}) is approximated by the finite-difference scheme
+\[
+\frac{w_{kj}^{n}-w_{kj}^{n-1}}{\tau} -K\left(\frac{\delta_{x}^2}{h_{1}^2}
++\frac{\delta_{y}^2}{h_{2}^2}\right)w_{kj}^{n}=0,
+\]
+where $w_{kj}^{n}$ are approximations to $u(x_{x},y_{j},t_{n})$; $x_{k}=k h_{1}$ for $k=0,1,\dots N_{1}$,
+$h_{1}=L_{1}/N_{1}$; $y_{j}=j h_{2}$ for $j=0,1,\dots N_{2}$,
+$h_{2}=L_{2}/N_{2}$; $t_{n}=n\tau$ for $n=0,1,\dots$ and $\tau$ in the length of the time step.
+
+\vskip 0.3cm
+\noindent
+Investigate the stability of this scheme by the Fourier method.
+
+\vskip 0.5cm \noindent
+{\bf Solution.}
+The perturbation  $z_{kj}$ satisfies the difference equation
+\begin{equation}
+\frac{z_{kj}^{n}-z_{kj}^{n-1}}{\tau} -K\left(\frac{\delta_{x}^2}{h_{1}^2}
++\frac{\delta_{y}^2}{h_{2}^2}\right)z_{kj}^{n}=0. \label{f7}
+\end{equation}
+We seek a particular solution of
+(\ref{f7}) in the form
+\begin{equation}
+z^{n}_{k,j}=\rho^{n}e^{iqx_{k}+ipy_{j}}. \label{f8}
+\end{equation}
+for $q,p\in{\mathbb R}$ and $n=0,1,\dots$
+The finite-difference method is stable if
+\[
+\vert\rho\vert\leq 1 \quad {\rm for \ all } \quad q,p\in{\mathbb R}.
+\]
+Substituting (\ref{f8}) in (\ref{f7}), we obtain
+\[
+e^{iqx_{k}+ipy_{j}}\left(\rho^{n}-\rho^{n-1}\right) -
+\gamma_{1}\rho^{n}e^{ipy_{j}}
+\left(e^{iqx_{k+1}}-2e^{iqx_{k}}+e^{iqx_{k-1}}\right)-
+\gamma_{2}\rho^{n}e^{iqx_{k}}
+\left(e^{ipy_{j+1}}-2e^{ipy_{j}}+e^{ipy_{j-1}}\right)=0
+\]
+or, equivalently,
+\[
+1-\frac{1}{\rho}-\gamma_{1}
+\left(e^{iqh_{1}}-2+e^{-iqh_{1}}\right)-
+\gamma_{2}\left(e^{iph_{2}}-2+e^{-iph_{2}}\right)=0,
+\]
+where
+\[
+\gamma_{1}=\frac{K\tau}{h_{1}^2}, \quad
+\gamma_{2}=\frac{K\tau}{h_{2}^2}.
+\]
+Since
+\[
+e^{iqh_{1}}-2+e^{-iqh_{1}}=-4\sin^{2} \frac{qh_{1}}{2}, \quad
+e^{iph_{2}}-2+e^{-iph_{2}}=-4\sin^{2} \frac{ph_{2}}{2},
+\]
+we obtain
+\[
+\rho=\frac{1}{1+4\gamma_{1}\sin^{2} \frac{qh_{1}}{2}
++4\gamma_{2}\sin^{2} \frac{ph_{2}}{2}}.
+\]
+Evidently, $0<\rho\leq 1$ for all $q$ and $p$. Therefore,
+the scheme is unconditionally stable.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Q2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vskip 0.5cm \noindent
+{\bf Problem 11.}
+The nonlinear heat equation
+\[
+u_t -K u_{xx}=f(u) \quad \textrm{for} \quad 0 < x < L, \ \ 0 < t < T
+\]
+(where $K$ is a constant and $f(u)$ is a given function), subject to the initial and boundary conditions
+\[
+u(x,0)=u_0(x) \ \ \hbox{for} \ 0 < x < L, \quad u(0,t)=u(L,t)=0  \ \ \hbox{for} \ 0 < t < T,
+\]
+is solved using the finite-difference method:
+\begin{eqnarray}
+&&\frac{w_{k,j}-w_{k,j-1}}{\tau}-
+K \, \frac{w_{k+1,j}-2w_{k,j}+w_{k-1,j}}{h^{2}}=f(w_{kj}) \ \ \hbox{for} \ \ k=1,2,\dots,N-1 \  \hbox{and} \ j=1,2,\dots,M; \label{pp11} \\
+&&w_{k,0}=u_0(x_{k}) \ \ \hbox{for} \ k=0, \dots,N \ \ \hbox{and} \ \ w_{0,j}=w_{N,j}=0 \ \ \hbox{for} \ j=1, \dots,M . \label{pp22}
+\end{eqnarray}
+Obtain the computation formulae for solving the nonlinear equations (\ref{pp11}) by the Newton method and implement the solution in R.
+
+
+
+
+
+\vskip 0.5cm \noindent
+{\bf Solution.} It is convenient to rewrite Eq. (\ref{pp11}) in the form
+\begin{equation}
+-\gamma w_{k-1,j}+(1+2\gamma)w_{k,j}-\gamma w_{k+1,j} - \tau f(w_{kj}) - w_{k,j-1}=0 \label{pp33}
+\end{equation}
+where $\gamma=K\tau/h^2$. In vector form, this can be written as
+\begin{equation}
+\bPhi(\bw_j)\equiv A\bw_j - \tau \bF(\bw_{j}) - \bw_{j-1}={\bf 0} \label{pp44}
+\end{equation}
+where
+\[
+{\bf w}_{j}=\left[
+\begin{array}{c}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N-1,j}
+\end{array}\right], \quad
+{\bf F}(\bw_{j})=
+\left[
+\begin{array}{c}
+f(w_{1,j}) \\
+f(w_{2,j}) \\
+\vdots \\
+\vdots \\
+\vdots \\
+f(w_{N-1,j})
+\end{array}\right], \quad
+A=\left[
+\begin{array}{cccccc}
+1+2\gamma & -\gamma &0      &\dots  &\dots &0 \\
+-\gamma &1+2\gamma &-\gamma &\ddots  &     &\vdots \\
+0      &-\gamma &1+2\gamma &-\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma \\
+0      &\dots  &\dots  &0   &-\gamma   &1+2\gamma
+\end{array}\right].
+\]
+Equation (\ref{pp33}) is equivalent to
+\begin{equation}
+\Phi_{i}(\bw_j)\equiv \sum_{m=1}^{N-1}a_{im}w_{m,j}-\tau f(w_{i,j})-w_{i,j-1}=0, \quad i=1,\dots,N-1 \label{pp44}
+\end{equation}
+where $a_{im}$ are the entries of matrix $A$. Hence,
+\begin{equation}
+J_{ik}(\bw_j)=\frac{\pr \Phi_{i}}{\pr w_{k,j}} = a_{ik}-\tau f'(w_{k,j})\delta_{ik} \label{pp55}
+\end{equation}
+where the $J_{ik}$ are the entries of the Jacobian matrix $J$ (see the lecture notes) and $\delta_{ik}$ is the Kronecker delta
+($\delta_{ik}=1$ for $i=k$ and $\delta_{ik}=0$ for $i\neq k$). In Newton's method,
+we compute a sequence $\{\bw_j^{(s)}\}$ ($s=0,1,\dots$) using the formula
+\begin{equation}
+\bw_j^{(s)}=\bw_j^{(s-1)}+{\bf r}^{(s)},\label{pp66}
+\end{equation}
+where ${\bf r}^{(s)}$ is the solution of the linear system
+\begin{equation}
+J\left({\bw_j}^{(s-1)}\right){\bf r}^{(s)}=-{\boldsymbol{\Phi}}\left({\bw_j}^{(s-1)}\right) \label{pp77}
+\end{equation}
+The initial approximation $\bw_j^{0}$ is chosen as
+\[
+\bw_j^{0}=\bw_{j-1}.
+\]
+Equivalently, equation (\ref{pp77}) can be written
+ in the form (cf. Eq. (2.113) in the lecture notes):
+\begin{eqnarray}
+&&-\gamma r_{k-1,j}^{(s)}
+-\gamma r_{k+1,j}^{(s)}+\left(1+2\gamma - \tau f'\left(w_{kj}^{(s-1)}\right)\right)r_{k,j}^{(s)}=  \nonumber \\
+&&=-(1+2\gamma)w_{kj}^{(s-1)}+\gamma\left(w_{k+1,j}^{(s-1)}+w_{k-1,j}^{(s-1)}\right)+\tau f\left(w_{kj}^{(s-1)}\right)+w_{k,j-1}  \label{pp88}
+\end{eqnarray}
+This can be solved using the double sweep method.
+
+\end{document}
