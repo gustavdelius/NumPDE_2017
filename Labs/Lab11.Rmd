@@ -75,13 +75,13 @@ P_{k,j+1} = P_{k,j} + \tau\Bigg(
 &\frac{D}{h^2}(P_{k+1,j}-2P_{k,j}+P_{k-1,j})\\
 &+\frac{h_-}{2h^2}\Big((P_{k+1,j}-P_{k,j})(Z_{k+1,j}-Z_{k,j})
 -(P_{k,j}+P_{k-1,j})(Z_{k,j}-Z_{k-1,j})\Big)\\
-&+\beta P_{j,k}(1-P_{j,k})-Z_{j,k}\frac{P_{j,k}^2}{P_{j,k}^2+\nu^2}
+&+\beta P_{k,j}(1-P_{k,j})-Z_{k,j}\frac{P_{k,j}^2}{P_{k,j}^2+\nu^2}
 \Bigg)\\
 Z_{k,j+1} = Z_{k,j} + \tau\Bigg(
 &\frac{D}{h^2}(Z_{k+1,j}-2Z_{k,j}+Z_{k-1,j})\\
 &-\frac{h_+}{2h^2}\Big((Z_{k+1,j}-Z_{k,j})(P_{k+1,j}-P_{k,j})
 -(Z_{k,j}+Z_{k-1,j})(P_{k,j}-P_{k-1,j})\Big)\\
-&+\gamma Z_{j,k}\left(\frac{P_{j,k}^2}{P_{j,k}^2+\nu^2}-w\right)
+&+\gamma Z_{k,j}\left(\frac{P_{k,j}^2}{P_{k,j}^2+\nu^2}-w\right)
 \Bigg)
 \end{split}
 $$
