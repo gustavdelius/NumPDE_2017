@@ -1,0 +1,177 @@
+---
+title: "Numerical Methods for PDEs (Spring 2017), Lab 12"
+author: "Gustav Delius, Richard Southwell"
+output: html_notebook
+---
+
+# The method of lines
+
+The "method of lines" for parabolic equations consists of at first only discretizing the $x$ direction but leaving the time continuous. This converts the PDEs into a system of ODEs. Then one uses a well-established method for the solution of systems of ODEs to get a numerical solution.
+
+The main advantage of this approach is that there are very good packages for solving ODEs that implement powerful methods that would be a lot of work to code from scratch. In this lab we will use the deSolve package in R.
+```{r}
+#install.packages("deSolve")
+library(deSolve)
+```
+
+We will illustrate the method with the system of PDEs from Lab 11:
+$$
+\begin{split}
+\frac{\partial P}{\partial t} &= D\frac{\partial^2 P}{\partial x^2}
++h_- \frac{\partial}{\partial x}P\frac{\partial Z}{\partial x}
++\beta P(1-P)-Z\frac{P^2}{P^2+\nu^2},\\
+\frac{\partial Z}{\partial t} &= D\frac{\partial^2 Z}{\partial x^2}
+-h_+ \frac{\partial}{\partial x}Z\frac{\partial P}{\partial x}
++\gamma Z\left(\frac{P^2}{P^2+\nu^2}-w\right).
+\end{split}
+$$
+
+We had seen that the forward-difference method has stability problems. Coding an explicit method for this set of non-linear equations would be a lot of work. So it is very tempting to use the method of lines.
+
+We perform the discretization in the x direction as usual by choosing a step size $h$ and introducing points $x_k=k h$ for $k=0,\dots, N$.
+```{r}
+h <- 0.1
+N <- 400
+x <- (0:N)*h
+```
+
+We introduce $P_k(t)$ and $Z_k(t)$ as approximations of $P(x_k,t)$ and $Z(x_k,t)$, and by using the standard finite-difference expressions for the x derivatives we convert the system of PDEs into the following system of ODEs:
+$$
+\begin{split}
+\frac{d P_{k}}{dt}=& \ 
+\frac{D}{h^2}(P_{k+1}(t)-2P_{k}(t)+P_{k-1}(t))\\
+&+\frac{h_-}{2h^2}\Big((P_{k+1}(t)-P_{k}(t))(Z_{k+1}(t)-Z_{k}(t))
+-(P_{k}(t)+P_{k-1}(t))(Z_{k}(t)-Z_{k-1}(t))\Big)\\
+&+\beta P_{k}(t)(1-P_{k}(t))-Z_{k}(t)\frac{P_{k}(t)^2}{P_{k}(t)^2+\nu^2}
+\\
+\frac{d Z_{k}}{dt}= 
+&\frac{D}{h^2}(Z_{k+1}(t)-2Z_{k}(t)+Z_{k-1}(t))\\
+&-\frac{h_+}{2h^2}\Big((Z_{k+1}(t)-Z_{k}(t))(P_{k+1}(t)-P_{k}(t))
+-(Z_{k}(t)+Z_{k-1}(t))(P_{k}(t)-P_{k-1}(t))\Big)\\
+&+\gamma Z_{k}(t)\left(\frac{P_{k}(t)^2}{P_{k}(t)^2+\nu^2}-w\right)
+\end{split}
+$$
+for $k=0,\dots,N$. As discussed in lab 11, the Dirichlet boundary conditions give
+$$
+P_{-1}(t)=P_{1}(t),~~~~
+P_{N+1}(t)=P_{N-1}(t),~~~~
+Z_{-1}(t)=Z_{1}(t),~~~~
+Z_{N+1}(t)=Z_{N-1}(t)
+$$
+
+We will use the function `ode()` from the deSolve package. This requires us to package the right-hand side of the ODE into a function. That function takes a vector $v=(P_0,P_1,\dots,P_N,Z_0,Z_1,\dots Z_N)$ and returns a vector of the corresponding time derivatives. We can reuse code from lab 11 to write this function.
+
+```{r}
+f <- function(t, y, parms) {
+    N <- length(y)/2-1
+
+    P <- y[1:(N+1)]
+    Pp <- c(P[2:(N+1)], P[N])
+    Pm <- c(P[2], P[1:N])
+    
+    Z <- y[(N+2):length(y)]
+    Zp <- c(Z[2:(N+1)], Z[N-1])
+    Zm <- c(Z[2], Z[1:N])
+    
+    Pd <- D/h^2 * (Pp - 2*P + Pm) + 
+        hm/(2*h^2) * ((Pp+P)*(Zp-Z)-(P+Pm)*(Z-Zm)) +
+        beta*P*(1-P)-Z*P^2/(P^2+nu^2)
+    
+    Zd <- D/h^2 * (Zp - 2*Z + Zm) - 
+        hp/(2*h^2) * ((Zp+Z)*(Pp-P)-(Z+Zm)*(P-Pm)) +
+        gamma*Z*(P^2/(P^2+nu^2) - w)
+    
+    list(c(Pd, Zd))
+}
+```
+The reason we gave the function `f()` the arguments `t` and `parms` even though they are not used is that this is the form that `ode()` expects. This is also the reason why we wrapped the returned vector of time derivatives in a `list()`.
+
+We also need to create a vector of times at which we want `ode()` to return values.
+```{r}
+t <- (0:100)*4
+```
+
+We choose parameter values
+```{r}
+D <- 0.04
+nu <- 0.07
+beta <- 1
+gamma <- 0.01
+w <- 0.004/gamma
+hp <- 0
+hm <- 0
+```
+and create a vector containing the initial values:
+```{r}
+P0 <- uniroot(function(P) P^2/(P^2+nu^2)-w, interval=c(0,1))$root
+Z0 <- beta*P0*(1-P0)/w
+Pn <- P0 + ifelse(x<1/4, 0.2*(cos(4*pi*x)+1), 0)
+Zn <- Z0 + 0*x
+y0 <- c(Pn, Zn)
+```
+
+We can now call the `ode()` function to obtain the solution.
+```{r}
+sol <- ode(y0, t, f, parms=NULL)
+```
+
+We extract the P and Z values from the returned array.
+```{r}
+P <- t(sol[, 2:(N+2)])
+Z <- t(sol[, (N+3):(2*N+3)])
+```
+
+Now we can plot the prey abundance 
+```{r}
+library(plot3Drgl)
+persp3D(x, t, P,
+        ticktype="detailed", nticks=4)
+
+plotrgl(lighting = TRUE, smooth = TRUE)
+```
+and the predator abundance
+```{r}
+persp3D(x, t, Z,
+        ticktype="detailed", nticks=4)
+
+plotrgl(lighting = TRUE, smooth = TRUE)
+```
+
+and the profile of both at an intermediate time:
+```{r}
+plot(x, P[, 51], type="l", ylab="")
+lines(x, Z[, 51], lty="dotted")
+legend("topleft", legend=c("P", "Z"), lty=c("solid", "dotted"))
+```
+
+This agrees with the corresponding plots from Lab 11.
+
+Next we go to the parameter values that created stability issues in Lab 11.
+
+```{r}
+hp <- 0.9
+N <- 520
+x <- (0:N)/4
+t <- (0:100)*3.9
+Pn <- P0 + ifelse(x<1, 0.4*(cos(pi*x)+1), 0)
+Zn <- Z0 + 0*x
+y0 <- c(Pn, Zn)
+
+sol <- ode(y0, t, f, parms=NULL)
+P <- t(sol[, 2:(N+2)])
+Z <- t(sol[, (N+3):(2*N+3)])
+```
+
+
+
+```{r}
+persp3D(x, t, P,
+        ticktype="detailed", nticks=4)
+```
+
+```{r}
+persp3D(x, t, Z,
+        ticktype="detailed", nticks=4)
+plotrgl(lighting = TRUE, smooth = TRUE)
+```
+
