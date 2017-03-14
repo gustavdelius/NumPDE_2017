@@ -95,12 +95,12 @@ w_{0,j}=w_{N,j}=0 \quad \hbox{for each} \quad j=1, 2, \dots,
 \end{equation}
 and the initial condition (\ref{3}) yields
 \begin{equation}
-w_{k,0}=f(x_{k}) \quad \hbox{for each} \quad i=1, 2, \dots, N-1.
+w_{k,0}=f(x_{k}) \quad \hbox{for each} \quad k=1, 2, \dots, N-1.
 \label{8}
 \end{equation}
 Equation (\ref{5}) can be written in the matrix form
 \begin{equation}
-{\bf w}^{(j+1)}=A{\bf w}^{(j)}-{\bf w}^{(j-1)}+{\bf F}^{(j)},
+{\bf w}^{(j+1)}=A{\bf w}^{(j)}-{\bf w}^{(j-1)}+\tau^2{\bf F}^{(j)},
 \label{9}
 \end{equation}
 where
@@ -125,12 +125,12 @@ w_{N-1,j}
 \end{array}\right], \quad
 {\bf F}^{(j)}=\left[
 \begin{array}{c}
-\tau^2 F_{1,j} \\
-\tau^2 F_{2,j} \\
+ F_{1,j} \\
+ F_{2,j} \\
 \vdots \\
 \vdots \\
 \vdots \\
-\tau^2 F_{N-1,j}
+F_{N-1,j}
 \end{array}\right].
 \label{77}
 \end{gather}
