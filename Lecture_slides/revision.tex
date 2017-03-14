@@ -1,0 +1,923 @@
+%\documentclass[11pt, a5paper]{article}
+%\textwidth 13cm
+%\setlength{\oddsidemargin}{-15mm}
+%\setlength{\evensidemargin}{-15mm}
+%\textheight 19cm
+%\setlength{\headheight}{-2\baselineskip}
+%\setlength{\headsep}{-2\baselineskip}
+%\pagestyle{empty}
+
+\documentclass[12pt]{article}
+
+\textwidth 17cm \textheight 24cm \setlength{\oddsidemargin}{-3mm}
+\setlength{\evensidemargin}{-3mm}
+\setlength{\headheight}{-1\baselineskip}
+\setlength{\headsep}{-1\baselineskip}
+
+
+ 
+\usepackage{amsmath,amssymb,amsfonts,amsbsy}
+
+\newcommand\RE{\operatorname{Re}}
+\newcommand\IM{\operatorname{Im}}
+\newcommand\sech{\operatorname{sech}}
+
+\newcommand\vE{\boldsymbol{E}}
+\newcommand\vF{\boldsymbol{F}}
+\newcommand\vV{\boldsymbol{V}}
+\newcommand\va{\boldsymbol{a}}
+\newcommand\vb{\boldsymbol{b}}
+\newcommand\vf{\boldsymbol{f}}
+\newcommand\vi{\boldsymbol{i}}
+\newcommand\vj{\boldsymbol{j}}
+\newcommand\vn{\boldsymbol{n}}
+\newcommand\vq{\boldsymbol{q}}
+\newcommand\vu{\boldsymbol{u}}
+\newcommand\vv{\boldsymbol{v}}
+\newcommand\vx{\boldsymbol{x}}
+\newcommand\vxi{\boldsymbol{\xi}}
+\newcommand\pr{\partial}
+
+
+\begin{document}
+
+
+\centerline{\large \textbf{Review of Numerical Methods for PDEs 2017}}
+
+
+\section*{Parabolic equations}
+
+\begin{itemize}
+
+\item \textbf{Initial boundary value problem for the heat equation:}
+
+\[
+u_{t} = K \, u_{xx}+ f(x,t), \quad
+0<x< L, \quad 0 < t < T,   \label{a1}
+\]
+subject to the boundary conditions
+\[
+u(0, t) = u(L, t)=0 \quad \hbox{for} \quad t\in (0,T),   \label{a2}
+\]
+and initial condition
+\[
+u(x, 0) = u_{0}(x).   \label{a3}
+\]
+
+\item \textbf{Grid points}
+We choose integers $N$ and $M$ and define
+$\tau=T/M$ and $h=L/N$.
+Then we define the grid points 
+$(x_{k}, t_{j})$, where $x_{k}=hk$ for $k=0,1,\dots,N$ and
+$t_{j}=\tau j$ for $j=0,1,2,\dots,M$. 
+
+\item \textbf{Forward-difference formula for $u_{t}$:}
+\[
+u_{t}(x_k,t_j)\approx \frac{u(x_k,t_{j+1})-u(x_k,t_j)}{\tau} +O(\tau).
+\]
+\item \textbf{Backward-difference formula  for $u_{t}$:}
+\[
+u_{t}(x_k,t_j)\approx \frac{u(x_k,t_j)-u(x_k,t_{j-1})}{\tau}+O(\tau).
+\]
+\item \textbf{Central-difference formula  for $u_{t}$:}
+\[
+u_{t}(x_k,t_j)\approx \frac{u(x_k,t_{j+1})-u(x_k,t_{r-1})}{\tau}+O(\tau).
+\]
+
+\item \textbf{Central-difference formula for $u_{xx}$:}
+\[
+u_{xx}(x_k,t_j)=\frac{u(x_{k+1},t_j)-2u(x_k,t_j)+u(x_{k-1},t_j)}{h^2}
++O(h^2).
+\]
+
+
+
+
+\item \textbf{Forward-difference method for the heat equation:}
+
+Let $w_{k,j}\approx u(x_{k},t_{j})$. Then for each interior grid point,
+\[
+\frac{w_{k,j+1}-w_{k,j}}{\tau}-K
+\frac{w_{k+1, j}-2w_{k,j}+w_{k-1,j}}{h^{2}}=f(x_k,t_j).
+\]
+\item{\bf Boundary conditions:} $w_{0,j}=w_{N,j}=0$  for $j=1, \dots, M$.
+\item{\bf Initial conditions:} $w_{k,0}=u_{0}(x_{k})$  for $k=0, 1, \dots, N$.
+
+\vskip 2mm
+
+\item
+\textit{\textbf{Truncation error} at a grid point is the amount by which a the solution of the PDE fails to satisfy the difference equation at that point. }
+
+\vskip 2mm
+For forward-difference method the truncation error is
+\[
+\tau_{k,j}=\frac{u_{k,j+1}-u_{k,j}}{\tau}-K
+\frac{u_{k+1, j}-2u_{k,j}+u_{k-1,j}}{h^{2}}-f(x_k,t_j)=O(\tau+h^2)
+\]
+where $u_{k,j}=u(x_{k},t_{j})$ and $u(x,t)$ is the exact solution.
+
+\item \textbf{Matrix form of the forward-difference method:}
+\[
+{\bf w}^{(j)}=A{\bf w}^{(j-1)}+\tau {\bf F}^{(j-1)} \quad \hbox{for} \quad j=1,2,\dots,M,
+\]
+where
+\[
+A=\begin{pmatrix}
+1-2\gamma &\gamma &0      &\dots  &\dots &0 \\
+\gamma &1-2\gamma &\gamma &\ddots  &     &\vdots \\
+0      &\gamma &1-2\gamma &\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &\gamma \\
+0      &\dots  &\dots  &0      &\gamma &1-2\gamma
+\end{pmatrix}
+\]
+\[
+{\bf w}^{(j)}=\begin{pmatrix}
+w_{1,j} \\
+w_{2,j} \\
+\vdots \\
+\vdots \\
+\vdots \\
+w_{N-1,j}
+\end{pmatrix},
+{\bf F}^{(j)}=\begin{pmatrix}
+f(x_1,t_j)\\
+f(x_2,t_j) \\
+\vdots \\
+\vdots \\
+\vdots \\
+f(x_{N-1},t_j)
+\end{pmatrix}.
+\]
+
+\item \textbf{The (implicit) backward-difference method.}
+\[
+\frac{w_{k,j}-w_{k,j-1}}{\tau}-K
+\frac{w_{k+1, j}-2w_{k,j}+w_{k-1,j}}{h^{2}}=f(x_k,t_j).
+\]
+for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots, M$.
+
+\item \textbf{Matrix form of the backward-difference method:}
+\[
+A{\bf w}^{(j)}={\bf w}^{(j-1)}+\tau {\bf F}^{(j)} \quad \hbox{for} \quad j=1,2,\dots,M,
+\]
+where
+\[
+A=\begin{pmatrix}
+1+2\gamma &-\gamma &0      &\dots  &\dots &0 \\
+-\gamma &1+2\gamma &-\gamma &\ddots  &     &\vdots \\
+0      &-\gamma &1+2\gamma &-\gamma &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma \\
+0      &\dots  &\dots  &0      &-\gamma &1+2\gamma
+\end{pmatrix}.
+\]
+
+\item \textbf{Double-sweep method for solving tri-diagonal linear system:}
+
+Consider the tridiagonal system:
+\begin{eqnarray}
+&&A_{i}v_{i-1}-C_{i}v_{i}+B_{i}v_{i+1}=F_{i} \quad \hbox{for}\quad i=1, \dots, N-1; \nonumber \\
+&&v_{0}=v_{N}=0; \nonumber
+\end{eqnarray}
+where the coefficients $A_{i}$, $B_{i}$ and $C_{i}$ satisfy the conditions
+\[
+A_{i}, B_{i}, C_{i} > 0, \quad  C_{i} \geq A_{i} + B_{i}.
+\]
+These equations are solved using the formulae:
+\begin{eqnarray}
+&&\alpha_0=0, \quad \beta_0=0, \nonumber \\
+&&\alpha_{i+1}=\frac{B_{i}}{C_{i}-\alpha_{i}A_{i}}, \quad
+\beta_{i+1}=\frac{\beta_{i}A_{i}-F_{i}}{C_{i}-\alpha_{i}A_{i}} \nonumber
+\end{eqnarray}
+for $i=1, \dots, N-1$ and
+\begin{eqnarray}
+&&v_N=0,  \nonumber \\
+&&v_{i-1}=\alpha_{i}v_{i}+\beta_{i}  \quad  \hbox{for} \quad
+i=1, 2, \dots, N.
+\nonumber
+\end{eqnarray}
+
+
+\item \textbf{Richardson's method:}
+\[
+\frac{w_{k,j+1}-w_{k,j-1}}{2\tau}-K \frac{w_{k+1,
+j}-2w_{k,j}+w_{k-1,j}}{h^{2}}=f(x_k,t_j)
+\]
+for $k=1, 2, \dots, N-1$ and $j=1, 2, \dots, M-1$.
+
+\item \textbf{Notation:}
+\[
+\delta_{x}^2  \, w_{k,j}=w_{k+1,j}-2w_{k,j}+w_{k-1,j}
+\]
+
+
+\item \textbf{Crank-Nicolson method:}
+\[
+\frac{w_{k,j+1}-w_{k,j}}{\tau}- \frac{K}{2h^{2}}\left(
+\delta_{x}^{2} \, w_{k,j+1}+\delta_{x}^{2} \, w_{k,j}\right)=
+\frac12\left(f(x_k,t_{j+1})+f(x_k,t_j)\right)
+\]
+
+
+\item \textbf{Matrix form (Crank-Nicolson method):}
+\[
+A \, {\bf w}^{(j+1)}=B \, {\bf w}^{(j)} 
++\frac{\tau}{2}\left({\bf F}^{(j+1)}+{\bf F}^{(j)}\right)\quad \hbox{for} \quad
+j=0,1,2,\dots,M-1,
+\]
+where
+\[
+A(\gamma)=\left[
+\begin{array}{cccccc}
+1+\gamma &-\gamma/2 &0      &\dots  &\dots &0 \\
+-\gamma/2 &1+\gamma &-\gamma/2 &\ddots  &     &\vdots \\
+0      &-\gamma/2 &1+\gamma &-\gamma/2 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-\gamma/2 \\
+0      &\dots  &\dots  &0      &-\gamma/2 &1+\gamma
+\end{array}\right], \quad
+B=A(-\gamma).
+\]
+
+
+\item {\bf Consistency (definition):} a finite-difference approximation to a differential equation
+is {\bf consistent} if
+\[
+\max_{k,j}\vert \tau_{k,j}(h,\tau)\vert \to 0 \ \ {\rm as} \ \ h,\tau \to 0
+\]
+(for each $k$ and $j$).
+
+
+{\bf Example:} the Du Fort - Frankel method for the heat equation,
+given by
+\[
+\frac{w_{k,j+1}-w_{k,j-1}}{2\tau}- K\frac{w_{k+1,
+j}-w_{k,j-1}-w_{k,j+1}+w_{k-1,j}}{h^{2}}=0,
+\]
+is stable but \textbf{not consistent}, because
+\[
+\tau_{k,j}=O\left(\tau^2+h^2+\frac{\tau^2}{h^2}\right),
+\]
+
+\item \textbf{Convergence (definition):} a finite-difference method is said to be {\bf convergent}
+if the total error of the method
+\[
+E=\max\limits_{k,j}\vert u_{k,j}-w_{k,j}\vert
+\]
+tends to zero as $h\to 0$ and $\tau\to 0$:
+\[
+E \to 0 \quad {\rm as} \quad h\to 0 \quad {\rm and} \quad \tau\to 0.
+\]
+
+
+\item {\bf Lax equivalence theorem:}
+{\it If we have a well-posed initial boundary value problem and a finite
+difference approximation to it that satisfies the consistency condition, then
+stability is the necessary and sufficient condition for convergence}.
+
+
+\item \textbf{Non-homogeneous BCs (Dirichlet problem):}
+\begin{eqnarray}
+&&u_{t} - K u_{xx} = f(x,t), \quad
+0<x< L, \quad 0<0<T,   \nonumber \\
+&&u(0,t)=\mu_{1}(t), \quad u(L,t)=\mu_{2}(t), \nonumber \\
+&&u(x, 0) = u_{0}(x),   \nonumber
+\end{eqnarray}
+where $\mu_{1}(t)$ and $\mu_{2}(t)$ are given functions.
+
+\item \textbf{Reduction to a problem
+with homogeneous BCs}:
+
+let $g(x,t)$ be such that
+\[
+g(0,t)=\mu_{1}(t), \quad g(L,t)=\mu_{2}(t).
+\]
+and $u(x,t)=v(x,t)+g(x,t)$, then $v(x,t)$ satisfies
+\begin{eqnarray}
+&&v_{t} - K \, v_{xx} = \tilde{f}(x,t), \quad
+0<x< L, \quad 0<0<T,   \nonumber \\
+&&v(0,t)=0, \quad v(L,t)=0, \nonumber \\
+&&v(x, 0) = v_{0}(x),   \nonumber
+\end{eqnarray}
+where
+\[
+\tilde{f}(x,t)=f(x,t)-
+g_{t} + K \, g_{xx}, \quad
+v_{0}(x)=u_{0}(x)-g(x,0).
+\]
+
+
+\item \textbf{\textbf{Non-homogeneous BCs (Neumann problem):}}
+\begin{eqnarray}
+&&u_{t} - K u_{xx} = f(x,t), \quad
+0<x< L, \quad 0<0<T,   \nonumber \\
+&&u_{x}(0,t)=\mu_{1}(t), \quad u_{x}(L,t)=\mu_{2}(t), \nonumber \\
+&&u(x, 0) = u_{0}(x).   \nonumber
+\end{eqnarray}
+Again, it can be reduced to a problem with
+\[
+\mu_{1}(t)\equiv 0, \quad \mu_{2}(t)\equiv 0.
+\]
+
+
+\item \textbf{Forward-difference method for Neumann problem:} we use
+\[
+\frac{w_{k,j+1}-w_{k,j}}{\tau}-K
+\frac{w_{k+1, j}-2w_{kj}+w_{k-1,j}}{h^{2}}=f(k,t_j)
+\]
+for interior grid points and
+\begin{eqnarray}
+&&w_{0,j+1}=(1-2\gamma)w_{0,j}+2\gamma w_{1,j}+\tau f(0,t_j),  \nonumber \\
+&&w_{N,j+1}=(1-2\gamma)w_{N,j}+2\gamma w_{N-1,j}+\tau f(L,t_j)  \nonumber
+\end{eqnarray}
+for boundary grid points.
+
+
+\item \textbf{Parabolic equation with variable coefficients:}
+\[
+u_{t} =a(x,t) \, u_{xx} +
+b(x,t) \, u_{x} + c(x,t) \, u + d(x,t)
+\]
+for $0<x< L$ and $t>0$, subject to the initial and boundary conditions
+\[
+u(x, 0) = u_{0}(x), \quad
+u(0,t)=0, \quad u(L,t)=0.
+\]
+We assume that
+\[
+a(x,t)> 0 \quad {\rm for} \quad 0\leq x\leq L, \ \ t>0 .
+\]
+
+
+\item {\bf Explicit forward-difference method:}
+\[
+\frac{w_{k,j+1}-w_{k,j}}{\tau} =a_{kj} \, \frac{\delta_{x}^2  \, w_{k,j}}{h^{2}}+
+b_{kj} \, \frac{\delta_{x} \,  w_{k,j}}{2h}+c_{kj} \, w_{k,j}+d_{kj},
+\]
+for $k=1, \dots,N-1$ and $j=0, 1,\dots$. Here
+\begin{eqnarray}
+&&\delta_{x}^2=w_{k+1,j}-2w_{k,j}+w_{k-1,j}, \quad \delta_{x}=w_{k+1,j}-w_{k-1,j}; \nonumber \\
+&&a_{kj}=a(x_{k},t_{j}), \quad b_{kj}=b(x_{k},t_{j}), \ \ {\rm etc.} \nonumber
+\end{eqnarray}
+
+
+\item \textbf{Implicit backward-difference scheme:}
+\[
+\frac{w_{k,j}-w_{k,j-1}}{\tau} =a_{kj} \, \frac{\delta_{x}^2  \, w_{k,j}}{h^{2}}+
+b_{kj} \, \frac{\delta_{x} \,  w_{k,j}}{2h}+c_{kj} \, w_{k,j}+d_{kj},
+\]
+for $k=1, \dots,N-1$ and $j=1, 2, \dots$.
+
+\item \textbf{Crank-Nicolson's scheme:}
+\begin{eqnarray}
+\frac{w_{k,j+1}-w_{k,j}}{\tau} &=& \frac{a_{k,j+1/2}}{2h^{2}} \,
+\delta_{x}^2 \, \left(w_{k,j}+w_{k,j+1}\right) \nonumber \\
+&&+\frac{b_{k,j+1/2}}{4h} \, \delta_{x} \,  \left(w_{k,j}+w_{k,j+1}\right)\nonumber \\
+&&
++\frac{c_{k,j+1/2}}{2} \, \left(w_{k,j}+w_{k,j+1}\right)+d_{k,j+1/2}, \nonumber
+\end{eqnarray}
+where
+\[
+a_{k,j+1/2}=\frac{a(x_{k},t_{j})+a(x_{k},t_{j+1})}{2}, \quad
+b_{k,j+1/2}=\frac{b(x_{k},t_{j})+b(x_{k},t_{j+1})}{2}, \ \ {\rm etc.}
+\]
+\end{itemize}
+
+\subsection*{Nonlinear heat equation in conservation form}
+
+\begin{itemize}
+
+\item \textbf{Initial boundary value problem for the nonlinear heat equation:}
+\begin{eqnarray}
+&&\frac{\pr u}{\pr t} =\frac{\pr }{\pr x}\left(K(x,t,u) \,
+\frac{\pr u}{\pr x}\right)+f(x,t,u),  \quad 0<x< L, \quad t>0, \nonumber \\
+&&u(x, 0) = u_{0}(x), \nonumber \\
+&&u(0,t)=0, \quad u(L,t)=0.  \nonumber
+\end{eqnarray}
+
+\item \textbf{A useful finite-difference formula:}
+\begin{eqnarray}
+\frac{d }{d x}\left(Q(x)
+\frac{d g}{\pr x}\right)\!\biggm\vert_{x=x_{k}} &=& \frac{1}{h^2}
+\Bigl(Q(x_{k+\frac{1}{2}})\left[g(x_{k+1})-g(x_{k})\right] \nonumber \\
+&&-
+Q(x_{k-\frac{1}{2}})\left[g(x_{k})-g(x_{k-1})\right]\Bigr) +O(h^2) \nonumber
+\end{eqnarray}
+where
+\[
+Q(x_{k\pm\frac{1}{2}})=\frac{1}{2}\left[Q(x_{k})+Q(x_{k\pm 1})\right].
+\]
+
+
+
+\item \textbf{An explicit finite-difference scheme:}
+\[
+\frac{w_{k,j+1}-w_{kj}}{\tau}-
+\frac{1}{h^2}
+\left(\varkappa_{k+\frac{1}{2},j}\left[w_{k+1,j}-w_{k,j}\right]-
+\varkappa_{k-\frac{1}{2},j}\left[w_{k,j}-w_{k-1,j}\right]\right)=
+f_{k,j},
+\]
+where
+\[
+\varkappa_{k\pm\frac{1}{2},j}\equiv \frac{1}{2}\left[K(x_{k},t_{j},w_{kj})+
+K(x_{k\pm 1},t_{j},w_{k\pm 1,j})\right], \quad
+f_{k,j}\equiv f(x_{k},t_{j},w_{kj}).
+\]
+
+\item \textbf{An implicit finite-difference scheme:}
+\[
+\frac{w_{k,j}-w_{k,j-1}}{\tau}-
+\frac{1}{h^2}
+\left(\varkappa_{k+\frac{1}{2},j}\left[w_{k+1,j}-w_{k,j}\right]-
+\varkappa_{k-\frac{1}{2},j}\left[w_{k,j}-w_{k-1,j}\right]\right)
+=f_{k,j}.
+\]
+
+
+\item \textbf{Vector form of the implicit scheme:}
+\[
+A\left({\bf w}_{j}\right){\bf w}_{j}={\bf w}_{j-1}+\tau {\bf F}_{j} \quad \hbox{for} \quad j=1,2,\dots,
+\]
+where
+\begin{eqnarray}
+&&A=\left[
+\begin{array}{cccccc}
+a_{1} & b_{1} &0      &\dots  &\dots &0 \\
+b_{1} &a_{2} &b_{2} &\ddots  &     &\vdots \\
+0      &b_{2} &a_{3} &b_{3} &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &b_{N-2} \\
+0      &\dots  &\dots  &0      &b_{N-2} &a_{N-1}
+\end{array}\right] \nonumber \\
+&&a_{k}=1+\frac{\tau}{h^2}(\varkappa_{k+\frac{1}{2},j}+\varkappa_{k-\frac{1}{2},j}), \quad
+b_{k}=-\frac{\tau}{h^2}\varkappa_{k+\frac{1}{2},j}.
+\nonumber
+\end{eqnarray}
+
+
+\item \textbf{A (solvable) modification of the implicit scheme:}
+\[
+A\left({\bf w}_{j-1}\right){\bf w}_{j}={\bf w}_{j-1}+\tau {\bf F}_{j-1} \quad \hbox{for} \quad j=1,2,\dots,
+\]
+
+
+\item \textbf{Method of successive approximations:} 
+At each time step
+we compute a sequence ${\bf w}_{j}^{(s)}$ ($s=0,1,\dots$).
+with
+\[
+{\bf w}_{j}^{(0)}={\bf w}_{j-1}, \quad
+A\left({\bf w}_{j}^{(s-1)}\right){\bf w}_{j}^{(s)}={\bf w}_{j-1}+\tau {\bf F}_{j}^{(s-1)}.
+\]
+
+
+
+\item \textbf{Newton method:}
+Consider a system of nonlinear equations
+\[
+F_{i}(x_{1}, x_{2},\dots,x_{n})=0, \quad i=1,2,\dots, n.
+\]
+Compute a sequence
+of approximations ${\bf x}^{(s)}$ ($s=0,1,2,\dots$) using the formula
+\[
+{\bf x}^{(s)}={\bf x}^{(s-1)}+{\bf r}^{(s)},
+\]
+where ${\bf r}^{(s)}$ is the solution of the linear system
+\[
+J({\bf x}^{(s-1)}){\bf r}^{(s)}=-{\bf F}({\bf x}^{(s-1)})
+\]
+with
+\[
+J({\bf x})=\left(
+\begin{array}{cccc}
+\frac{\pr F_{1}}{\pr x_{1}} &\frac{\pr F_{1}}{\pr x_{2}} &\dots &\frac{\pr F_{1}}{\pr x_{n}} \\
+\frac{\pr F_{2}}{\pr x_{1}} &\frac{\pr F_{2}}{\pr x_{2}} &\dots &\frac{\pr F_{2}}{\pr x_{n}} \\
+\vdots &\vdots &   &\vdots \\
+\frac{\pr F_{n}}{\pr x_{1}} &\frac{\pr F_{n}}{\pr x_{2}} &\dots &\frac{\pr F_{n}}{\pr x_{n}}
+\end{array}\right).
+\]
+
+
+\item \textbf{Newton's method applied to the case when $K=$ constant:}
+\begin{eqnarray}
+&&-\gamma r_{k-1,j}^{(s)}
+-\gamma r_{k+1,j}^{(s)}+\left(1+2\gamma - \tau \frac{\pr f(x_{k},t_{j},w_{kj}^{(s-1)})}{\pr w_{kj}^{(s-1)}}\right)r_{k,j}^{(s)}=  \nonumber \\
+&&=-(1+2\gamma)w_{kj}^{(s-1)}+\gamma\left(w_{k+1,j}^{(s-1)}+w_{k-1,j}^{(s-1)}\right)+\tau f\left(x_{k},t_{j},w_{kj}^{(s-1)}\right)+w_{k,j-1}  \nonumber
+\end{eqnarray}
+where $\gamma=K\tau/h^2$.
+
+\end{itemize}
+
+
+\subsection*{Two-dimensional heat equation}
+
+\begin{itemize}
+
+\item \textbf{Initial boundary value problem for 2d heat equation:}
+Let ${\cal D}$ be any connected  domain in the $x,y$ plane and $S$ its boundary.
+The heat equation:
+\[
+\frac{\partial u}{\partial t}=K\left(\frac{\partial^{2}u}{\partial
+x^{2}} +\frac{\partial^{2}u}{\partial y^{2}}\right)+f(x,y,t)  \quad {\rm for} \quad (x,y)\in{\cal D},
+\]
+with boundary condition
+\[
+u(x,y,t) = g(x,y,t) \quad \hbox{for} \quad (x,y)\in S 
+\]
+and initial condition
+\[
+u(x, y, 0) = u_{0}(x, y)  \quad {\rm for} \quad (x,y)\in{\cal D},
+\]
+where $f(x,y,t), g(x, y, t)$ and $ u_{0}(x, y)$ are given functions.
+
+\item {\bf Grid points:}
+On a rectangular domain
+\[
+{\cal D}=\{\, (x,y)\, \vert \,  a<x<b, \ c<y<d \, \}.
+\]
+introduce
+\[
+x_{k}=a+kh_{1} \ \ {\rm for} \ \ k=0,1,\dots,N_{1}, \quad
+y_{j}=c+jh_{2} \ \ {\rm for} \ \ j=0,1,\dots,N_{2},
+\]
+where $h_{1}=(b-a)/N_{1}$ and $h_{2}=(d-c)/N_{2}$.
+
+Let $w_{kj}^{n}$ be the discrete approximation to
+$u_{kj}^n\equiv u(x_{k},y_{j},t_{n})$. 
+
+\item \textbf{Forward difference method:}
+\[
+w_{kj}^{n+1} =w_{kj}^{n}+\tau K\left(\frac{\delta_{x}^2}{h_{1}^2}
++\frac{\delta_{y}^2}{h_{2}^2}\right)w_{kj}^{n}+\tau f_{kj}^n,
+\]
+This is stable if
+\[
+K\tau
+\left(\frac{1}{h_{1}^2}+\frac{1}{h_{2}^2}\right)\leq\frac{1}{2}. 
+\]
+The truncation error is of $O(\tau+h_1^2+h_2^2)$.
+
+\item \textbf{Backward difference method:}
+\[
+\frac{w_{kj}^{n}-w_{kj}^{n-1}}{\tau} -K\left(
+\frac{\delta_{x}^2}{h_{1}^2}+\frac{\delta_{y}^2}{h_{2}^2}\right)w_{kj}^{n}=f_{kj}^n
+\]
+Unconditionally stable and $O(\tau+h_1^2+h_2^2)$.
+
+\item \textbf{Crank-Nicolson method:}
+\[
+\frac{w_{kj}^{n+1}-w_{kj}^{n}}{\tau} -\frac{K}{2}
+\left(\frac{1}{h_{1}^2}
+\delta_{x}^2+\frac{1}{h_{2}^2}\delta_{y}^2\right)
+\left(w_{kj}^{n}+w_{kj}^{n+1}\right)=f_{kj}^{n+\frac{1}{2}}
+\]
+where
+\[
+f_{kj}^{n+\frac{1}{2}}=\frac{f(x_{k},y_{j},t_{n})+f(x_{k},y_{j},t_{n+1})}{2}+O(\tau^2).
+\]
+Unconditionally stable and $O(\tau^2+h_1^2+h_2^2)$.
+
+\item \textbf{ADI method:}
+\begin{eqnarray*}
+&&\frac{w^{n+\frac{1}{2}}_{k,j}-w^{n}_{k,j}}{\tau}=\frac{K}{2h^2}
+\left(\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}w^{n}_{k,j}\right)+\frac{1}{2}f^{n+\frac{1}{2}}_{k,j}, \label{f12} \\
+&&\frac{w^{n+1}_{k,j}-w^{n+\frac{1}{2}}_{k,j}}{\tau}=\frac{K}{2h^2}
+\left(\delta^2_{x}w^{n+\frac{1}{2}}_{k,j}
++\delta^2_{y}w^{n+1}_{k,j}\right)+\frac{1}{2}f^{n+\frac{1}{2}}_{k,j}. \label{f13}
+\end{eqnarray*}
+Unconditionally stable and $O(\tau^2+h_1^2+h_2^2)$. Can be solved using
+double-sweep method.
+
+\end{itemize}
+
+\section*{Hyperbolic equations}
+\subsection*{Wave equation}
+
+\begin{itemize}
+
+\item \textbf{Initial boundary value problem for wave equation:}
+\[
+\frac{\pr^{2} u}{\pr t^{2}}(x,t) - \alpha^{2}\frac{\pr^{2} u}{\pr
+x^{2}}(x,t)=F(x,t), \quad a<x< b, \quad 0<t<T,   \label{1}
+\]
+subject to the boundary conditions
+\[
+u(a, t) = u(b, t)=0 \quad \hbox{for} \quad t\in[0,T],   \label{2}
+\]
+and initial conditions
+\[
+u(x, 0) = f(x), \qquad
+\frac{\pr u}{\pr t}(x,0)=g(x)  \quad \hbox{for} \quad x\in[a,b],
+\]
+
+
+\item \textbf{Initial conditions:}
+\[\begin{split}
+w_{k,0}&=f(x_{k}) \\
+w_{k,1}&=f(x_{k})+\tau g(x_{k})+
+\frac{\tau^{2}}{2}\left[\alpha^{2}f^{\prime\prime}(x_{k})+F(x_{k},0)\right]
+\end{split}\]
+for each $k=1, 2, \dots, N-1$. Truncation error is $O(\tau^2)$.
+
+\item \textbf{Explicit forward-difference scheme:}
+\[
+w_{k,j+1}=2\left(1-\gamma^{2}\right)w_{kj}+
+\gamma^{2}\left(w_{k+1, j}+w_{k-1,j}\right)-w_{k,j-1}+\tau^2
+F_{kj}
+\]
+with boundary conditions
+$w_{0,j}=w_{N,j}=0$ for each $j=1, 2, \dots,M$.
+Truncation error is $O(\tau^2+h^2)$.
+
+\item \textbf{Matrix form of forward-difference scheme:}
+\[
+{\bf w}^{(j+1)}=A{\bf w}^{(j)}-{\bf w}^{(j-1)}+\tau^2{\bf F}^{(j)},
+\]
+where
+\[
+A=\left[
+\begin{array}{cccccc}
+2(1-\gamma^{2}) &\gamma^{2} &0      &\dots  &\dots &0 \\
+\gamma^{2} &2(1-\gamma^{2}) &\gamma^{2} &\ddots  &     &\vdots \\
+0      &\gamma^{2} &2(1-\gamma^{2}) &\gamma^{2} &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &\gamma^{2} \\
+0      &\dots  &\dots  &0      &\gamma^{2} &2(1-\gamma^{2})
+\end{array}\right].
+\]
+
+\item \textbf{Courant stability condition}
+\[
+\tau < \frac{h}{\alpha}.
+\]
+
+
+\item \textbf{Unconditionally stable implicit scheme:}
+\[
+w_{k,j+1}-2w_{kj}+w_{k,j-1}-\gamma^{2} \left[\sigma \delta_{x}^2
+w_{k,j+1}+(1-2\sigma)\delta_{x}^2 w_{k,j} +\sigma \delta_{x}^2
+w_{k,j-1}\right]=\tau^2 F_{kj}
+\]
+with $\sigma\geq 1/4$. Truncation error is $O(\tau^2+h^2)$.
+
+\end{itemize}
+
+\subsection*{System of 1st-order conservation laws:}
+
+\[
+{\bf U}_{t} + \left[{\bf F}({\bf U})\right]_{x} =0
+\]
+
+
+\begin{itemize}
+
+\item \textbf{Example: wave equation}
+\[
+\frac{\pr}{\pr t}
+\left(
+\begin{array}{c}
+r \\
+s
+\end{array}
+\right) +
+\frac{\pr}{\pr x}
+\left(
+\begin{array}{c}
+-\alpha s \\
+-\alpha r
+\end{array}
+\right)=0
+\]
+
+
+\item \textbf{Lax scheme:}
+\[
+{\bf U}_{k,j+1}=\frac{1}{2}\left({\bf U}_{k+1,j}+{\bf U}_{k-1,j}\right) -\frac{\tau}{2h}
+\left[{\bf F}({\bf U}_{k+1,j})-{\bf F}({\bf U}_{k-1,j})\right].
+\]
+This is stable if $\tau < h/\alpha$ and has trunctation error of $O(\tau+h^2)$.
+
+\item \textbf{Leapfrog method:}
+\[
+{\bf U}_{k,j+1}={\bf U}_{k,j-1} -\frac{\tau}{h}
+\left[{\bf F}({\bf U}_{k+1,j})-{\bf F}({\bf U}_{k-1,j})\right].
+\]
+This is stable if $\tau < h/\alpha$ and has trunctation error of $O(\tau^2+h^2)$.
+
+\item \textbf{Two-step Lax-Wendroff scheme:}
+\begin{eqnarray*}
+&&{\bf U}_{k+\frac{1}{2},j+\frac{1}{2}}=\frac{1}{2}\left[{\bf U}_{k+1,j}+{\bf U}_{k,j}\right] -
+\frac{\tau}{2h}\left[{\bf F}({\bf U}_{k+1,j})-{\bf F}({\bf U}_{k,j})\right], \nonumber \\
+&&{\bf U}_{k,j+1}={\bf U}_{k,j}-
+\frac{\tau}{h}\left[{\bf F}({\bf U}_{k+\frac{1}{2},j+\frac{1}{2}})-
+{\bf F}({\bf U}_{k-\frac{1}{2},j+\frac{1}{2}})\right]. \label{p17}
+\end{eqnarray*}
+This is stable if $\tau < h/\alpha$ and has trunctation error of $O(\tau^2+h^2)$.
+
+\end{itemize}
+
+\section*{Elliptic equations}
+
+\begin{itemize}
+
+\item \textbf{Boundary value problem for the Poisson equation:}
+
+Let ${\cal D}$ be any connected  domain in the $x,y$ plane and $S$ its boundary, and $f:{\cal D}\to\mathbb{R}$ a given function.
+
+The Poisson equation:
+\[
+u_{xx}+u_{yy} = f  \quad {\rm for} \quad (x,y)\in{\cal D},
+\]
+Boundary condition:
+\[
+u(x,y) = g(x,y) \quad \hbox{for} \quad (x,y)\in S .
+\]
+
+
+\item {\bf Grid points:}
+On a rectangular domain
+\[
+{\cal D}=\{\, (x,y)\, \vert \,  a<x<b, \ c<y<d \, \}.
+\]
+introduce
+\[
+x_{k}=a+kh_{1} \ \ {\rm for} \ \ k=0,1,\dots,N_{1}, \quad
+y_{j}=c+jh_{2} \ \ {\rm for} \ \ j=0,1,\dots,N_{2},
+\]
+where $h_{1}=(b-a)/N_{1}$ and $h_{2}=(d-c)/N_{2}$.
+
+
+
+
+\item {\bf Finite-difference scheme:}
+\[
+\frac{w_{k+1,j}-2w_{k,j}+w_{k-1,j}}{h_{1}^{2}}+
+\frac{w_{k,j+1}-2w_{k,j}+w_{k,j-1}}{h_{2}^{2}}=f_{kj}
+\]
+for each interior grid point.
+Here $f_{kj}=f(x_{k}, y_{j})$.
+
+{\bf The boundary condition:}
+\begin{eqnarray}
+&&w_{0,j}=g(x_{0}, y_{j}), \quad w_{N_{1},j}=g(x_{N_{1}}, y_{j})
+\quad \hbox{for each} \quad j=1,\dots,N_{2}-1 \nonumber \\
+&&w_{k,0}=g(x_{k}, y_{0}), \quad w_{k,N_{2}}=g(x_{k}, y_{N_{2}})
+\quad \hbox{for each} \quad k=1,2,\dots,N_{1}-1. \nonumber
+\end{eqnarray}
+Generalises to irregularly shaped domains straighforwardly.
+
+
+\item \textbf{Square domain} ($c=a$, $d=b$):
+Let
+\[
+N_{1}=N_{2}\equiv N \quad {\rm and} \quad h_{1}=h_{2}\equiv h
+\]
+Then
+\[
+4w_{k,j}-\left(w_{k+1,j}+w_{k-1,j}+w_{k,j+1}+w_{k,j-1}\right)
+=-h^{2}f_{k,j},
+\]
+for each $k,j=1,2,\dots,N-1$.
+
+\item \textbf{Existence of unique solution.} 
+Maximum principle can be used to show that the only solution to homogeneous equation 
+\[
+4w_{k,j}-\left(w_{k+1,j}+w_{k-1,j}+w_{k,j+1}+w_{k,j-1}\right)
+=0
+\]
+with homogeneous boundary conditions is the trivial solution $w_{jk}=0$ for all $j,k$.
+
+
+\item \textbf{Relaxation methods:}
+Find solution of Poisson equation by evolving heat equation until it is close to
+steady state solution with $u_t=0$.
+
+\item \textbf{Neuman boundary conditions:}
+Consider the Laplace equation
+\[
+u_{xx}+u_{yy} =0  
+\]
+in the unit square ($0<x<1, \ 0<y<1$) with boundary conditions for normal derivative:
+\[
+u_{x}(0,y) =g_{0}(y), \quad u_{x}(1,y) =g_{1}(y), \quad u_{y}(x,0)=h_{0}(x), \quad
+u_{y}(x,1) = h_{1}(x). 
+\]
+Then, in addition to the usual difference equations at interior points, we get the equations
+\begin{eqnarray*}
+&&4w_{0,j}-\left(2w_{1,j}+w_{0,j+1}+w_{0,j-1}\right)
+=-2h g_{0}(y_j), \label{gg104} \\
+&&4w_{N,j}-\left(2w_{N-1,j}+w_{N,j+1}+w_{N,j-1}\right)
+=2h g_{1}(y_j), \label{gg105} \\
+&&4w_{k,0}-\left(w_{k+1,0}+w_{k-1,0}+2w_{k,1}\right)
+=-2h h_{0}(x_k), \label{gg106} \\
+&&4w_{k,N}-\left(w_{k+1,N}+w_{k-1,N}+2w_{k,N-1}\right)
+=2h h_{1}(x_k),
+\end{eqnarray*}
+for $j=1,\dots,N-1$ and $k=1,\dots, N-1$,
+giving us a system of $(N+1)^2-4$ coupled equations.
+
+%\item \textbf{Vector form:}
+%\[
+%{\bf w}=\left[
+%\begin{array}{c}
+%w_{1,1} \\
+%w_{2,1} \\
+%\vdots \\
+%w_{N-1,1} \\
+%w_{1,2} \\
+%w_{2,2} \\
+%\vdots \\
+%w_{N-1,2} \\
+%w_{1,3} \\
+%\vdots \\
+%\vdots \\
+%w_{N-1,N-1}
+%\end{array}\right],
+%\quad {\bf f}=\left[
+%\begin{array}{c}
+%w_{0,1}+w_{1,0}-h^{2}f_{1,1} \\
+%w_{2,0}-h^{2}f_{2,1} \\
+%\vdots \\
+%w_{N-1,0}+w_{N,1}-h^{2}f_{N-1,1} \\
+%w_{0,2}-h^{2}f_{1,2} \\
+%-h^{2}f_{22}\\
+%\vdots \\
+%w_{N,2}-h^{2}f_{N-1,2} \\
+%w_{0,3}-h^{2}f_{1,3} \\
+%\vdots \\
+%\vdots \\
+%w_{N,N-1}+w_{N-1,N}-h^{2}f_{N-1,N-1}
+%\end{array}\right].
+%\]
+%Then we have
+%\[
+%A{\bf w}={\bf f},
+%\]
+%where
+%{\scriptsize
+%\[
+%A=\left[
+%\begin{array}{cccccc}
+%A_{1} &B &0      &\dots  &\dots &0 \\
+%B &A_{1} &B &\ddots  &     &\vdots \\
+%0      &B &A_{1} &B &\ddots &\vdots \\
+%\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+%\vdots &       &\ddots &\ddots &\ddots &B \\
+%0      &\dots  &\dots  &0      &B &A_{1}
+%\end{array}\right],
+%\]
+%}
+%and where $A_{1}$ and $B$ are $(N-1)\times(N-1)$ matrices having the form
+%{\scriptsize
+%\[
+%A_{1}=\left[
+%\begin{array}{cccccc}
+%4 &-1  &0      &\dots  &\dots &0 \\
+%-1 &4  &-1     &\ddots  &     &\vdots \\
+%0  &-1 &4      &-1      &\ddots &\vdots \\
+%\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+%\vdots &       &\ddots &\ddots &\ddots &-1 \\
+%0      &\dots  &\dots  &0      &-1 &4
+%\end{array}\right], \quad
+%B=-I=\left[
+%\begin{array}{cccc}
+%-1  &0      &\dots  &0 \\
+%0   &\ddots  &\ddots  &\vdots \\
+%\vdots  &\ddots  &\ddots  &0 \\
+%0     &\dots &0  &-1
+%\end{array}\right].
+%\]
+%}
+
+
+
+%\item \textbf{Convergence:} If
+%$u\in C^{4}({\cal D})$ (where ${\cal D}=\{(x,y)\, \vert \ 0<x<1, \ 0<y<1 \, \}$)
+%is the exact solution of the boundary-value
+%problem
+%\begin{eqnarray}
+%&&u_{xx}+u_{yy} = f(x,y), \quad 0<x<1, \ \ 0<y<1;    \nonumber  \\
+%&&u(0,y) = u(1,y) = 0, \quad
+%u(x,0) =u(x,1) = 0.   \nonumber
+%\end{eqnarray}
+%and $w_{kj}$ ($k,j=1,2, \dots,N-1$) satisfy
+%\[
+%4w_{k,j}-\left(w_{k+1,j}+w_{k-1,j}+w_{k,j+1}+w_{k,j-1}\right)
+%=-h^{2}f_{k,j},
+%\]
+%for each $k,j=1,2,\dots,N-1$, then
+%\[
+%\left\vert w_{kj}-u(x_{k}, y_{j})\right\vert \leq Ah^{2},
+%\]
+%where $A$ is independent of $h$.
+
+
+
+
+\end{itemize}
+
+
+\end{document}
