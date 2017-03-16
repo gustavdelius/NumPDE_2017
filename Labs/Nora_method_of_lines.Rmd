@@ -1,0 +1,186 @@
+---
+title: "Nora's system solved with the method of lines"
+author: "Gustav Delius"
+output: html_notebook
+---
+
+# The method of lines
+
+The "method of lines" for parabolic equations consists of at first only discretizing the $x$ direction but leaving the time continuous. This converts the PDEs into a system of ODEs. Then one uses a well-established method for the solution of systems of ODEs to get a numerical solution.
+
+The main advantage of this approach is that there are very good packages for solving ODEs that implement powerful methods that would be a lot of work to code from scratch. In this lab we will use the deSolve package in R.
+```{r}
+#install.packages("deSolve")
+library(deSolve)
+library(plot3Drgl)
+```
+
+We perform the discretization in the x direction as usual by choosing a step size $h$ and introducing points $x_k=k h$ for $k=0,\dots, N$.
+```{r}
+h <- 0.05
+N <- 120
+x <- (0:N)*h
+```
+for $k=0,\dots,N$. As discussed in lab 11, the Dirichlet boundary conditions give
+$$
+P_{-1}(t)=P_{1}(t),~~~~
+P_{N+1}(t)=P_{N-1}(t),
+$$
+and similarly for the other functions. However it seems Nora is using slightly different boundary conditions.
+
+We will use the function `ode()` from the deSolve package. This requires us to package the right-hand side of the ODE into a function. That function takes a vector $v=(P_0,P_1,\dots,P_N,Q_0,Q_1,\dots Q_N,\dots)$ and returns a vector of the corresponding time derivatives. We can combine the code from lab 11 with the code written by Nora to define this function:
+
+```{r}
+f <- function(t, y, parms) {
+    N <- length(y)/6-1
+    
+    P <- y[1:(N+1)]
+    Pp <- c(P[2:(N+1)], P[N])       #For P_k+1 entries
+    Pm <- c(P[2], P[1:N])           #For P_k-1 entries
+    
+    Q <- y[(N+2):(2*N+2)]
+    Qp <- c(Q[2:(N+1)], Q[N-1])     #For Q_k+1 entries
+    Qm <- c(Q[2], Q[1:N])           #For Q_k-1 entries
+    
+    A <- y[(2*N+3):(3*N+3)]
+    Ap <- c(A[2:(N+1)], A[N])       #For A_k+1 entries
+    Am <- c(A[2], A[1:N])           #For A_k-1 entries
+    
+    C <- y[(3*N+4):(4*N+4)]
+    Cp <- c(C[2:(N+1)], C[N-1])     #For C_k+1 entries
+    Cm <- c(C[2], C[1:N])           #For C_k-1 entries
+    
+    H <- y[(4*N+5):(5*N+5)]
+    Hp <- c(H[2:(N+1)], H[N])       #For H_k+1 entries
+    Hm <- c(H[2], H[1:N])           #For H_k-1 entries
+    
+    R <- y[(5*N+6):(6*N+6)]
+    Rp <- c(R[2:(N+1)], R[N-1])     #For Q_k+1 entries
+    Rm <- c(R[2], R[1:N])           #For Q_k-1 entries
+    
+    Pn <- (-k/(2*h^2)) * ((Pp+P)*(Cp-C) - (P+Pm)*(C-Cm)) - 
+        (v*A0/(2*h^2)) * ((Pp+P)*(Ap-A) - (P+Pm)*(A-Am)) + 
+        #Alternate way to approximate the d/dx(AP*dA/dx) term
+        #v*((A*P/h^2)*(Ap-2*A+Am) + ((Ap-Am)/2*h)*((A/2*h)*(Pp-Pm) + (P/2*h)*(Ap-Am))) + 
+        (v/(2*h^2)) * ((Ap+A)*(Pp+P)*(Ap-A) - (A+Am)*(P+Pm)*(A-Am)) + 
+        (mu/(h^2)) * (Pp - 2*P + Pm) - 
+        r1*(1+sigma*A)*P - 
+        w1*P + 
+        ff
+    
+    Qn <- r1*(1 + sigma*A)*P - w2*Q - beta*Q*R
+    
+    An <- (b1/(h^2))*(Ap - 2*A + Am) + a1*Q - d1*A
+    
+    Cn <- (b2/(h^2))*(Cp - 2*C + Cm) + a2*r3*H*R - d2*C
+    
+    Hn <- r1*(1 + sigma*A)*P - r4*H*R
+    
+    Rn <- r2*(R0 - R)*R - r3*H*R
+    
+    list(c(Pn, Qn, An, Cn, Hn, Rn))
+}
+```
+The reason we gave the function `f()` the arguments `t` and `parms` even though they are not used is that this is the form that `ode()` expects. This is also the reason why we wrapped the returned vector of time derivatives in a `list()`.
+
+We also need to create a vector of times at which we want `ode()` to return values.
+```{r}
+t <- (0:100)*0.005
+```
+
+We choose parameter values
+```{r}
+#The values on the sides are the original values from the paper
+k <- 10          #10
+mu <- 2         #2
+sigma <- 5      #5
+a1 <- 24        #2400
+d1 <- 20        #500
+b2 <- 50         #50
+R0 <- 1         #1
+r2 <- 0.3       #0.1
+r4 <- 0.2       #0.1
+w2 <- 5         #0
+v <- 50         #50
+A0 <- 1         #1
+gamma <- 0.2    #0.2
+b1 <- 50         #50
+a2 <- 5         #50
+d2 <- 500       #500
+r1 <- 0.513     #0.0513
+r3 <- 10        #25
+w1 <- 4     #0.0103
+beta <- 20      #20
+ff <- 1          #1
+```
+
+and create a vector containing the initial values:
+
+```{r}
+#Initial conditions
+Pn <- 20*(exp(-(x-1)^2) + exp(-(x+1)^2))
+Qn <- 1+0*x
+An <- 0.2*exp(-x^2)
+Cn <- 0.2*exp(-x^2)
+Hn <- 1+0*x
+Rn <- -0.5*exp(-x^2)+1
+
+y0 <- c(Pn, Qn, An, Cn, Hn, Rn)
+```
+
+We can now call the `ode()` function to obtain the solution.
+```{r}
+sol <- ode(y0, t, f, parms=NULL)
+```
+
+We extract the values from the returned array.
+```{r}
+wp <- t(sol[, 2:(N+2)])
+wq <- t(sol[, (N+3):(2*N+3)])
+wa <- t(sol[, (2*N+4):(3*N+4)])
+wc <- t(sol[, (3*N+5):(4*N+5)])
+wh <- t(sol[, (4*N+6):(5*N+6)])
+wr <- t(sol[, (5*N+7):(6*N+7)])
+```
+
+Now we can plot the abundances
+```{r}
+library(plot3Drgl)
+persp3D(x, t, wp, zlab="P",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(x, t, wq, zlab="Q",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(x, t, wa, zlab="A",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(x, t, wc, zlab="C",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(x, t, wh, zlab="H",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(x, t, wr, zlab="R",
+        ticktype="detailed", nticks=4)
+```
+and the profile of all at the final time:
+```{r}
+tn <- 101
+plot(x, wp[,tn]/max(wp[,tn]), type='l', ylab='x', ylim=c(0, 1),
+     main=paste('Time=', t[tn]))
+lines(x, wq[,tn]/max(wq[,tn]), lty='dashed')
+lines(x, wa[,tn]/max(wa[,tn]), lty='dotted')
+lines(x, wc[,tn]/max(wc[,tn]), lty='dotdash')
+lines(x, wh[,tn]/max(wh[,tn]), lty='longdash')
+lines(x, wr[,tn]/max(wr[,tn]), lty='twodash')
+legend('topright',legend=c('P','Q','A','C','H','R'),
+       lty=c('solid','dashed','dotted','dotdash','longdash','twodash'))
+
+```
+
