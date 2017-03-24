@@ -1,0 +1,450 @@
+---
+title: "Mini Project 2"
+author: "Daniel Swift"
+output:
+  html_notebook: 
+    code_folding: none
+    theme: flatly
+  html_document: default
+---
+
+
+## Project Report
+
+### One-Dimensional Time-Dependent Schrödinger Equation
+
+In this project we will numerically approximate the one-dimensional reflection and transmission phenomena described by the time dependent Schrödinger equation with the conditions stated below. To achieve this we will follow Abraham Goldberg, Harry M. Shey, and Judah L. Schwartz's 1967 paper “Computer-Generated Motion Pictures of One-Dimensional Quantum-Mechanical Transmission and Reflection Phenomena, American Journal of Physics 35, no. 3 (March 1, 1967): 177–86". We formulate a problem in terms of a localized wave packet that is moving towards a square well potential or barrier. We will approximate and plot the probability density against space at different time intervals. Using this model we will be able visualise the phenomena known as quantum tunneling. In quantum tunneling particles can move through a classically forbidden region with some probability.
+
+
+
+$$
+-\frac{\hbar^2}{2m} \frac{\partial^2}{\partial x^2} \psi(x,t) + V(x)\psi(x,t) = i\hbar \frac{\partial}{\partial t} \psi(x,t), \quad 0 \leq x \leq L, \quad 0 \leq t \leq T
+$$
+
+$$ 
+\psi(0,t)=0, \quad \psi(L,t)=0, \quad \psi(x,0)=e^{ik_0x
+}e^{-(x-x_0)^2/2\sigma_0^2}.
+$$
+The time-dependent Schrödinger equation describes the evolution of a quantum system where  $\psi(x,t)$ is the wave function and can be written $H\psi(x,t)=i\hbar \frac{\partial}{\partial t} \psi(x,t)$, where $H$ is the Hamiltonian operator which corresponds to the total energy of the system. The initial condition $\psi(x,0)$, is a Gaussian wave packet. $x_0$ must be set to centre the packet far enough from the boundaries and before the potential. $k_0$ is the wave number and $\sigma_0$ can be changed to govern the spread of the wave, a visual representation of this can be found in the latter sections when we write an R function for the wave packet. 
+
+The boundary conditions $\psi(0,t)=0$ and $\psi(L,t)=0$ are necessary to find starting values for the recursions in our method. These conditions can be thought of as the system being in a (one-dimensional) "box", and we require that the wave-function must vanish on the walls, or in our case the end points of this box. In our model $V(x)$ will be a square well potential or square barrier potential.  Lastly, $\hbar$ is the reduced Planck's constant, i.e $\hbar = h / 2\pi$, where $h$ is Planck's constant. From here we will use $h$ as defined in the lecture notes.
+
+Following the paper we will set $m=\frac{1}{2}$ and $\hbar=1$. Then we can write $$H \psi(x,t) = - \left( \frac{\partial^2 }{\partial x^2} - V(x)\right) \psi(x,t) = i \frac{\partial\psi(x,t)}{\partial t}.$$ 
+
+## Deriving a Numerical Method
+
+We will briefly review the derivation of this method. We begin by calculating the Taylor series.
+
+$$\psi_{k+1,j} = \psi_{k,j} + h \frac{\partial}{\partial x} \psi_{k,j} + \frac{1}{2} h^2 \frac{\partial^2 }{\partial x^2} \psi_{k,j} + \frac{1}{6} h^3 \frac{\partial^3 }{\partial x^3} \psi_{k,j} + \mathcal{O}(h^4)$$
+
+$$\psi_{k-1,j} = \psi_{k,j} - h \frac{\partial}{\partial x} \psi_{k,j} + \frac{1}{2} h^2 \frac{\partial^2 }{\partial x^2} \psi_{k,j} - \frac{1}{6} h^3 \frac{\partial^3 }{\partial x^3} \psi_{k,j} + \mathcal{O}(h^4)$$
+Adding these equations yields $$\psi_{k+1,j} + \psi_{k-1,j} = 2(\psi_{k,j} + \frac{1}{2} h^2 \frac{\partial^2 }{\partial x^2} \psi_{k,j} + \mathcal{O}(h^4).$$
+Rearranging for $\frac{\partial^2 }{\partial x^2} \psi_{k,j}$ yields
+$$\frac{\partial^2 }{\partial x^2} \psi_{k,j} = \frac{1}{h^2}(\psi_{k+1,j} -2\psi_{k,j} + \psi_{k-1,j}  + \mathcal{O}(h^4)),$$
+which we will use to approximate $\frac{\partial^2 }{\partial x^2} \psi_{k,j}$.
+
+
+We can write $\psi_{k,j+1}= e^{- i \tau H} \psi_{k,j}$ and it would seem like a good idea to approximate this to first order using the Taylor series $\psi_{k,j+1} = ( \mathcal{I} - i \tau H ) \psi_{k,j}$, where $\mathcal{I}$ is the identity operator and hence  $\psi_{k,j+1} = \psi_{k,j} - i \tau H \psi_{k,j}$. The authors of the paper note that using this approximation "mutilates" the time-development operators $e^{\pm i \tau H}$, Cayley form is used instead to provide a simple unitary approximation to $e^{- i \tau H}$. Using Cayley form  $$e^{-i \tau H} \approx \frac{ \mathcal{I} - \frac{1}{2} i \tau H}{ \mathcal{I} + \frac{1}{2} i \tau H} $$ and
+$$ 
+\psi_{k,j+1} = \frac{ \mathcal{I} - \frac{1}{2} i \tau H}{ \mathcal{I} + \frac{1}{2} i \tau H} \psi_{k,j}, \quad ( \mathcal{I} + \frac{1}{2} i \tau H)  \psi_{k,j+1} = ( \mathcal{I} - \frac{1}{2} i \tau H)\psi_{k,j}.
+$$
+
+We can evaluate $H \psi_{k,j}$ and $H \psi_{k,j+1}$, as follows 
+
+$$ H \psi_{k,j} = - \left( \frac{\partial^2 }{\partial x^2} - V(x_k)\right) \psi_{k,j} =  -\frac{1}{h^2}(\psi_{k+1,j} -2\psi_{k,j} + \psi_{k-1,j} ) + V(x_k) \psi_{k,j}. $$
+
+Which yields
+
+$$\psi_{k+1,j+1} + (i \lambda - h^2 V_k - 2)\psi_{k,j+1} + \psi_{k-1,j+1} = -\psi_{k+1,j} + (i \lambda + h^2 V_{k,j} + 2)\psi_{k,j} - \psi_{k-1,j}, \quad \lambda = 2h^2/\tau.$$ 
+The authors note  this is stable and implicit abd go on to explain a complex method of solving this recursion relation, we can see that this is of the form $$A w^{j+1} = B w^{j}$$ and use the Crank Nicolson method with the double-sweep algorithm.
+
+By comparing the equation $A w^{j+1} = B w^{j}$ with the difference equation we can write $A$ and $B$ as follows. Note that the diagonal elements are dependent on the potential.
+$$
+A=\left[
+\begin{array}{cccccc}
+i\lambda-h^2V_{1}-2 &1 &0      &\dots  &\dots &0 \\
+1 &i\lambda-h^2V_{2}-2 &\ddots  &     &\vdots \\
+0      &1 &i\lambda-h^2V_{3}-2&1 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &1 \\
+0      &\dots  &\dots  &0      &1 &i\lambda-h^2V_{N-1}-2
+\end{array}\right], \quad
+{\bf w}^{(j+1)}
+=\left[\begin{array}{c}
+w_{1,j+1} \\ w_{2,j+1} \\ \vdots \\ \vdots \\ \vdots \\ w_{N-1,j+1}
+\end{array}\right]
+$$
+$$
+B=\left[
+\begin{array}{cccccc}
+i\lambda+h^2V_{1}+2 &-1 &0      &\dots  &\dots &0 \\
+-1 &i\lambda+h^2V_{2}+2 &\ddots  &     &\vdots \\
+0      &-1 &i\lambda+h^2V_{3}+2&-1 &\ddots &\vdots \\
+\vdots &\ddots &\ddots &\ddots &\ddots &0 \\
+\vdots &       &\ddots &\ddots &\ddots &-1 \\
+0      &\dots  &\dots  &0      &-1 &i\lambda+h^2V_{N-1}+2
+\end{array}\right], \quad
+{\bf w}^{(j)}
+=\left[\begin{array}{c}
+w_{1,j} \\ w_{2,j} \\ \vdots \\ \vdots \\ \vdots \\ w_{N-1,j}
+\end{array}\right]
+$$
+
+## Implementing the Method
+
+### Square Potential Function
+```{r}
+potential <- function(x,s,start,end) { # evaluates elements of vector x 
+  V_k <- x # the potential is equal to s for all x such that start < x < end and 0 elsewhere
+  for (k in 1:(length(x))) {
+    if ((V_k[k] >= start) && (V_k[k] <= end)) { # && is boolean "AND"
+      V_k[k] <- s
+    } else
+      V_k[k] <- 0
+  }
+  return(V_k)
+}
+```
+
+### Example Potential
+Consider the square well potential 
+\begin{equation}
+V(x) = \begin{cases}
+    -5,& \text{if } 0.4 \leq x \leq 0.6 \\
+    0,              & \text{otherwise}.
+\end{cases}
+\end{equation}
+which we will approximate using our potential function. Notice that for a smaller step size or equivalently more steps for a given fixed interval our square potential function becomes more accurate. We will be working with spatial step sizes of $10^{-3}$ or smaller.
+
+```{r}
+test_step_size <- 0.05
+steps1 <- test_step_size * 0:20
+
+test_step_size1 <- 0.04
+steps2 <- test_step_size1 * 0:25
+
+test_step_size2 <- 0.001
+steps3 <- test_step_size2 * 0:1000
+
+par(mfrow=c(1,3)) # Plot 3 graphs in a row
+plot(steps1, potential(steps1,-1,.4,.6), type = "l", xlab="x", ylab="V(x)", main = "0.05 Step Size") 
+plot(steps2, potential(steps2,-1,.4,.6), type = "l", xlab="x", ylab="V(x)", main = "0.04 Step Size")
+plot(steps3, potential(steps3,-1,.4,.6), type = "l", xlab="x", ylab="V(x)", main = "0.001 Step Size")
+```
+
+
+
+### Evaluating Diagonal Elements of $A$ and $B$
+
+Recall from the diagonal elements of $A$ and $B$ that we will need to define an imaginary number to use later on.
+
+```{r}
+i <- complex(real = 0, imaginary = 1)
+```
+We will now create the functions to evaluate the diagonal elements of the matrices $A$ and $B$. The A_diag_k and B_diag_k functions create vectors holding the diagonal values. These vectors will be used to populate the $A$ and $B$ matrices in a for loop within the CrankNicolson function.
+
+```{r}
+A_diag_k <- function(k,lambda,h,pot) { # calculates diagonal elements of matrix A
+  (i*lambda-h^2*pot[k]-2)
+}
+```
+
+```{r}
+B_diag_k <- function(k,lambda,h,pot) {
+  (i*lambda+h^2*pot[k]+2)
+}
+```
+
+
+
+### Double-sweep Algorithm
+
+Below is the familiar double-sweep method from previous R Lab exercises which will use in the Crank Nicolson method. First, recall that the recursive formulas are
+$$
+\alpha_{i+1}=\frac{B_i}{C_i-\alpha_iA_i}, \quad \beta_{i+1}=\frac{B_i}{C_i-\alpha_iA_i}, \quad \text{for } i=1,...N-1
+$$
+and that 
+$$
+v_{i-1}=\alpha_{i}v_{i} + \beta_i, \quad \text{for } i=1,2,...N.
+$$
+We can set  $\alpha_{1}$ and $\beta_{1}$ to satisfy the boundary conditions $v_0=a$ and $v_N=b$. For example $\alpha_1 = 0, \beta_{_1}=A$. The boundary condition $v_N=B$ is automatically satisfied by the recursive formula. However, in our case we are working with the boundary conditions $\psi(0,t)=0$ and $\psi(L,t)=0$ or $v_0=0$ and $v_N=0$ which in the input of our double-sweep function is the same as $a=b=0$.
+
+```{r}
+doublesweep <- function(A, B, C, F, a, b) {
+    # Solves the equation 
+    # A[i]*v[i-1] - C[i]*v[i] + B[i]*v[i+1] = F[i]
+    # for v[i], i = 1,...,N-1, with boundary conditions
+    # v[0]=a and v[N]=b
+    
+    # Check the lengths of the vectors
+    N <- length(C) + 1
+    if ((length(B) != N-1) || (length(A) != N-1) || (length(F) != N-1)) {
+        stop("The lengths of the vector arguments need to be equal")
+    }
+
+    alpha <- rep(0, N)
+    beta <- rep(0, N)
+    beta[1] <- a
+    
+    #sweep up to get alphas and betas
+    for (i in 1:(N-1)) {
+        alpha[i+1] <- B[i] / (C[i]-alpha[i]*A[i])
+        beta[i+1] <- (beta[i]*A[i] - F[i]) / (C[i] - alpha[i]*A[i])
+    }
+    
+    v <- rep(0, N-1 )
+    v[N-1] <- alpha[N]*b + beta[N]
+    
+    #sweep down to find v's
+    for (i in (N-1):2) {
+        v[i-1] <- alpha[i]*v[i] + beta[i]    
+    }
+    
+    return(v)
+}
+```
+
+### Gaussian Wave Packet
+
+Recall that our initial condition is $\psi(x,0)=e^{ik_0x}e^{-(x-x_0)^2/2\sigma_0^2}$. 
+
+```{r}
+gwavepacket <- function(x,k_0,x_0,sigma_0) {
+  exp(i*k_0*x)*exp(-(x-x_0)^2/(2*sigma_0^2))
+}
+```
+
+As mentioned in the introduction we will demonstrate what happens when $x_0$ and $\sigma_0$ are changed. Here we can see that changes to $x_0$ affect the position of the wave packet and changes to $\sigma_0$ affect the spread of the packet.
+```{r}
+par(mfrow=c(1,3)) # Plot 3 graphs in a row
+plot(steps3, Re(gwavepacket(steps3,pi/20,1/4,0.05)), type = "l", ylab="y", xlab="x", main="Reference")
+plot(steps3, Re(gwavepacket(steps3,pi/10,0.8,0.05)), type = "l", ylab="y", xlab="x", main="x_0 = 0.8")
+plot(steps3, Re(gwavepacket(steps3,pi/20,1/4,.1)), type = "l", ylab="y", xlab="x", main="sigma_0 = 0.1")
+```
+
+### Crank Nicolson
+
+We will now implement these functions along with the double-sweep method into the CrankNicolson method.
+```{r}
+CrankNicolson <- function(L=1, N=1000, T=2000, M=998, k_0=pi/20, x_0=1/4, sigma_0=0.05,s,start,end) {
+  
+    # set up space grid
+    h <- L/N
+    x <- h*(1:(N-1))
+    
+    # set up time grid
+    tau <- T/M
+    t <- tau*(0:M)
+    
+    # constants
+    lambda <- (2^h^2)/tau
+    i <- complex(real = 0, imaginary = 1)
+    
+    # set up vector for psi(x,0)
+    w <- gwavepacket(x,k_0,x_0,sigma_0)
+
+    # set up vector containing V(x) values for each spatial step
+    pot <- potential(x,s,start,end)
+    
+    # Create A_vec which has dependence on pot[k] for use in the doublesweep script
+    A_vec <- rep(0,N-1)
+    for (k in 1:(N-1)) {
+    A_vec[k] <- A_diag_k(k,lambda,h,pot)
+    }
+    
+    # Crank-Nicolson needs a matrix B. 
+    # Note diagonals are generated individually using the B_diag_k function.
+    B <- diag(0, N-1) 
+    for (k in 1:(N-2)){
+        B[k,k] <- B_diag_k(k,lambda,h,pot)
+        B[k,k+1] <- -1
+        B[k+1,k] <- -1
+    }
+    
+    ans <- matrix(0, N-1, M+1)  # Matrix to hold the solution
+    ans[ , 1] <- w  # Initial value
+    # Loop over time steps
+    for (j in 1:M) {
+        w <- doublesweep(rep(-1, N-1), rep(-1, N-1), 
+                         A_vec , -B%*%w, 0, 0) # Note that the doublesweep function is now uses A_vec
+        ans[ , j+1] <- w
+    }
+    
+    # Return a list consisting of time grid, x grid and solution
+    return(list(x=x, t=t, w=ans, s=s, B=B))
+}
+```
+
+Using our solutions we will create graphs to compare against the original paper. Note that only some of the parameters were given in the reference paper and therefore some guessing was involved to create graphs similar to the original ones. For example the total time interval and amount of time steps is not stated in the reference paper.
+
+
+
+```{r}
+# Solutions for square well potential
+fig1 <- CrankNicolson(L=1, N=1000, T=1000, M=200, k_0=50*pi, x_0=0.25, 
+                      sigma_0=0.05,s=-2*(50*pi)^2,start=.468,end=0.532)
+
+fig2 <- CrankNicolson(L=1, N=1414, T=1000, M=500, k_0=70.7*pi, x_0=0.25, 
+                      sigma_0=0.05,s=-2*(50*pi)^2,start=.468,end=0.532)
+
+fig3 <- CrankNicolson(L=1, N=1600, T=1600, M=600, k_0=100*pi, x_0=0.25, 
+                      sigma_0=0.05,s=-2*(50*pi)^2,start=0.468,end=0.532)
+
+# Solutions to square barrier potential
+fig4 <- CrankNicolson(L=1, N=1000, T=1000, M=200, k_0=50*pi, x_0=0.25, 
+                      sigma_0=0.05,s=2*(50*pi)^2,start=.468,end=0.532)
+
+fig5 <- CrankNicolson(L=1, N=1414, T=1000, M=500, k_0=70.7*pi, x_0=0.25, 
+                      sigma_0=0.05,s=2*(50*pi)^2,start=.468,end=0.532)
+
+fig6 <- CrankNicolson(L=1, N=1600, T=1600, M=600, k_0=100*pi, x_0=0.25, 
+                      sigma_0=0.05,s=2*(50*pi)^2,start=0.468,end=0.532)
+
+weaknessexample1 <- CrankNicolson(L=1, N=1000, T=2000, M=200, k_0=50*pi, x_0=0.25, 
+                      sigma_0=0.05,s=-2*(50*pi)^2,start=.468,end=0.532)
+
+weaknessexample2 <- CrankNicolson(L=1, N=1000, T=2000, M=200, k_0=50*pi, x_0=0.05, 
+                      sigma_0=0.05,s=-2*(50*pi)^2,start=.468,end=0.532)
+```
+
+
+
+#### 5.0 Comparing with the Reference Paper
+In this section we will be plotting the density probability ($|\psi(x,t)|^2$) against $x$, the time $t$ in arbitrary units will be indicated in the title. We are also plotting a potential for visual purposes only so that we can see when the wave packet interacts with the potential, note that the potential is not to scale and of different units. Similar to the original paper we have not normalised the wave function and therefore the y axis is not scaled correctly.
+
+#### Figure 1
+
+```{r}
+par(mfrow=c(3,3)) # Combine 9 plots into one overall figure
+# Set sol to what we want to plot which saves us replacing plot(sol$x,...) each time.
+sol <- fig1 
+# Loop to create 9 graphs
+for (i in 1:9) {  
+  plot(sol$x, (sol$w[,i*15]*Conj(sol$w[,i*15])), # Take the 15*i-th column
+       # Graph labels and colour
+       type = "l", xlab="x", ylab="Probability Density", col="blue", 
+       # Custom title for each graph. Paste concatenates strings together.
+       main=paste("Time = ", 15*i, "tau", sep=" "), 
+       ylim=c(-0.3, 1)) # set y axis
+  # Plot a red potential (not to scale)
+  lines(sol$x, potential(sol$x,-0.3,0.468,0.532), type = "l", col="red") 
+}
+```
+<center>![Figure 2](Figures/Figure 1.jpg)</center>
+
+#### Figure 2
+
+```{r}
+par(mfrow=c(3,3))
+sol <- fig2 
+for (i in 1:9) {
+  plot(sol$x, sol$w[,i*50]*Conj(sol$w[,i*50]),
+       type = "l", xlab="x", ylab="Probability Density", col="blue",
+       main=paste("Time = ", 50*i, "tau", sep=" "), ylim=c(-0.3,1))
+  lines(sol$x, potential(sol$x,-0.3,0.468,0.532), type = "l", col="red")
+}
+```
+<center>![Figure 2](Figures/Figure 2.jpg)</center>
+
+#### Figure 3
+
+
+```{r}
+par(mfrow=c(3,3))
+sol <- fig3
+for (i in 1:9) { 
+  plot(sol$x, sol$w[,i*50]*Conj(sol$w[,i*50]),
+       type = "l", xlab="x", ylab="Probability Density", col="blue",
+       main=paste("Time = ", 50*i, "tau", sep=" "), ylim=c(-0.3,1))
+  lines(sol$x, potential(sol$x,-0.5,0.468,0.532), type = "l", col="red")
+}
+```
+<center>![Figure 3](Figures/Figure 3.jpg)</center>
+
+#### Figure 4
+
+```{r}
+par(mfrow=c(3,3)) 
+sol <- fig4
+for (i in 1:9) {  
+  plot(sol$x, sol$w[,i*15]*Conj(sol$w[,i*15]), 
+       type = "l", xlab="x", ylab="Probability Density", col="blue", 
+       main=paste("Time = ", 15*i, "tau", sep=" "), ylim=c(0,3)) 
+  lines(sol$x, potential(sol$x,1,0.468,0.532), type = "l", col="red") 
+}
+```
+
+<center>![Figure 4](Figures/Figure 4.jpg)</center>
+
+
+#### Figure 5
+
+```{r}
+par(mfrow=c(3,3))
+sol <- fig5
+for (i in 1:9) {
+  plot(sol$x, (sol$w[,i*50]*Conj(sol$w[,i*50])), 
+       type = "l", xlab="x", ylab="Probability Density", col="blue",
+       main=paste("Time = ", 50*i, "tau", sep=" "), ylim=c(0,2))
+  lines(sol$x, potential(sol$x,1,0.468,0.532), type = "l", col="red")
+}
+```
+<center>![Figure 5](Figures/Figure 5.jpg)</center>
+
+#### Figure 6
+
+```{r}
+par(mfrow=c(3,3))
+sol <- fig6 
+for (i in 1:9) {
+  plot(sol$x, sol$w[,i*40]*Conj(sol$w[,i*40]),
+       type = "l", xlab="x", ylab="Probability Density", col="blue",
+       main=paste("Time = ", 40*i, "tau", sep=" "))
+  lines(sol$x, potential(sol$x,1,0.468,0.532), type = "l", col="red")
+}
+```
+
+<center>![Figure 6](Figures/Figure 6.jpg)</center>
+
+From these comparisons we can see that we have successfully reproduced the method described by Abraham Goldberg, Harry M. Shey, and Judah L. Schwartz's 1967 paper.
+
+## Weaknesses
+
+The authors state in their paper that "The reader will note occasional breaks or discontinuities at various points in some of these pictures. This effect is due to an evidently inherent malfunction of the equipment involved in rendering the machine calculations into graphical form." We have written this report 50 years since its initial publication, in those 50 years computers have advanced significantly so this may be an artifact of the method or as the authors stated, how computers render graphics. It is also noted that the method is stable without proof. Although not discussed in the lecture notes another method for solving this equation is the Numerov method which involves rewriting the Schödinger equation in the form $\frac{d^2 y}{dx^2}y = -g(x)y(x)+s(x)$ and (in some cases) involves calculating the Taylor series to 6th order.
+
+One caveat of this method is that there are a number of constraints that must be applied in the model which limits the model to very specific applications. The derivation and discussion of the 6 constraints are out of the scope of this report. For example the Gaussian wave packet must be chosen to satisfy the boundary condition to some acceptable margin. When $\sigma=0.05, x_0 = 0.25$ we have that  $|\psi(0,0)| = e^{-12.5} < 4x10^{-6}$ and clearly $|\psi(L,0)|  <  |\psi(0,0)|$ whereas the analytic solution would satisfy the boundary conditions. The wave packet must not hit the boundary conditions, therefore the average velocity of the wave packet must be considered, the authors state that $ v_0 = 2 k_0 \approx L/2T $ is a good estimate.
+
+Below is fig1 with double the time interval, here we can see how the wave interacts with the boundary.
+
+```{r}
+par(mfrow=c(3,3))
+sol <- weaknessexample1
+for (i in 1:9) {
+  plot(sol$x, (sol$w[,i*20]*Conj(sol$w[,i*20])),
+       type = "l", xlab="x", ylab="Probability Density", col="blue",
+       main=paste("Time = ", 20*i, "tau", sep=" "), 
+       ylim=c(-0.3, 1)) # set y axis
+  lines(sol$x, potential(sol$x,-0.3,0.468,0.532), type = "l", col="red") 
+}
+```
+
+Below we have centred the wave packet closer to the boundary.
+
+```{r}
+par(mfrow=c(3,3))
+sol <- weaknessexample2
+for (i in 1:9) {
+  plot(sol$x, (sol$w[,i*20]*Conj(sol$w[,i*20])),
+       type = "l", xlab="x", ylab="Probability Density", col="blue",
+       main=paste("Time = ", 20*i, "tau", sep=" "), 
+       ylim=c(-0.3, 1)) # set y axis
+  lines(sol$x, potential(sol$x,-0.3,0.468,0.532), type = "l", col="red") 
+}
+```
+
+The authors mention that the only error associated with the probability density is a relative phase error which is introduced at each node of the system,  this can be minimized by requiring that $(N \tau^2 /12)(k_m^6-k_0^6) \ll 1$. 
+Where $ k_m < k_max $ for the probability distribution of the Gaussian wave packet in momentum space. 
+
+Improvements have been made to reduce phase error in models of the Schrödinger equation for example the following paper: "Simos, T. E. "An extended Numerov-type method for the numerical solution of the Schrödinger equation." Computers & Mathematics with Applications 33, no. 10 (1997): 67-78." which as the name suggests utilises the Numerov method.
+
+To summarise this report we have described the PDE along with its boundary conditions, explained the meaning of the variables. We then defined a numerical method to solve the PDE and implemented the method. Lastly, we compared our solutions with the original paper to check we implemented the method correctly and considered the potential weaknesses and improvements to the method.

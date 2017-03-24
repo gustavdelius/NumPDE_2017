@@ -1,0 +1,1318 @@
+---
+title: "Mini-Project 2"
+author: "Brennen Fagan"
+date: "March 19, 2017"
+output:
+  html_notebook: default
+  html_document: default
+header-includes: \usepackage{amsmath}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this Mini-Project, we present the following equation and conditions, as well as attempt to recreate the figures shown in the original paper "Boltzmann and Fokker-Planck equations modelling opinion formation in the presence of strong leaders" by Bertram Düring, Peter Markowich, Jan-Frederik Pietschmann, and Marie-Therese Wolfram. We focus specifically on Figure 3.
+
+![Figure 3 from "Boltzmann and Fokker-Planck equations modelling opinion formation in the presence of strong leaders". In order, a) is the distribution of opinion followers, b) is the distribution of opinion leaders, c) and d) are the steady state distributions of the same. The shaded regions arose due in Monte-Carlo Simulation.](F3.large.jpg)
+
+## The Equation
+
+After modifications to approach steady state, the authors arrived at the system
+
+$$
+w \in [-1,1]
+$$
+$$
+\partial_{\tau} g_{1}= \partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t)) + (\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}) \partial^2_{ww} (D^2_1 (w) g_1 (w,\tau) )
+$$
+
+$$
+\partial_{\tau} g_{2}= \partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t)) + \frac{\lambda_{2,2} M_2}{2 \tau_{2,2}} \partial^2_{ww} (D^2_2 (w) g_2 (w,\tau) )
+$$
+
+where $M_i = \int g_i dv$. This system is a Fokker-Planck system in which there are two simultaneously interacting populations. The first population, described by $g_1$, represents opinion followers, whose interactions influence each other. The second population, described by $g_2$, represents opinion leaders, whose interactions influence both each other and the followers. The above system uses the distribution functions $g_1, g_2$ over the space of possible opinions $w$ to track the evolution of the distributions of followers and leaders near the steady-state. Time is described by the variable $\tau$. The interactions between the populations are described by the functions $\mathcal{K}, D_1,$ and $D_2$. The first of these is the drift operator caused by interactions between the differing opinions of the population and is a function of the ability to reach compromise, itself described as the function $P$ below.
+$$
+\mathcal{K}_i = \int_\mathcal{I}P_i(|w-v|)(w-v)g_i(v,\tau)dv \text{ for } i = 1,2
+$$
+$$
+\mathcal{K}_3 = \int_\mathcal{I}P_3(|w-v|)(w-v)g_2(v,\tau)dv.
+$$
+The latter two are the diffusion functions, representing the self interactions within the population.
+
+The boundary conditions are given as:
+
+$$
+(\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t) + (\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}) \partial_{w} (D^2_1 (w) g_1 (w,\tau) ) = 0 \text{ for } w = \pm 1
+$$
+$$
+\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t)+ \frac{\lambda_{2,2} M_2}{2 \tau_{2,2}} \partial_{w} (D^2_2 (w) g_2 (w,\tau) )= 0 \text{ for } w = \pm 1
+$$
+$$
+D^2_1 (w) g_1 (w, \tau) = D^2_2 (w) g_2 (w, \tau) = 0 \text{ for } w = \pm 1.
+$$
+
+These boundary conditions are derived originally by integration by parts and are chosen so as to allow no flux. As such, note that $w = \pm 1 \implies \partial_\tau g_1 = 0 = \partial_\tau g_2$ by the first two boundary conditions.
+
+
+## Preparing for the problem
+
+We gather the simplifying assumptions from the original paper, especially from section 4:
+
+$$
+D_1(w) = D_2(w) = D(w):=(1-w^2)^\alpha, \text{ where } \alpha > \frac{1}{2} 
+$$
+$$
+P_i(|v-w|) = \mathbf{1}_{|v-w| \leq r_i} \text{ for } i \in \{1,2,3\}
+$$
+$$
+\tau_{1,1} = \tau_{1,2} = \tau_{2,2} = 1 
+$$
+$$
+M_1 = 0.95, M_2 = 0.05 
+$$
+$$
+\lambda_{1,1} = \lambda_{1,2} = \lambda_{2,2} = \lambda := 5 \times 10^{-3}
+$$
+$$
+\alpha = 2
+$$
+
+Note specifically for the function $D$ that we have trivially satisfied our last boundary condition. We convert these to R code now.
+
+```{r}
+D <- function(w, alpha = 2){
+  return ((1-w^2)^alpha)
+}
+D -> D1 -> D2
+
+P <- function(v, w, r){
+  return(ifelse(abs(v-w) <= r,1,0))
+}
+
+tau_1_1 = 1
+tau_1_2 = 1
+tau_2_2 = 1
+
+M_1 = 0.95
+M_2 = 0.05
+M <- function(omega,g){
+  N = length(g)-1
+  #Trapezoidal Rule
+  return(sum(omega*(g[1:N] + g[2:(N+1)])/2))
+}
+
+lambda = 5*10^-3
+lambda -> lambda_1_1 -> lambda_1_2 -> lambda_2_2
+```
+
+Next, we consider the initial distributions of followers and leaders. These are given as follows.
+
+$$
+g_1(w,0) = \frac{1}{\sqrt{2\pi}\sigma_1}\text{e}^{-(w-\sigma_1)^2/2}
+$$
+$$
+\text{ where } \sigma_1 = 0.4
+$$
+$$
+g_2(w,0) = \sum_{i=1}^n \frac{q_i}{\sqrt{2\pi}\sigma_i}\text{e}^{-(w-\sigma_i)^2/2}
+$$
+$$
+\text{ where } \sum_{i=1}^n q_i = 1.
+$$
+
+Less formally, we assume a static initial Gaussian for followers, while the initial distribution of opinion leaders is a linear combination of Gaussian that will change with the problem examined. In terms of R code, we represent these initial conditions as follows.
+
+```{r}
+gaussianEQN <- function(w, sigma, mu){
+  return(((((2*pi)^.5)*sigma)^-1)*exp((-(w-mu)^2)/(2*sigma)))
+}
+
+theirGaussian <- function(w, sigma){
+  return(((((2*pi)^.5)*sigma)^-1)*exp((-(w-sigma)^2)/(2)))
+}
+
+g1_w_0 <- function(w){
+  return(gaussianEQN(w, 0.05, 0))
+}
+g2_w_0 <- function(w,qs,sigmas, mus){
+  #We assume qs, mus, and sigmas are vectors of the same length
+  Aggregate = 0*w
+  for (i in 1:length(qs)){
+    Aggregate = Aggregate + qs[i]*gaussianEQN(w,sigmas[i], mus[i])
+  }
+  return(Aggregate)
+}
+```
+
+Notice that we choose, for example, $g_1(w,0) = \frac{1}{\sqrt{2\pi}\sigma_1}\text{e}^{-(w-w_1)^2/(2\sigma_1)}$. We suspect that the original paper has an error at this point. This is easily shown by the distributions of mass of the suggested curve versus the curves we have implemented.
+```{r}
+seq(-1,1, by = .01) -> x
+plot(x, g1_w_0(x), xlab = "Opinion", ylab = "Mass of Followers", col = 1)
+points(x, theirGaussian(x,0.4), col = 2)
+legend("topleft", c("Gaussian with appropriate mass", "Gaussian suggested in paper"), col = c("black","red"), pch=c(1,1))
+```
+As our example demonstrates, the Gaussian suggested in the paper does not have mass that approaches zero near $-1$ and $1$, but instead remains quite high, in addition to being shifted so as to not be symmetric about $w=0$ as expected.
+
+## Construction of the Algorithm
+
+We will start handling the problem by deciding on a forward difference method. A quick remark; as noted in section 2.8, it is possible that the stability will depend not just on our step sizes, but also on the equation itself. We thus will need to be careful in our selection of our step sizes when using the algorithm. 
+As such we will construct our grid. We take $N, Q \in \mathbb{N}$ and take $\omega = \frac{1-(-1)}{N}, \iota = \frac{T}{Q}$, where $T$ is the total time that the system is run for. We thus will define our grid points as $x_k = -1+\omega k$, $t_j = \iota j$ for $k = 0,\ldots,N, j = 0,\ldots, Q$. As such, we will write our approximations to $g_i(x_k, t_j)$ as $\gamma_{i,k,j}$.
+
+Now we can construct a strategy to start handling portions of the problem at hand. We start by attempting to handle the evaluation of the drift operators. We reproduce them here for reader convenience.
+
+$$
+\mathcal{K}_i = \int_\mathcal{I}P_i(|w-v|)(w-v)g_i(v,\tau)dv \text{ for } i = 1,2
+$$
+$$
+\mathcal{K}_3 = \int_\mathcal{I}P_3(|w-v|)(w-v)g_2(v,\tau)dv.
+$$
+
+Since we are working with a forward difference method, we will evaluate these for the previous time step's $g_i$ using a naive trapezoidal method for approximation of the integral.
+```{r}
+K <- function(w,P,g,xgrid){
+  #Naive Trapezoidal
+  N = length(g)
+  return(
+    (2/N)*sum(
+          ((w-xgrid[1:(N-1)])*(P(xgrid[1:(N-1)],w))*g[1:(N-1)])
+          +((w-xgrid[2:(N)])*(P(xgrid[2:(N)],w))*g[2:(N)])
+      )/2
+    )
+}
+```
+
+Clearly, $\partial_\tau g_i$ can be approximated by the forward difference step as usual.
+$$
+\partial_t g_i(x_k, t_j) \approx \frac{g_i(x_k, t_j+\iota)-g_i(x_k, t_j)}{\iota} \implies \frac{\gamma_{i,k,j+1}-\gamma_{i,k,j}}{\iota} 
+$$
+
+Next, we shall handle the term $\partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t))$. Then we will extend the treatment given here to cover the term $\partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t))$. Given that $\tau_{1,1}$ is constant, we need only consider the functions.
+
+$$
+\begin{align}
+\partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t)) &= \frac{1}{\tau_{2,2}}\partial_{w}( \mathcal{K}_2 (w,\tau) g_2(w,t))\\
+&=\frac{1}{\tau_{2,2}}( \partial_{w}(\mathcal{K}_2 (w,\tau)) g_2(w,t))+\mathcal{K}_2 (w,\tau) \partial_{w}(g_2(w,t)))\\
+&\implies \frac{1}{\tau_{2,2}}( \frac{\mathcal{K}_2(x_k+\omega,t_j)-\mathcal{K}_2(x_k,t_j)}{\omega}\gamma_{2,k,j} + \mathcal{K}_2(x_k,t_j)\frac{\gamma_{2,k+1,j}-\gamma_{2,k,j}}{\omega})\\
+&=\frac{1}{\omega \tau_{2,2}}( \mathcal{K}_2(x_k+\omega,t_j)\gamma_{2,k,j}+ \mathcal{K}_2(x_k,t_j)\gamma_{2,k+1,j} - 2 \mathcal{K}_2(x_k,t_j)\gamma_{2,k,j})
+\end{align}
+$$
+
+Our extension behaves similarly.
+
+$$
+\begin{align}
+\partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t)) 
+&= 
+\partial_{w}(\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau)g_1(w,t)) + \partial_{w}(\frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau)g_1(w,t)) \\
+\implies& \frac{1}{\omega \tau_{1,1}}( \mathcal{K}_1(x_k+\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_1(x_k,t_j)\gamma_{1,k+1,j} - 2 \mathcal{K}_1(x_k,t_j)\gamma_{1,k,j}) \\
+&+ \frac{1}{2 \omega \tau_{1,2}}( \mathcal{K}_3(x_k+\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_3(x_k,t_j)\gamma_{1,k+1,j} - 2 \mathcal{K}_3(x_k,t_j)\gamma_{1,k,j})
+\end{align}
+$$
+
+Finally, we consider the term $\partial^2_{ww} (D^2_i (w) g_i (w,\tau) )$ via central difference formula. Recall that $D_i(w) = (1-w^2)^2$.
+
+$$
+\begin{align}
+\partial^2_{ww} (D^2_i (w) g_i (w,\tau) ) &= \partial^2_{ww}(((1-w^2)^2)^2 g_i (w,\tau))\\
+&= (1-w^2)^2 (48w^2 g_i(w, \tau) - 8 (1-w^2) g(w, \tau) - 16w(1-w^2)\partial_w g_i(w,\tau)+(1-w^2)\partial^2_w g(w,\tau))\\
+\implies& (1-x_k^2)^2 (8(-1+7x_k^2) \gamma_{i,k,j} - 16x_k(1-x_k^2)\frac{\gamma_{i,k+1,j}-\gamma_{i,k,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{i,k+1,j}-2\gamma_{i,k,j}+\gamma_{i,k-1,j}}{\omega^2})
+\end{align}
+$$
+
+## Bringing the pieces together
+
+We now can construct the algorithm in R code. We first present the unified system of equations for the next time step.
+
+$$
+\begin{align}
+\text{for } k = 1,\ldots, N-1\\
+\gamma_{1,k,j+1}&=\gamma_{1,k,j}\\
+&+\iota(\frac{1}{\omega \tau_{1,1}}( \mathcal{K}_1(x_k+\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_1(x_k,t_j)\gamma_{1,k+1,j} - 2 \mathcal{K}_1(x_k,t_j)\gamma_{1,k,j}) \\
+&+ \frac{1}{2 \omega \tau_{1,2}}( \mathcal{K}_3(x_k+\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_3(x_k,t_j)\gamma_{1,k+1,j} - 2 \mathcal{K}_3(x_k,t_j)\gamma_{1,k,j}) \\
+&+(\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}) 
+(1-x_k^2)^2 (8(-1+7x_k^2) \gamma_{1,k,j} - 16x_k(1-x_k^2)\frac{\gamma_{1,k+1,j}-\gamma_{1,k,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{1,k+1,j}-2\gamma_{1,k,j}+\gamma_{1,k-1,j}}{\omega^2})
+) \\
+\\
+\gamma_{2,k,j+1}&=\gamma_{2,k,j}\\
+&+\iota(\frac{1}{\omega \tau_{2,2}}( \mathcal{K}_2(x_k+\omega,t_j)\gamma_{2,k,j}+ \mathcal{K}_2(x_k,t_j)\gamma_{2,k+1,j} - 2 \mathcal{K}_2(x_k,t_j)\gamma_{2,k,j})\\
+&+\frac{\lambda_{2,2} M_2}{2 \tau_{2,2}}
+(1-x_k^2)^2 (8(-1+7x_k^2) \gamma_{2,k,j} - 16x_k(1-x_k^2)\frac{\gamma_{2,k+1,j}-\gamma_{2,k,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{2,k+1,j}-2\gamma_{2,k,j}+\gamma_{2,k-1,j}}{\omega^2})
+) \\
+\\
+\text{for } k = 0 \text{ or } k = N\\
+\implies x_k = \pm 1\\
+\gamma_{1,k,j+1} &= \gamma_{1,k,j}\\
+\gamma_{2,k,j+1} &= \gamma_{2,k,j}
+\end{align}
+$$
+
+```{r}
+Opinions <- function(gamma_1_x_0 = function(x) 0*x,
+                     gamma_2_x_0 = function(x) 0*x,
+                     T = 10, N = 200, Q = T*100000, 
+                     r1 = 0.5, r2 = 0.5, r3 = 0.5
+                     ){
+  #Define the Grid:
+  #Space
+  omega = (1-(-1))/N
+  x = -1+omega*(0:N)
+  
+  #Time
+  iota = T/Q
+  t = 0+iota*(0:Q)
+  
+  #Define Remaining functions
+  K1 <- function(w, g1){
+    return(K(w,function(v,w) P(v,w,r1), g1, x))
+  }
+  
+  K2 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r2), g2, x))
+  }
+  
+  K3 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r3), g2, x))
+  }
+  
+  #Setup Solution Matrices
+  gamma_1 = matrix(0, N+1, Q+1)
+  gamma_2 = matrix(0, N+1, Q+1)
+  
+  #Initial Conditions
+  gamma_1[,1] = gamma_1_x_0(x)
+  gamma_2[,1] = gamma_2_x_0(x)
+  
+  #Proceed point by point
+  for(j in 1:Q){
+    gamma_1[1, j+1] = gamma_1[1, j]
+    gamma_2[1, j+1] = gamma_2[1, j]
+    for(k in 2:N){
+      #Perform the forward difference on the first equation
+      aggregate_1 = 0
+      aggregate_1 = aggregate_1 +
+                    1/(tau_1_1*omega)*(
+                    K1(x[k+1],gamma_1[,j])*gamma_1[k,j]
+                    +K1(x[k],gamma_1[,j])*gamma_1[k+1,j]
+                    -2*K1(x[k],gamma_1[,j])*gamma_1[k,j]
+                    )
+      aggregate_1 = aggregate_1 +
+                    1/(2*tau_1_2*omega)*(
+                    K3(x[k+1],gamma_1[,j])*gamma_1[k,j]
+                    +K3(x[k],gamma_1[,j])*gamma_1[k+1,j]
+                    -2*K3(x[k],gamma_1[,j])*gamma_1[k,j]
+                    )
+      aggregate_1 = aggregate_1 +
+                    (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*((1-x[k]^2)^2)*
+                    (8*(-1+7*x[k]^2)*gamma_1[k,j]-
+                    16*x[k]*(1-x[k]^2)*(gamma_1[k+1,j]-gamma_1[k,j])/omega+
+                    (x[k]^2-1)^2*(gamma_1[k+1,j]-2*gamma_1[k,j]+gamma_1[k-1,j])/(omega^2))
+      gamma_1[k,j+1] = gamma_1[k,j]+iota*aggregate_1
+      if(is.nan(gamma_1[k,j+1])){
+        cat("Encountered NaN at location [1,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_1[k,j+1]<0){
+        cat("Encountered negative at location [1,",k,",",j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      
+      #Perform the forward difference on the second equation
+      aggregate_2 = 0
+      aggregate_2 = aggregate_2 +
+                    1/(tau_2_2*omega)*(
+                    K2(x[k+1],gamma_2[,j])*gamma_2[k,j]
+                    +K2(x[k],gamma_2[,j])*gamma_2[k+1,j]
+                    -2*K2(x[k],gamma_2[,j])*gamma_2[k,j]
+                    )
+      aggregate_2 = aggregate_2 +
+                    lambda_2_2*M_2/(2*tau_2_2)*((1-x[k]^2)^2)*
+                    (8*(-1+7*x[k]^2)*gamma_2[k,j]-
+                    16*x[k]*(1-x[k]^2)*(gamma_2[k+1,j]-gamma_2[k,j])/omega+
+                    (x[k]^2-1)^2*(gamma_2[k+1,j]-2*gamma_2[k,j]+gamma_2[k-1,j])/(omega^2))
+      gamma_2[k,j+1] = gamma_2[k,j]+iota*aggregate_2
+      if(is.nan(gamma_2[k,j+1])){
+        cat("Encountered NaN at location [2,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_2[k,j+1]<0){
+        cat("Encountered negative at location [2,",k,",",j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+    }
+    gamma_1[N+1, j+1] = gamma_1[N+1, j]
+    gamma_2[N+1, j+1] = gamma_2[N+1, j]
+  }
+  return(list(x=x, t=t, g1 = gamma_1, g2 = gamma_2))
+}
+```
+
+## Numerical Simulations
+
+We present the same numerical examples provided in the original text. We begin by loading the relevant plotting package.
+```{r}
+library(plot3Drgl)
+```
+
+Note that, due to the instabilities inherent in a forward-difference method, we are required to use small time steps. Due to computational power then, we must constrain ourselves to not reproducing all 1,000 time values as in the original plots. Hence, we seek to reproduce up to $\tau=10$.
+First, we take the case of symmetric distribution of opinion leaders with $q_i = 0.5, \sigma_i = 0.05, w_i = \pm 0.5$ and interaction radii all set to $r_i = 0.5$. This should be comparable to Figure 3. This initial distribution of opinion leaders is as follows.
+```{r}
+seq(-1,1, by = .01) -> x
+plot(x, 
+    g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+    xlab = "Opinion", ylab = "Mass of Leaders", col = 1)
+```
+```{r}
+Fig3 <- Opinions(function(x) g1_w_0(x),
+                 function(x) g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+                 r1 = 0.5, r2 = 0.5, r3 = 0.5
+                 )
+```
+Clearly, this is not desirable. The results themselves appear to behave normally for the range of values that were acceptable.
+```{r}
+persp3D(Fig3$x, Fig3$t, Fig3$g1,
+        xlab="w", ylab="t", zlab="g_1",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(Fig3$x, Fig3$t, Fig3$g2,
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+
+In case this might be a casualty caused by step sizes in the forward difference method, we make a modification to our forward difference method to reduce the time step's size if invalid data has occurred and to start from the previous valid time step. We designate this function ```OpinionsR```, to stand for a recursive implementation.
+
+```{r}
+OpinionsR <- function(gamma_1_x_0 = function(x) 0*x,
+                      gamma_2_x_0 = function(x) 0*x,
+                      T = 10, N = 200, Q = max(c(T*100000, 1000)), 
+                      r1 = 0.5, r2 = 0.5, r3 = 0.5,
+                      max_depth = 50, depth = 0
+){
+  if(depth>max_depth){
+    cat("Depth Exceeded, Returning 0.")
+    return(0)
+  }
+  
+  #Define the Grid:
+  #Space
+  omega = (1-(-1))/N
+  x = -1+omega*(0:N)
+  
+  #Time
+  iota = T/Q
+  t = 0+iota*(0:Q)
+  
+  #Define Remaining functions
+  K1 <- function(w, g1){
+    return(K(w,function(v,w) P(v,w,r1), g1, x))
+  }
+  
+  K2 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r2), g2, x))
+  }
+  
+  K3 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r3), g2, x))
+  }
+  
+  #Setup Solution Matrices
+  gamma_1 = matrix(0, N+1, Q+1)
+  gamma_2 = matrix(0, N+1, Q+1)
+  
+  #Initial Conditions
+  if(depth == 0){
+    gamma_1[,1] = gamma_1_x_0(x)
+    gamma_2[,1] = gamma_2_x_0(x)
+  }else{
+    gamma_1[,1] = gamma_1_x_0(1:(N+1))
+    gamma_2[,1] = gamma_2_x_0(1:(N+1))
+  }
+  
+  #Proceed point by point
+  for(j in 1:Q){
+    gamma_1[1, j+1] = gamma_1[1, j]
+    gamma_2[1, j+1] = gamma_2[1, j]
+    gamma_1[N+1, j+1] = gamma_1[N+1, j]
+    gamma_2[N+1, j+1] = gamma_2[N+1, j]
+    for(k in 2:N){
+      #Perform the forward difference on the first equation
+      aggregate_1 = 0
+      aggregate_1 = aggregate_1 +
+        1/(tau_1_1*omega)*(
+          K1(x[k+1],gamma_1[,j])*gamma_1[k,j]
+          +K1(x[k],gamma_1[,j])*gamma_1[k+1,j]
+          -2*K1(x[k],gamma_1[,j])*gamma_1[k,j]
+        )
+      aggregate_1 = aggregate_1 +
+        1/(2*tau_1_2*omega)*(
+          K3(x[k+1],gamma_1[,j])*gamma_1[k,j]
+          +K3(x[k],gamma_1[,j])*gamma_1[k+1,j]
+          -2*K3(x[k],gamma_1[,j])*gamma_1[k,j]
+        )
+      aggregate_1 = aggregate_1 +
+        (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*((1-x[k]^2)^2)*
+        (8*(-1+7*x[k]^2)*gamma_1[k,j]-
+           16*x[k]*(1-x[k]^2)*(gamma_1[k+1,j]-gamma_1[k,j])/omega+
+           (x[k]^2-1)^2*(gamma_1[k+1,j]-2*gamma_1[k,j]+gamma_1[k-1,j])/(omega^2))
+      gamma_1[k,j+1] = gamma_1[k,j]+iota*aggregate_1
+      if(is.nan(gamma_1[k,j+1])){
+        cat("Encountered NaN at location [1,",k,",", j+1,"]")
+        if(j>1){
+        Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j-1],
+                             gamma_2_x_0 = function(x) gamma_2[x, j-1],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        else{
+          Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j],
+                             gamma_2_x_0 = function(x) gamma_2[x, j],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        cat(". Returned.\n")
+        if(all.equal(Recurse,0)){
+          cat("Recursion Strategy Failed. Returning")
+          if(depth == 0){
+            return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+          }
+          else{
+            return(0)
+          }
+        }
+        else{
+          gamma_1[k,j+1] = Recurse$g1[,length(Recurse$t)]
+          gamma_2[k,j+1] = Recurse$g2[,length(Recurse$t)]
+          break
+        }
+        #return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_1[k,j+1]<0){
+        cat("Encountered negative at location [1,",k,",",j+1,"]")
+        if(j>1){
+        Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j-1],
+                             gamma_2_x_0 = function(x) gamma_2[x, j-1],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        else{
+          Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j],
+                             gamma_2_x_0 = function(x) gamma_2[x, j],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        cat(". Returned.\n")
+        if(all.equal(Recurse,0)){
+          cat("Recursion Strategy Failed. Returning")
+          if(depth == 0){
+            return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+          }
+          else{
+            return(0)
+          }
+        }
+        else{
+          gamma_1[k,j+1] = Recurse$g1[,length(Recurse$t)]
+          gamma_2[k,j+1] = Recurse$g2[,length(Recurse$t)]
+          break
+        }
+        #return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      
+      #Perform the forward difference on the second equation
+      aggregate_2 = 0
+      aggregate_2 = aggregate_2 +
+        1/(tau_2_2*omega)*(
+          K2(x[k+1],gamma_2[,j])*gamma_2[k,j]
+          +K2(x[k],gamma_2[,j])*gamma_2[k+1,j]
+          -2*K2(x[k],gamma_2[,j])*gamma_2[k,j]
+        )
+      aggregate_2 = aggregate_2 +
+        lambda_2_2*M_2/(2*tau_2_2)*((1-x[k]^2)^2)*
+        (8*(-1+7*x[k]^2)*gamma_2[k,j]-
+           16*x[k]*(1-x[k]^2)*(gamma_2[k+1,j]-gamma_2[k,j])/omega+
+           (x[k]^2-1)^2*(gamma_2[k+1,j]-2*gamma_2[k,j]+gamma_2[k-1,j])/(omega^2))
+      gamma_2[k,j+1] = gamma_2[k,j]+iota*aggregate_2
+      if(is.nan(gamma_2[k,j+1])){
+        cat("Encountered NaN at location [2,",k,",", j+1,"]")
+        if(j>1){
+        Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j-1],
+                             gamma_2_x_0 = function(x) gamma_2[x, j-1],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        else{
+          Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j],
+                             gamma_2_x_0 = function(x) gamma_2[x, j],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        cat(". Returned.\n")
+        if(all.equal(Recurse,0)){
+          cat("Recursion Strategy Failed. Returning")
+          if(depth == 0){
+            return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+          }
+          else{
+            return(0)
+          }
+        }
+        else{
+          gamma_1[k,j+1] = Recurse$g1[,length(Recurse$t)]
+          gamma_2[k,j+1] = Recurse$g2[,length(Recurse$t)]
+          break
+        }
+        #return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_2[k,j+1]<0){
+        cat("Encountered negative at location [2,",k,",",j+1,"]")
+        if(j>1){
+        Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j-1],
+                             gamma_2_x_0 = function(x) gamma_2[x, j-1],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        else{
+          Recurse <- OpinionsR(gamma_1_x_0 = function(x) gamma_1[x, j],
+                             gamma_2_x_0 = function(x) gamma_2[x, j],
+                             T = 2*iota, N = N, Q = max(c(T*1000, 200)),
+                             r1 = r1, r2 = r2, r3 = r3,
+                             max_depth = max_depth, depth = depth + 1)
+        }
+        cat(". Returned.\n")
+        if(all.equal(Recurse,0)){
+          cat("Recursion Strategy Failed. Returning")
+          if(depth == 0){
+            return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+          }
+          else{
+            return(0)
+          }
+        }
+        else{
+          gamma_1[k,j+1] = Recurse$g1[,length(Recurse$t)]
+          gamma_2[k,j+1] = Recurse$g2[,length(Recurse$t)]
+          break
+        }
+        #return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+    }
+  }
+  return(list(x=x, t=t, g1 = gamma_1, g2 = gamma_2))
+}
+```
+
+This variation, upon detecting a value outside of the correct domain, uses the previous time as a starting point for an even smaller forward-difference method. The hope is that this will avoid any instabilities induced at the current time, and that the finer resolution will allow us to continue.
+
+```{r}
+Fig3R <- OpinionsR(function(x) g1_w_0(x),
+                 function(x) g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+                 r1 = 0.5, r2 = 0.5, r3 = 0.5
+                 )
+```
+```{r}
+persp3D(Fig3R$x, Fig3R$t, Fig3R$g1,
+        xlab="w", ylab="t", zlab="g_1",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(Fig3R$x, Fig3R$t, Fig3R$g2,
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+
+Clearly this is still not acceptable. As such, the concern is likely not the step size for any step size that is reasonable. (Note: the recursion depth was 50, and the time step was expanded by a factor of 100 each time!) We do note that for the range of values where the function worked, it worked in the expected manner.
+
+We now attempt to solve the problem by restricting the results to being non-negative. We first present the most naive method of simply taking $max(0, \gamma_{i,k,j+1})$ as the result for any given step. This is function ```OpinionsM```, standing now for maximum.
+
+```{r}
+OpinionsM <- function(gamma_1_x_0 = function(x) 0*x,
+                      gamma_2_x_0 = function(x) 0*x,
+                      T = 10, N = 200, Q = max(c(T*100000, 1000)), 
+                      r1 = 0.5, r2 = 0.5, r3 = 0.5
+){
+  #Define the Grid:
+  #Space
+  omega = (1-(-1))/N
+  x = -1+omega*(0:N)
+  
+  #Time
+  iota = T/Q
+  t = 0+iota*(0:Q)
+  
+  #Define Remaining functions
+  K1 <- function(w, g1){
+    return(K(w,function(v,w) P(v,w,r1), g1, x))
+  }
+  
+  K2 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r2), g2, x))
+  }
+  
+  K3 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r3), g2, x))
+  }
+  
+  #Setup Solution Matrices
+  gamma_1 = matrix(0, N+1, Q+1)
+  gamma_2 = matrix(0, N+1, Q+1)
+  
+  #Initial Conditions
+  gamma_1[,1] = gamma_1_x_0(x)
+  gamma_2[,1] = gamma_2_x_0(x)
+  
+  #Proceed point by point
+  for(j in 1:Q){
+    gamma_1[1, j+1] = gamma_1[1, j]
+    gamma_2[1, j+1] = gamma_2[1, j]
+    gamma_1[N+1, j+1] = gamma_1[N+1, j]
+    gamma_2[N+1, j+1] = gamma_2[N+1, j]
+    for(k in 2:N){
+      #Perform the forward difference on the first equation
+      aggregate_1 = 0
+      aggregate_1 = aggregate_1 +
+        1/(tau_1_1*omega)*(
+          K1(x[k+1],gamma_1[,j])*gamma_1[k,j]
+          +K1(x[k],gamma_1[,j])*gamma_1[k+1,j]
+          -2*K1(x[k],gamma_1[,j])*gamma_1[k,j]
+        )
+      aggregate_1 = aggregate_1 +
+        1/(2*tau_1_2*omega)*(
+          K3(x[k+1],gamma_1[,j])*gamma_1[k,j]
+          +K3(x[k],gamma_1[,j])*gamma_1[k+1,j]
+          -2*K3(x[k],gamma_1[,j])*gamma_1[k,j]
+        )
+      aggregate_1 = aggregate_1 +
+        (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*((1-x[k]^2)^2)*
+        (8*(-1+7*x[k]^2)*gamma_1[k,j]-
+           16*x[k]*(1-x[k]^2)*(gamma_1[k+1,j]-gamma_1[k,j])/omega+
+           (x[k]^2-1)^2*(gamma_1[k+1,j]-2*gamma_1[k,j]+gamma_1[k-1,j])/(omega^2))
+      gamma_1[k,j+1] = max(gamma_1[k,j]+iota*aggregate_1,0)
+      if(is.nan(gamma_1[k,j+1])){
+        cat("Encountered NaN (Fatal) at location [1,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(is.infinite(gamma_1[k,j+1])){
+        cat("Encountered Inf (Fatal) at location [1,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      
+      #Perform the forward difference on the second equation
+      aggregate_2 = 0
+      aggregate_2 = aggregate_2 +
+        1/(tau_2_2*omega)*(
+          K2(x[k+1],gamma_2[,j])*gamma_2[k,j]
+          +K2(x[k],gamma_2[,j])*gamma_2[k+1,j]
+          -2*K2(x[k],gamma_2[,j])*gamma_2[k,j]
+        )
+      aggregate_2 = aggregate_2 +
+        lambda_2_2*M_2/(2*tau_2_2)*((1-x[k]^2)^2)*
+        (8*(-1+7*x[k]^2)*gamma_2[k,j]-
+           16*x[k]*(1-x[k]^2)*(gamma_2[k+1,j]-gamma_2[k,j])/omega+
+           (x[k]^2-1)^2*(gamma_2[k+1,j]-2*gamma_2[k,j]+gamma_2[k-1,j])/(omega^2))
+      gamma_2[k,j+1] = max(gamma_2[k,j]+iota*aggregate_2,0)
+      if(is.nan(gamma_2[k,j+1])){
+        cat("Encountered NaN (Fatal) at location [2,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(is.infinite(gamma_2[k,j+1])){
+        cat("Encountered Inf (Fatal) at location [2,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+    }
+  }
+  return(list(x=x, t=t, g1 = gamma_1, g2 = gamma_2))
+}
+```
+
+```{r}
+Fig3M <- OpinionsM(function(x) g1_w_0(x),
+                   function(x) g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+                   r1 = 0.5, r2 = 0.5, r3 = 0.5
+)
+```
+
+```{r}
+persp3D(Fig3M$x, Fig3M$t, Fig3M$g1,
+        xlab="w", ylab="t", zlab="g_1",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(Fig3M$x, Fig3M$t, Fig3M$g2,
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+
+Unfortunately, this reveals an instability. We suspect that this instability is due to a lack of conservation of the mass. As such, are next attempt is to solve the problem via a very naive attempt at smoothing, i.e. shifting mass from the nearest neighbors on the left and right to fill in prospective negative values. We arrive at ```OpinionsZ```, for zero-handling.
+
+```{r}
+OpinionsZ <- function(gamma_1_x_0 = function(x) 0*x,
+                      gamma_2_x_0 = function(x) 0*x,
+                      T = 10, N = 200, Q = max(c(T*100000, 1000)), 
+                      r1 = 0.5, r2 = 0.5, r3 = 0.5
+){
+  #Define the Grid:
+  #Space
+  omega = (1-(-1))/N
+  x = -1+omega*(0:N)
+  
+  #Time
+  iota = T/Q
+  t = 0+iota*(0:Q)
+  
+  #Define Remaining functions
+  K1 <- function(w, g1){
+    return(K(w,function(v,w) P(v,w,r1), g1, x))
+  }
+  
+  K2 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r2), g2, x))
+  }
+  
+  K3 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r3), g2, x))
+  }
+  
+  #Setup Solution Matrices
+  gamma_1 = matrix(0, N+1, Q+1)
+  gamma_2 = matrix(0, N+1, Q+1)
+  
+  #Initial Conditions
+  gamma_1[,1] = gamma_1_x_0(x)
+  gamma_2[,1] = gamma_2_x_0(x)
+  
+  #Proceed point by point
+  for(j in 1:Q){
+    gamma_1[1, j+1] = gamma_1[1, j]
+    gamma_2[1, j+1] = gamma_2[1, j]
+    gamma_1[N+1, j+1] = gamma_1[N+1, j]
+    gamma_2[N+1, j+1] = gamma_2[N+1, j]
+    Zeros_1 = c()
+    Zeros_2 = c()
+    for(k in 2:N){
+      #Perform the forward difference on the first equation
+      aggregate_1 = 0
+      aggregate_1 = aggregate_1 +
+        1/(tau_1_1*omega)*(
+          K1(x[k+1],gamma_1[,j])*gamma_1[k,j]
+          +K1(x[k],gamma_1[,j])*gamma_1[k+1,j]
+          -2*K1(x[k],gamma_1[,j])*gamma_1[k,j]
+        )
+      aggregate_1 = aggregate_1 +
+        1/(2*tau_1_2*omega)*(
+          K3(x[k+1],gamma_1[,j])*gamma_1[k,j]
+          +K3(x[k],gamma_1[,j])*gamma_1[k+1,j]
+          -2*K3(x[k],gamma_1[,j])*gamma_1[k,j]
+        )
+      aggregate_1 = aggregate_1 +
+        (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*((1-x[k]^2)^2)*
+        (8*(-1+7*x[k]^2)*gamma_1[k,j]-
+           16*x[k]*(1-x[k]^2)*(gamma_1[k+1,j]-gamma_1[k,j])/omega+
+           (x[k]^2-1)^2*(gamma_1[k+1,j]-2*gamma_1[k,j]+gamma_1[k-1,j])/(omega^2))
+      gamma_1[k,j+1] = gamma_1[k,j]+iota*aggregate_1
+      if(is.nan(gamma_1[k,j+1])){
+        cat("Encountered NaN (Fatal) at location [1,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(is.infinite(gamma_1[k,j+1])){
+        cat("Encountered Inf (Fatal) at location [1,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_1[k,j+1]<0){
+        Zeros_1 = c(Zeros_1,k)
+        #return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      
+      #Perform the forward difference on the second equation
+      aggregate_2 = 0
+      aggregate_2 = aggregate_2 +
+        1/(tau_2_2*omega)*(
+          K2(x[k+1],gamma_2[,j])*gamma_2[k,j]
+          +K2(x[k],gamma_2[,j])*gamma_2[k+1,j]
+          -2*K2(x[k],gamma_2[,j])*gamma_2[k,j]
+        )
+      aggregate_2 = aggregate_2 +
+        lambda_2_2*M_2/(2*tau_2_2)*((1-x[k]^2)^2)*
+        (8*(-1+7*x[k]^2)*gamma_2[k,j]-
+           16*x[k]*(1-x[k]^2)*(gamma_2[k+1,j]-gamma_2[k,j])/omega+
+           (x[k]^2-1)^2*(gamma_2[k+1,j]-2*gamma_2[k,j]+gamma_2[k-1,j])/(omega^2))
+      gamma_2[k,j+1] = gamma_2[k,j]+iota*aggregate_2
+      if(is.nan(gamma_2[k,j+1])){
+        cat("Encountered NaN (Fatal) at location [2,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(is.infinite(gamma_2[k,j+1])){
+        cat("Encountered Inf (Fatal) at location [2,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_2[k,j+1]<0){
+        Zeros_2 = c(Zeros_2,k)
+        #return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+    }
+    
+    #Perform Smoothing to "fill" the negative regions to zero.
+    #Idea is to take from neighbors what was illegally taken from this position,
+    #but we must not turn neighbors into illegal values either.
+    if(length(Zeros_1)){
+      for(i in 1:length(Zeros_1)){
+        Amount_To_Fill = -gamma_1[Zeros_1[i], j+1]
+        Neighbor_L = Zeros_1[i]-1
+        Neighbor_R = Zeros_1[i]+1
+        while(Neighbor_L>0 & 
+              (gamma_1[Neighbor_L,j+1]<=0)){
+          Neighbor_L = Neighbor_L - 1
+        }
+        while(Neighbor_R<(N+2) & 
+              (gamma_1[Neighbor_R,j+1]<=0)){
+          Neighbor_R = Neighbor_R + 1
+        }
+        Neighbor_L_has = 0
+        if(Neighbor_L>0){
+          Neighbor_L_has = gamma_1[Neighbor_L, j+1]
+        }
+        Neighbor_R_has = 0
+        if(Neighbor_R<(N+2)){
+          Neighbor_R_has = gamma_1[Neighbor_R, j+1]
+        }
+        while(Neighbor_L_has+Neighbor_R_has<Amount_To_Fill){
+          flag = 0
+          if(Neighbor_L>1){ 
+            if(Neighbor_L_has < gamma_1[Neighbor_L-1, j+1]){
+              Neighbor_L = Neighbor_L-1
+              Neighbor_L_has = gamma_1[Neighbor_L, j+1]
+            }else{flag = flag + 1}
+            }else{flag = flag + 1}
+          if(Neighbor_R<(N+1)){ 
+            if(Neighbor_R_has < gamma_1[Neighbor_R+1, j+1]){
+              Neighbor_R = Neighbor_R+1
+              Neighbor_R_has = gamma_1[Neighbor_R, j+1]
+            
+            }else{flag = flag + 1}
+            }else{flag = flag + 1} 
+          if(flag==2){
+            cat("Smoothing Strategy failed. Returning.")
+            return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+          }
+        }
+        Amount_Remain = Neighbor_L_has + Neighbor_R_has - Amount_To_Fill
+        if(Neighbor_L>0){
+          gamma_1[Neighbor_L, k+1] = Amount_Remain * Neighbor_L_has/(Neighbor_L_has+Neighbor_R_has)}
+        if(Neighbor_R<(N+2)){
+          gamma_1[Neighbor_R, k+1] = Amount_Remain * Neighbor_R_has/(Neighbor_L_has+Neighbor_R_has)}
+        gamma_1[Zeros_1[i], k+1] = 0
+      }
+    }
+    
+    if(length(Zeros_2)){
+      for(i in 1:length(Zeros_2)){
+        Amount_To_Fill = -gamma_2[Zeros_2[i], j+1]
+        Neighbor_L = Zeros_2[i]-1
+        Neighbor_R = Zeros_2[i]+1
+        while(Neighbor_L>0 & 
+              (gamma_2[Neighbor_L,j+1]<0)){
+          Neighbor_L = Neighbor_L - 1
+        }
+        while(Neighbor_R<(N+2) & 
+              (gamma_2[Neighbor_R,j+1]<0)){
+          Neighbor_R = Neighbor_R + 1
+        }
+        Neighbor_L_has = 0
+        if(Neighbor_L>0){
+          Neighbor_L_has = gamma_2[Neighbor_L, j+1]
+        }
+        Neighbor_R_has = 0
+        if(Neighbor_R<(N+2)){
+          Neighbor_R_has = gamma_2[Neighbor_R, j+1]
+        }
+        while(Neighbor_L_has+Neighbor_R_has<Amount_To_Fill){
+          flag = 0
+          if(Neighbor_L>1){ 
+            if(Neighbor_L_has < gamma_2[Neighbor_L-1, j+1]){
+              Neighbor_L = Neighbor_L-1
+              Neighbor_L_has = gamma_2[Neighbor_L, j+1]
+            }else{flag = flag + 1}
+            }else{flag = flag + 1}
+          if(Neighbor_R<(N+1)){ 
+            if(Neighbor_R_has < gamma_2[Neighbor_R+1, j+1]){
+              Neighbor_R = Neighbor_R+1
+              Neighbor_R_has = gamma_2[Neighbor_R, j+1]
+              
+            }else{flag = flag + 1}
+            }else{flag = flag + 1} 
+          if(flag==2){
+            cat("Smoothing Strategy failed. Returning.")
+            return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+          }
+        }
+        Amount_Remain = Neighbor_L_has + Neighbor_R_has - Amount_To_Fill
+        if(Neighbor_L>0){
+          gamma_2[Neighbor_L, k+1] = Amount_Remain * Neighbor_L_has/(Neighbor_L_has+Neighbor_R_has)}
+        if(Neighbor_R<(N+2)){
+          gamma_2[Neighbor_R, k+1] = Amount_Remain * Neighbor_R_has/(Neighbor_L_has+Neighbor_R_has)}
+        gamma_2[Zeros_2[i], k+1] = 0
+      }
+    }
+  }
+  return(list(x=x, t=t, g1 = gamma_1, g2 = gamma_2))
+}
+```
+
+```{r}
+Fig3Z <- OpinionsZ(function(x) g1_w_0(x),
+                   function(x) g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+                   r1 = 0.5, r2 = 0.5, r3 = 0.5
+)
+```
+
+```{r}
+persp3D(Fig3Z$x, Fig3Z$t, Fig3Z$g1,
+        xlab="w", ylab="t", zlab="g_1",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(Fig3Z$x, Fig3Z$t, Fig3Z$g2,
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+Unfortunately, conserving the mass does not appear to have resolved our instability and has reduced the amount of time for which we can continue our method.
+
+Taking inspiration now from the Lax scheme, we attempt to increase the stability of our approach by exchanging forward difference steps for averaged central differences.
+We modify the following constituent parts.
+
+$$
+\begin{align}
+\partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t)) &= \frac{1}{\tau_{2,2}}\partial_{w}( \mathcal{K}_2 (w,\tau) g_2(w,t))\\
+&=\frac{1}{\tau_{2,2}}( \partial_{w}(\mathcal{K}_2 (w,\tau)) g_2(w,t))+\mathcal{K}_2 (w,\tau) \partial_{w}(g_2(w,t)))\\
+&\implies \frac{1}{\tau_{2,2}}( \frac{\mathcal{K}_2(x_k+\omega,t_j)-\mathcal{K}_2(x_k-\omega,t_j)}{2\omega}\gamma_{2,k,j} + \mathcal{K}_2(x_k,t_j)\frac{\gamma_{2,k+1,j}-\gamma_{2,k-1,j}}{2\omega})
+\end{align}
+$$
+
+$$
+\begin{align}
+\partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t)) 
+&= 
+\partial_{w}(\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau)g_1(w,t)) + \partial_{w}(\frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau)g_1(w,t)) \\
+\implies& \frac{1}{2\omega \tau_{1,1}}( \mathcal{K}_1(x_k+\omega,t_j)\gamma_{1,k,j}-\mathcal{K}_1(x_k-\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_1(x_k,t_j)\gamma_{1,k+1,j} - \mathcal{K}_1(x_k,t_j)\gamma_{1,k-1,j}) \\
+&+ \frac{1}{4 \omega \tau_{1,2}}( \mathcal{K}_3(x_k+\omega,t_j)\gamma_{1,k,j}-\mathcal{K}_3(x_k-\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_3(x_k,t_j)\gamma_{1,k+1,j} - \mathcal{K}_3(x_k,t_j)\gamma_{1,k-1,j})
+\end{align}
+$$
+
+$$
+\begin{align}
+\partial^2_{ww} (D^2_i (w) g_i (w,\tau) ) &= \partial^2_{ww}(((1-w^2)^2)^2 g_i (w,\tau))\\
+&= (1-w^2)^2 (48w^2 g_i(w, \tau) - 8 (1-w^2) g(w, \tau) - 16w(1-w^2)\partial_w g_i(w,\tau)+(1-w^2)\partial^2_w g(w,\tau))\\
+\implies& (1-x_k^2)^2 (8(-1+7x_k^2) (\gamma_{i,k+1,j} + \gamma_{i,k-1,j})- 8x_k(1-x_k^2)\frac{\gamma_{i,k+1,j}-\gamma_{i,k-1,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{i,k+1,j}-2\gamma_{i,k,j}+\gamma_{i,k-1,j}}{\omega^2})
+\end{align}
+$$
+
+These three changes, along with using the previous time step with its average in the forward-difference formula for the time derivative, yield the following system.
+
+$$
+\begin{align}
+\text{for } k = 1,\ldots, N-1\\
+\gamma_{1,k,j+1}&=\frac{1}{2}(\gamma_{1,k+1,j}+\gamma_{1,k-1,j})\\
+&+\iota(\frac{1}{2\omega \tau_{1,1}}( \mathcal{K}_1(x_k+\omega,t_j)\gamma_{1,k,j}-\mathcal{K}_1(x_k-\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_1(x_k,t_j)\gamma_{1,k+1,j} - \mathcal{K}_1(x_k,t_j)\gamma_{1,k-1,j}) \\
+&+ \frac{1}{4 \omega \tau_{1,2}}( \mathcal{K}_3(x_k+\omega,t_j)\gamma_{1,k,j}-\mathcal{K}_3(x_k-\omega,t_j)\gamma_{1,k,j}+ \mathcal{K}_3(x_k,t_j)\gamma_{1,k+1,j} - \mathcal{K}_3(x_k,t_j)\gamma_{1,k-1,j})\\
+&+(\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}) 
+(1-x_k^2)^2 (4(-1+7x_k^2) (\gamma_{1,k+1,j} + \gamma_{1,k-1,j}) - 8x_k(1-x_k^2)\frac{\gamma_{1,k+1,j}-\gamma_{1,k-1,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{1,k+1,j}-2\gamma_{1,k,j}+\gamma_{1,k-1,j}}{\omega^2}))
+) \\
+\\
+\gamma_{2,k,j+1}&=\frac{1}{2}(\gamma_{2,k+1,j}+\gamma_{2,k-1,j})\\
+&+\iota(\frac{1}{2\omega\tau_{2,2}}( (\mathcal{K}_2(x_k+\omega,t_j)-\mathcal{K}_2(x_k-\omega,t_j))\gamma_{2,k,j} + \mathcal{K}_2(x_k,t_j)(\gamma_{2,k+1,j}-\gamma_{2,k-1,j})\\
+&+\frac{\lambda_{2,2} M_2}{2 \tau_{2,2}}
+(1-x_k^2)^2 (4(-1+7x_k^2) (\gamma_{2,k+1,j}+\gamma_{2,k-1,j}) - 8x_k(1-x_k^2)\frac{\gamma_{2,k+1,j}-\gamma_{2,k-1,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{2,k+1,j}-2\gamma_{2,k,j}+\gamma_{2,k-1,j}}{\omega^2}))
+) \\
+\\
+\text{for } k = 0 \text{ or } k = N\\
+\implies x_k = \pm 1\\
+\gamma_{1,k,j+1} &= \gamma_{1,k,j}\\
+\gamma_{2,k,j+1} &= \gamma_{2,k,j}
+\end{align}
+$$
+
+The implementation of these changes leads to ```OpinionsC```, standing now for central.
+
+```{r}
+OpinionsC <- function(gamma_1_x_0 = function(x) 0*x,
+                     gamma_2_x_0 = function(x) 0*x,
+                     T = 10, N = 200, Q = T*100000, 
+                     r1 = 0.5, r2 = 0.5, r3 = 0.5
+                     ){
+  #Define the Grid:
+  #Space
+  omega = (1-(-1))/N
+  x = -1+omega*(0:N)
+  
+  #Time
+  iota = T/Q
+  t = 0+iota*(0:Q)
+  
+  #Define Remaining functions
+  K1 <- function(w, g1){
+    return(K(w,function(v,w) P(v,w,r1), g1, x))
+  }
+  
+  K2 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r2), g2, x))
+  }
+  
+  K3 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r3), g2, x))
+  }
+  
+  #Setup Solution Matrices
+  gamma_1 = matrix(0, N+1, Q+1)
+  gamma_2 = matrix(0, N+1, Q+1)
+  
+  #Initial Conditions
+  gamma_1[,1] = gamma_1_x_0(x)
+  gamma_2[,1] = gamma_2_x_0(x)
+  
+  #Proceed point by point
+  for(j in 1:Q){
+    gamma_1[1, j+1] = gamma_1[1, j]
+    gamma_2[1, j+1] = gamma_2[1, j]
+    for(k in 2:N){
+      #Perform the forward difference on the first equation
+      aggregate_1 = 0
+      aggregate_1 = aggregate_1 +
+                    1/(2*tau_1_1*omega)*(
+                    K1(x[k+1],gamma_1[,j])*gamma_1[k,j]
+                    -K1(x[k-1],gamma_1[,j])*gamma_1[k,j]
+                    +K1(x[k],gamma_1[,j])*gamma_1[k+1,j]
+                    -K1(x[k],gamma_1[,j])*gamma_1[k-1,j]
+                    )
+      aggregate_1 = aggregate_1 +
+                    1/(4*tau_1_2*omega)*(
+                    K3(x[k+1],gamma_1[,j])*gamma_1[k,j]
+                    -K3(x[k-1],gamma_1[,j])*gamma_1[k,j]
+                    +K3(x[k],gamma_1[,j])*gamma_1[k+1,j]
+                    -K3(x[k],gamma_1[,j])*gamma_1[k-1,j]
+                    )
+      aggregate_1 = aggregate_1 +
+                    (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*((1-x[k]^2)^2)*
+                    (4*(-1+7*x[k]^2)*(gamma_1[k+1,j]+gamma_1[k-1,j])-
+                    8*x[k]*(1-x[k]^2)*(gamma_1[k+1,j]-gamma_1[k-1,j])/omega+
+                    (x[k]^2-1)^2*(gamma_1[k+1,j]-2*gamma_1[k,j]+gamma_1[k-1,j])/(omega^2))
+      gamma_1[k,j+1] = .5*(gamma_1[k+1,j]+gamma_1[k-1,j])+iota*aggregate_1
+      if(is.nan(gamma_1[k,j+1])){
+        cat("Encountered NaN at location [1,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_1[k,j+1]<0){
+        cat("Encountered negative at location [1,",k,",",j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      
+      #Perform the forward difference on the second equation
+      aggregate_2 = 0
+      aggregate_2 = aggregate_2 +
+                    1/(2*tau_2_2*omega)*(
+                    K2(x[k+1],gamma_2[,j])*gamma_2[k,j]
+                    -K2(x[k-1],gamma_2[,j])*gamma_2[k,j]
+                    +K2(x[k],gamma_2[,j])*gamma_2[k+1,j]
+                    -K2(x[k],gamma_2[,j])*gamma_2[k-1,j]
+                    )
+      aggregate_2 = aggregate_2 +
+                    lambda_2_2*M_2/(2*tau_2_2)*((1-x[k]^2)^2)*
+                    (4*(-1+7*x[k]^2)*(gamma_2[k+1,j]+gamma_2[k-1,j])-
+                    8*x[k]*(1-x[k]^2)*(gamma_2[k+1,j]-gamma_2[k-1,j])/omega+
+                    (x[k]^2-1)^2*(gamma_2[k+1,j]-2*gamma_2[k,j]+gamma_2[k-1,j])/(omega^2))
+      gamma_2[k,j+1] = .5*(gamma_2[k+1,j]+gamma_2[k-1,j])+iota*aggregate_2
+      if(is.nan(gamma_2[k,j+1])){
+        cat("Encountered NaN at location [2,",k,",", j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+      if(gamma_2[k,j+1]<0){
+        cat("Encountered negative at location [2,",k,",",j+1,"]")
+        return(list(x=x, t=t[1:j], g1 = gamma_1[,(1:j)], g2 = gamma_2[,(1:j)]))
+      }
+    }
+    gamma_1[N+1, j+1] = gamma_1[N+1, j]
+    gamma_2[N+1, j+1] = gamma_2[N+1, j]
+  }
+  return(list(x=x, t=t, g1 = gamma_1, g2 = gamma_2))
+}
+```
+
+```{r}
+Fig3C <- OpinionsC(function(x) g1_w_0(x),
+                 function(x) g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+                 r1 = 0.5, r2 = 0.5, r3 = 0.5
+                 )
+```
+```{r}
+persp3D(Fig3C$x, Fig3C$t, Fig3C$g1,
+        xlab="w", ylab="t", zlab="g_1",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(Fig3C$x, Fig3C$t, Fig3C$g2,
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+This demonstrates that while we have gained stability, we appear to not have convergence to the expected solution! We also cannot conclude whether the lack of convergence to the expected solution is an innate quality of the methods we have tried thus far, or merely due to the use of central difference formulas. As such, we cannot at this stage conclude that are treatment is faulty.
+
+Finally, we attempt to utilize the method of lines to solve our system. This will reduce our system to a system of ordinary differential equations with derivatives only with respect to $\tau$. Then a standard ordinary differential equation solver can be used to progress the system, as noted in lab 12. We first load an appropriate ```ode``` function using the library ```deSolve```.
+
+```{r}
+library(deSolve)
+```
+Recalling our forward difference scheme with the time derivative unevaluated, we have the following system.
+
+$$
+\begin{align}
+\text{for } k = 1,\ldots, N-1\\
+\frac{d\gamma_{1,k}(t)}{d\tau}&= \frac{1}{\omega \tau_{1,1}}( \mathcal{K}_1(x_k+\omega,t_j)\gamma_{1,k}(t)+ \mathcal{K}_1(x_k,t_j)\gamma_{1,k+1}(t) - 2 \mathcal{K}_1(x_k,t_j)\gamma_{1,k}(t)) \\
+&+ \frac{1}{2 \omega \tau_{1,2}}( \mathcal{K}_3(x_k+\omega,t_j)\gamma_{1,k}(t)+ \mathcal{K}_3(x_k,t_j)\gamma_{1,k+1}(t) - 2 \mathcal{K}_3(x_k,t_j)\gamma_{1,k}(t)) \\
+&+(\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}) 
+(1-x_k^2)^2 (8(-1+7x_k^2) \gamma_{1,k}(t) - 16x_k(1-x_k^2)\frac{\gamma_{1,k+1}(t)-\gamma_{1,k}(t)}{\omega}+(1-x_k^2)^2\frac{\gamma_{1,k+1}(t)-2\gamma_{1,k}(t)+\gamma_{1,k-1}(t)}{\omega^2})
+\\
+\frac{d\gamma_{2,k}(t)}{d\tau}&=\frac{1}{\omega \tau_{2,2}}( \mathcal{K}_2(x_k+\omega,t_j)\gamma_{2,k}(t)+ \mathcal{K}_2(x_k,t_j)\gamma_{2,k+1}(t) - 2 \mathcal{K}_2(x_k,t_j)\gamma_{2,k}(t))\\
+&+\frac{\lambda_{2,2} M_2}{2 \tau_{2,2}}
+(1-x_k^2)^2 (8(-1+7x_k^2) \gamma_{2,k}(t) - 16x_k(1-x_k^2)\frac{\gamma_{2,k+1}(t)-\gamma_{2,k}(t)}{\omega}+(1-x_k^2)^2\frac{\gamma_{2,k+1}(t)-2\gamma_{2,k}(t)+\gamma_{2,k-1}(t)}{\omega^2})
+\\
+\text{for } k = 0 \text{ or } k = N\\
+\implies x_k = \pm 1\\
+\frac{d\gamma_{1,k}(t)}{d\tau} &= 0\\
+\frac{d\gamma_{2,k}(t)}{d\tau} &= 0
+\end{align}
+$$
+
+We implement this system in the method of lines function ```OpinionsL```, using the required syntax for our solver and recycling from our previous implementations as appropriate.
+
+```{r}
+OpinionsL <-function(gamma_1_x_0 = function(x) 0*x,
+                     gamma_2_x_0 = function(x) 0*x,
+                     T = 10, N = 200, Q = T*100000, 
+                     r1 = 0.5, r2 = 0.5, r3 = 0.5
+                     )
+{
+  #Define the Grid:
+  #Space
+  omega = (1-(-1))/N
+  x = -1+omega*(0:N)
+  
+  #Time
+  iota = T/Q
+  t = 0+iota*(0:Q)
+  
+  #Define Remaining functions
+  K1 <- function(w, g1){
+    return(K(w,function(v,w) P(v,w,r1), g1, x))
+  }
+  
+  K2 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r2), g2, x))
+  }
+  
+  K3 <- function(w, g2){
+    return(K(w,function(v,w) P(v,w,r3), g2, x))
+  }
+  
+  #Function that computes the time derivatives
+  #of the two distributions 
+  #at each point in the space.
+  #Assume y values are c(gamma_1, gamma_2)
+  system <- function(t, y, parms){
+    #Retrieve inputs
+    gamma_1 = y[1:(N+1)]
+    gamma_2 = y[(N+1+1):(2*(N+1))]
+    
+    #solution storage
+    dgamma_1dt = rep(0, N+1)
+    dgamma_2dt = rep(0, N+1)
+    
+    #Recycling code
+    for(k in 2:N){
+      #Perform the forward difference on the first equation
+      aggregate_1 = 0
+      aggregate_1 = aggregate_1 +
+                    1/(2*tau_1_1*omega)*(
+                    K1(x[k+1],gamma_1[])*gamma_1[k]
+                    -K1(x[k-1],gamma_1[])*gamma_1[k]
+                    +K1(x[k],gamma_1[])*gamma_1[k+1]
+                    -K1(x[k],gamma_1[])*gamma_1[k-1]
+                    )
+      aggregate_1 = aggregate_1 +
+                    1/(4*tau_1_2*omega)*(
+                    K3(x[k+1],gamma_1[])*gamma_1[k]
+                    -K3(x[k-1],gamma_1[])*gamma_1[k]
+                    +K3(x[k],gamma_1[])*gamma_1[k+1]
+                    -K3(x[k],gamma_1[])*gamma_1[k-1]
+                    )
+      aggregate_1 = aggregate_1 +
+                    (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*((1-x[k]^2)^2)*
+                    (8*(-1+7*x[k]^2)*gamma_1[k]-
+                    8*x[k]*(1-x[k]^2)*(gamma_1[k+1]-gamma_1[k-1])/omega+
+                    (x[k]^2-1)^2*(gamma_1[k+1]-2*gamma_1[k]+gamma_1[k-1])/(omega^2))
+      dgamma_1dt[k]=aggregate_1
+      
+      #Perform the forward difference on the second equation
+      aggregate_2 = 0
+      aggregate_2 = aggregate_2 +
+                    1/(2*tau_2_2*omega)*(
+                    K2(x[k+1],gamma_2[])*gamma_2[k]
+                    -K2(x[k-1],gamma_2[])*gamma_2[k]
+                    +K2(x[k],gamma_2[])*gamma_2[k+1]
+                    -K2(x[k],gamma_2[])*gamma_2[k-1]
+                    )
+      aggregate_2 = aggregate_2 +
+                    lambda_2_2*M_2/(2*tau_2_2)*((1-x[k]^2)^2)*
+                    (8*(-1+7*x[k]^2)*gamma_2[k]-
+                    8*x[k]*(1-x[k]^2)*(gamma_2[k+1]-gamma_2[k-1])/omega+
+                    (x[k]^2-1)^2*(gamma_2[k+1]-2*gamma_2[k]+gamma_2[k-1])/(omega^2))
+      dgamma_2dt[k] = aggregate_2
+    }
+    
+    return(list(c(dgamma_1dt,dgamma_2dt)))
+  }
+  
+  soln <- ode(c(gamma_1_x_0(x),gamma_2_x_0(x)),t,system, parms = NULL)
+  P <- t(soln[, 2:(N+2)])
+  Z <- t(soln[, (N+3):(2*N+3)])
+  return(list(x=x, t=t, g1=P, g2=Z, soln=soln))
+}
+```
+```{r}
+Fig3L <- OpinionsL(function(x) g1_w_0(x),
+                 function(x) g2_w_0(x, qs = c(0.5,0.5), mus = c(0.5, -0.5), sigmas = c(0.05, 0.05)),
+                 r1 = 0.5, r2 = 0.5, r3 = 0.5
+                 )
+```
+After approximately 14 hours of work we received the following warning message.
+Warning messages:
+1: In lsoda(y, times, func, parms, ...) :
+  an excessive amount of work (> maxsteps ) was done, but integration was not successful - increase maxsteps
+2: In lsoda(y, times, func, parms, ...) :
+  Returning early. Results are accurate, as far as they go
+```{r}
+persp3D(Fig3L$x, Fig3L$t[seq(from = 1, to = length(Fig3L$t), by = 20)], Fig3L$g1[,seq(from = 1, to = length(Fig3L$t), by = 20)],
+        xlab="w", ylab="t", zlab="g_1",
+        ticktype="detailed", nticks=4)
+```
+```{r}
+persp3D(Fig3L$x, Fig3L$t[seq(from = 1, to = length(Fig3L$t), by = 20)], Fig3L$g2[,seq(from = 1, to = length(Fig3L$t), by = 20)],
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+On the one hand, this is the furthest number of time steps reached. On the other, we still have an instability, which we can now suspect is inherent to the simple forward-difference method when applied to this system, as well as a method that is very taxing for computers. Reusing the data somewhat, we look to see what is happening until $t = 1.5$.
+
+```{r}
+persp3D(Fig3L$x, Fig3L$t[seq(from = 1, to = 150001, by = 20)], Fig3L$g2[,seq(from = 1, to = 150001, by = 20)],
+        xlab="w", ylab="t", zlab="g_2",
+        ticktype="detailed", nticks=4)
+```
+So we do observe the evolution of behavior that matches well with Figure 3's opinion leaders in the original paper, although we note that our opinion followers did not match the respective plot at all. As such, there is likely an issue with our integration methods leading to subpar approximations for the interaction between leaders and followers.
+
+## Conclusions
+
+In this report we have discussed the Fokker-Planck system produced in "Boltzmann and Fokker-Planck equations modelling opinion formation in the presence of strong leaders" and simple attempts at numerically evaluating the system. Some notable results are that the forward difference scheme for this system appears to be unconditionally unstable as well as that the scheme inevitably results in an infinity or negative value. The first of these is demonstrated by the failure of the recursive scheme, indicating that the time step's size is not the cause of the lack of the stability. We additionally noted that attempts to increase stability, such as central difference steps and averages, do not succeed in stabilizing the method. Indeed, the central difference attempt actually resulted in the additional trouble of the approximation converging to the wrong solution. Our final attempt, using the method of lines, provided convincing evidence of the lack of stability by also failing midway through evaluation due to instability. Clearly, we would need some much more stable scheme in order to successfully numerically evaluate this system, likely an implicit scheme. One such scheme was used in the original paper to evaluate the system; it was described as a hybrid discontinuous Galerkin method which is conservative by design. This method should handle each of the difficulties we have highlighted with our attempts in the last section. These properties may explain the success of the authors in the original paper, and our lack thereof.

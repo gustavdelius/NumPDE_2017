@@ -1,0 +1,214 @@
+---
+title: "Mini Project 2"
+output: html_notebook
+---
+
+The system of Partial Differential Equations (PDEs) that I will be solving numerically are from "A model mechanism for the chemotactic response of endothelial cells to tumour angiogenesis factor" written by M.A.J.Chaplain and A.M. Stuart in 1993. 
+
+The system of PDEs that I will be solving is
+***GWD: the command to typeset partial derivatives is \\partial, not \\delta.***
+$$
+\frac{\partial c}{\partial t} = \frac{\partial ^2 c}{\partial x^2} - \frac{\alpha n c}{\gamma + c}-\lambda c
+$$
+$$
+\frac{\partial n}{\partial t} = D \frac{\partial ^2 n}{\partial x^2} - \kappa \frac{\partial}{\partial x} \left( n \frac{\partial c}{\partial x} \right) + \mu n (1-n) G(c) - \beta n 
+$$
+where
+$$
+G(c) = \begin{cases} 0, & \mbox{if } c \leq c^{*} \\ c-c^{*}, & \mbox{if } c^{*} < c \end{cases}
+$$
+The initial and boundary conditions are respectively
+$$
+c(x,0)= c_0 (x),
+$$
+
+$$
+n(x,0) = \begin{cases} 1, & \mbox{if } x=1 \\ 0, & \mbox{if } x<1 \end{cases},
+$$
+$$
+c(0,t) = 1, \hspace{10mm} c(1,t)=0,
+$$
+$$
+n(1,t)=1,
+$$
+$$
+\frac{\partial n}{\partial x}(0,t) = 0.
+$$
+The systems variables are concentration of Tumour Angiogenesis Factor (TAF) $c$, the endothelial cell density $n$ at time $t$ and at a distance $x$ from the tumour. The system describes the rate of change in TAF concentration over time and the rate of change in density of endothelial cells over time. Below is a list of the constants in the equations and their meaning in terms of the model:
+
+$D$ - Diffusion coefficient 
+
+$\kappa$ - Chemotactic parameter
+
+$\mu$ - Cell proliferation parameter
+
+$\beta$ - Cell loss parameter
+
+$\lambda$ - Distance between the tumour and vessel over the diffusion coefficient. 
+
+$\alpha$ - Distance between the tumour and vessel over the diffusion of TAF
+
+In order to model the diffusion of TAF chemical from the tumour I will model the PDE system usign the forward difference method. The forward difference method is not unconditionally stable but it is one of the simpler algorithms to implement. I first talk through the initial important setup to start using the forward difference method and then show the algorithm in action in a large function with plotting code and initial conditions from the paper. 
+
+The first step is to approximate the equations that we have. We have that 
+**GWD: the equation below are not true if you omit the $+O(h^2)$ term.**
+$$
+\frac{\partial ^2 c}{\partial x^2} = \frac{c_{k+1,j} - 2c_{k,j} + c_{k-1,j}}{h^2} +O(h^2),
+$$
+and similarly for the endthelial cell density. We also have
+$$
+\frac{\partial}{\partial x} \left( n \frac{\partial c}{\partial x} \right) = \frac{(n_{k+1,j} - n_{k,j})(c_{k+1,j} - c_{k,j}) - (n_{k,j} - n_{k-1,j})(c_{k,j} - c_{k-1,j})}{2h^2}
+$$ 
+**GWD: How did you get the above equation? It seems manifestly wrong to me. Consider for example the special case where $n$ is constant. Then your expression gives $0$.**
+Putting together all of the approximations we get
+$$
+c_{k,j+1}=c_{k,j} + \tau \left( \frac{c_{k+1,j} - 2c_{k,j} + c_{k-1,j}}{h^2} - {\alpha n_{k,j} c_{k,j}}{\gamma + c_{k,j}} - \lambda c_{k,j} \right)
+$$
+and
+$$
+\begin{split}
+n_{k,j+1} = n_{k,j} + \tau \Bigg( & D \frac{n_{k+1,j} - 2n_{k,j} + n_{k-1,j}}{h^2}  \\
+ & - \kappa \frac{(n_{k+1,j} - n_{k,j})(c_{k+1,j} - c_{k,j}) - (n_{k,j} - n_{k-1,j})(c_{k,j} - c_{k-1,j})}{2h^2} \\
+& + \mu n_{k,j}(1-n_{k,j})G(c_{k,j}) - \beta n_{k,j} \Bigg)
+\end{split}
+$$
+**GWD: I had to fix the LaTeX for the above equation before it would display.**
+
+The error term for the equations that we have so far is $O(h^2)$ and there will also be $O(\tau)$ for the first order differential at the beginning of the equation. The overall error term is $O(h^2 + \tau)$, which is condsidered satisfactory for most problems.
+
+Now that we have the eqautions in this form we can perform the iterations from the initial conditions to see the progress of TAF and Endothelial cell density through time and over the distance from the tumour. 
+
+First choose step sizes for time and distance. Use two for time steps as one to record the results other just as steps.
+**GWD: Your language could be polished. The previous sentence is an example of a sentence that is difficult to read due to its incorrect grammar.**
+```{r}
+
+h <- 0.1
+N <- 500
+x <- (0:N)*h
+
+tau <- 0.1
+M <- 5000
+M1 <- 100
+M2 <- round(M/M1)
+t <- (0:M1)*M2*tau
+
+
+```
+Create two matrices to hold the approximations for $c_{k,j}$ and $n_{k,j}$ from $0$ to $M$ and $N$,
+```{r}
+
+wc <- matrix(0, nrow=N+1, ncol=M1+1)
+wn <- matrix(0, nrow=N+1, ncol=M1+1)
+```
+We also initialise all of the parameters that are in the PDEs
+```{r}
+
+D <- 0.001
+kappa <- 0.75
+mu <- 100
+beta <- 4
+gam <- 1
+alpha <- 10
+lambda <- 1
+
+```
+We then need to create vectors that hold the values for $c_{k,j}$, $c_{k+1,j}$, $c_{k-1,j}$, $n_{k,j}$, $n_{k+1,j}$ and $n_{k-1,j}$. After creating vectors we can use the formula calculated above to find the values $c_{k,j+1}$ and $n_{k,j+1}$. The values are then assigned to the matrices which hold the solutions.
+
+For the forward difference explicit method we get a full function as follows:
+
+```{r}
+TAF <- function(deltac=function(x) 0*x, deltan=function(x) 0*x, G=function(x) 0*x,
+                alpha=10, gamma=1, lambda=1, D=0.001, kappa=0.75, mu=100, beta=4,
+                N=1000, L=1, T=1, M=100000) {
+  
+  ##Creating step size for distance
+  h <- L/N
+  x <- (0:N+1)*h
+  
+  ##Creating step size for time
+  tau <- T/M
+  M1 <- 100
+  M2 <- round(M/M1)
+  t <- (0:M1)*M2*tau
+  
+  ##Creating the matrices to hold results
+  wc <- matrix(0, nrow=N+1, ncol=M1+1)
+  wn <- matrix(0, nrow=N+1, ncol=M1+1)
+  
+  ##Initial condition functions
+  Cn <- deltac(x) +0*x
+  ENn <- deltan(x) + 0*x
+  
+  ##Setting initial conditions
+  wc[,1] <- Cn
+  wn[,1] <- ENn
+  
+  ##Running through time steps for M1, M2 amount of times to M1*M2=M time steps all together
+  for (j in 1:M1){
+    for (j2 in 1:M2) {
+      
+      C <- Cn
+      Cp <- c(C[2:(N+1)],C[N])
+      Cm <- c(C[2], C[1:N])
+      
+      EN <- ENn
+      ENp <- c(EN[2:(N+1)], EN[N-1])
+      ENm <- c(EN[2], EN[1:N])
+      
+      ##Equation shown calculations for above (TAF)
+      Cn <- C + tau*(
+        (Cp - 2*C + Cm)/(h*h)
+        - (alpha*EN*C)/(gamma+C) 
+        - lambda*C)
+      
+      ##Equation for Endothelial cell density as shown above.
+      ENn <- EN + tau*(
+        (D*(ENp -2*EN + ENm))/(h*h)
+        - (kappa*((ENp-EN)*(Cp-C) - (EN-ENm)*(C-Cm)))/(2*h*h)
+        + mu*EN*(1-EN)*G(C)
+        -beta*EN)
+      
+    }
+    ##Saving value for each M2 time step
+    wc[,j+1] <- Cn
+    wn[,j+1] <- ENn
+  }
+  ##Returns list of distance and time vectors and Matrices holding TAF concentration and Endothelial cell density
+  list(x=x, t=t, C=wc, EN=wn)
+}
+
+##Setting intial conditions for both as suggested by the paper
+deltac <- function(x) cos((pi/2)*x)
+deltan <- function(x) ifelse(x==1, 1, 0)
+
+##Giving the function within PDE in the paper.
+G <- function(x) ifelse(x<=0.2, 0, x-0.2)
+
+##Solving PDE for initial conditions
+sol <- TAF(deltac=deltac, deltan=deltan, G=G,alpha=10, gamma=1, lambda=1, D=0.001, kappa=0.75, mu=100, beta=4,
+           N=100, L=1, T=1, M=10000)
+
+##Plotting the solution at time 0 for TAF concentration.
+plot(sol$x, sol$C[,1], type="l", xlab="x distance from tumour", ylab="TAF concentration", main="TAF concentration from tumour at t=0")
+        
+
+```
+**GWD: The boundary conditions you imposed with your code do not agree with those you specified in your description of the problem.**
+
+The graph above is similar to the graph in the paper studied (Figure 1 (a)).
+
+**GWD: Your graph is only showing the initial condition at $t=0$ and not the solution at later times, unlike the graph in the paper. Otherwise you would have noticed that something was wrong in your code.**
+
+
+```{r}
+plot(sol$x, sol$EN[,1], type="l", xlab="x distance from tumour", ylab="Endothelial cell density", main="Endothelial cell density from tumour at t=0")
+        
+```
+
+One particular difficulty faced with this problem is stability as within the paper after a time of 0.7 units the method that is used by the authors is considered unstable as it doesn't fit to the results accurately enough. 
+
+Another note is to raise the point as to what the results are showing. The results are pretty accurate when compared with empirical research. However, as noted by the authors, after $t=0.7$ the results become less reliable. The authors argue that to make the system better still it might be appropriate to add more variables. One could include the sprout growths of the tumour. This affects both the TAF concentration and endothelial cell density. Perhaps adding this into the system may make the results more reliable after the $t=0.7$ time?
+
+The results could be improved by using an implicit method. The backwards difference method using the double sweep algorithm could improve the results and definitely improve the stability of the results. 
+
+**GWD: I fixed many typos throughout and made some small improvements to the presentation. If you want to see the changes you can take a look at the diff on Github.**

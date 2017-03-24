@@ -1,0 +1,224 @@
+---
+title: "A Numerical Solution to the Sine-Gordon Wave Equation"
+author: "Matthew Shenton"
+output:
+  html_document: default
+  html_notebook: default
+  pdf_document: default
+---
+This documents purpose is to produce a working numerical solution to the Sine-Gordon equation with adequate explanation on how this was achieved.
+
+The Sine-Gordon wave equation reads,
+$$
+(*):\varphi_{tt}-\varphi_{xx}+\sin(\varphi)=0.
+$$
+We will be looking more generally at the interval $x\in[a,b]$, for $a,b \in \mathbb{R}$, with the following initial conditions,
+$$
+\varphi(x,0)=f(x), \ \frac{\partial \varphi(x,0)}{\partial t}=g(x),
+$$
+and the no-flux boundary condition,
+$$
+\frac{\partial \varphi}{\partial x}\bigg|_{x=a,b}=0.
+$$
+Before going through the code, to put the alterations made to the base code given for the general wave equation into perspective, the following section goes through a rigorous mathematical explanation highlighting the logic behind these changes.
+
+We know from basic calculus that differentiation can be expressed as 
+$$
+(1):\frac{\partial f(x,t)}{\partial x}=\lim_{h\to0}\frac{f(x+h,t)-f(x,t)}{h},
+$$
+and as,
+$$
+(2):\frac{\partial f(x,t)}{\partial x}=\lim_{h\to0}\frac{f(x+h,t)-f(x-h,t)}{2h},
+$$
+for some function $f(x,t)$.
+Using $(1)$ to rewrite equation $(*)$ we get the following,
+$$
+(3):\lim_{h\to0}\lim_{\tau\to0}\bigg(\frac{\varphi(x_{i},t_{j+1})-2\varphi(x_{i},t_{j})+\varphi(x_{i},t_{j-1})}{\tau^2}-\frac{\varphi(x_{i+1},t_{j})-2\varphi(x_{i},t_{j})+\varphi(x_{i-1},t_{j})}{h^2}+\sin(\varphi(x_{i},t_{j}))\bigg)=0.
+$$
+Note the change in notation $x_{i+1}=x_{i}+h$, for simplicity, and similarly for t.
+Rearranging $(3)$ and dropping the limits for some finite $\tau$ and $h$, also renaming $\varphi$ to $u$ to identify that the equation is now numerical and contains some error, we get the following expression,
+$$
+(4):u^i_{j+1}=-u^i_{j-1}+2(1-\gamma^2)u^i_{j}+\gamma^2(u^{i-1}_{j}+u^{i+1}_{j})-\tau^2\sin(u^i_{j}),
+$$
+for $\gamma=\frac{\tau}{h}$, $i=0,1,..,N$ and $j=1, 2,...,M-1$ in the interval $t\in[0,T]$.
+Now for the implementation of the second initial condition we look at the virtual point $u^i_{-1}$, using the central difference formula $(2)$ we find,
+$$
+g(x_{i})=\frac{\varphi(x_{i},t_{1})-\varphi(x_{i},t_{-1})}{2\tau}+O(\tau^2).
+$$
+Hence, one can rewrite the last expression as,
+$$
+\varphi(x_{i},t_{-1})=\varphi(x_{i},t_{1})-2\tau g(x_{i})+O(\tau^3),
+$$
+or equivalently,
+$$
+(5):u^i_{-1}=u^i_{1}-2\tau g(x_{i}).
+$$
+Subbing equation $(5)$ into equation $(4)$ we calculate the second time row as,
+$$
+(6):u^i_{1}=\tau g(x_{i})+(1+\gamma^2)f(x_{i})+\frac{1}{2}\gamma^2(f(x_{i-1})+f(x_{i+1}))-\frac{\tau^2}{2}\sin(f(x_{i})).
+$$
+
+Now to interpret our no-flux boundary condition. Using again equation (2) to rewrite the following expression we find,
+$$
+\frac{\partial \varphi}{\partial x}\bigg|_{x=a}=0\Leftrightarrow\frac{\varphi^1_{j}-\varphi^{-1}_{j}}{2h}=0\Leftrightarrow \varphi^1_{j}=\varphi^{-1}_{j}
+$$
+$$
+\frac{\partial \varphi}{\partial x}\bigg|_{x=b}=0\Leftrightarrow\frac{\varphi^{N+1}_{j}-\varphi^{N-1}_{j}}{2h}=0\Leftrightarrow \varphi^{N+1}_{j}=\varphi^{N-1}_{j}
+$$
+
+One can find that equation $(6)$ can be written in a matrix form without loss of accuracy, hence the second time row can be expressed as,
+$$
+(+):\mathbf{u_{1}}=\tau\sigma_{1}+A\mathbf{u_{0}}-\frac{\tau^2}{2}\lambda_{1},
+$$
+where 
+$$
+\sigma_{1}=(g(a),g(x_{1}),...,g(x_{N-1}),g(b))^T
+$$
+and
+$$
+\lambda_{1}=(\sin(u^0_{0}),\sin(u^1_{0}),...,\sin(u^{N-1}_{0}),\sin(u^N_{0}))^T,
+$$
+are $N+1$ dimensional vectors. Also note all emboldened characters i,e, $\mathbf{u_{0}}$ are also $N+1$ dimensional vectors, and $A$ is a tri-diagonal $N+1\times N+1$ dimensional matrix
+$$
+A=\begin{pmatrix}
+  1-\gamma^2 & \boxed{\gamma^2} & 0 & \cdots & 0 \\
+  \frac{\gamma^2}{2} & 1-\gamma^2 & \frac{\gamma^2}{2} & \cdots & \vdots \\
+  0 & \frac{\gamma^2}{2} & 1-\gamma^2 & \ddots & \vdots \\
+  \vdots  & \vdots & \ddots & \ddots & \vdots  \\
+ 0 & \cdots & \cdots & \boxed{\gamma^2} & 1-\gamma^2 
+ \end{pmatrix}.
+$$
+The boxed elements in the matrix represent the effects of our initial no-flux boundary conditions. From equation $(4)$ we can deduce the rest of the time rows in matrix form can be expressed as 
+$$
+(++):\mathbf{u_{j+1}}=-\mathbf{u_{j-1}}+B\mathbf{u_{j}}-\tau^2\lambda,
+$$
+for 
+$$
+\lambda=(\sin(u^0_{j}),\sin(u^1_{j}),...,\sin(u^{N-1}_{j}),\sin(u^N_{j}))^T,
+$$
+and $B=2A$ a square matrix.
+
+The Sine-Gordon equation is one of the group of wave equations with soliton solutions, the 1-soliton solutions for $(*)$ are
+$$
+\varphi_{\text{soliton}}(x,t)=4\arctan(\exp({\pm\delta(x-vt))}),
+$$
+for 
+$$
+\delta^2=\frac{1}{1-v^2},
+$$
+and $v$ velocity.
+
+Solving 1-soliton solutions for our initial conditions yields the following results,
+$$
+f(x)=4\arctan(\exp\bigg(\frac{\pm x}{\sqrt{1-v^2}}\bigg)),
+$$
+$$
+g(x)=-2\frac{v}{\sqrt{1-v^2}}\text{sech}\bigg(\frac{x}{\sqrt{1-v^2}}\bigg).
+$$
+Now we have our first set of initial conditions, along with our matrix representations of our time rows, $(+)$ and $(++)$, we can successfully produce the following code to numerically solve the Sine-Gordon wave equation explicitly:
+```{r}
+v=0.2
+explicitWave <- function(f=function(x) 4*atan(exp(x/sqrt(1-v^2))), g=function(x)-2*(v/sqrt(1-v^2))*(1/cosh(x/sqrt(1-v^2))), a=-10, b=10, N=30, T=1, M=30) {
+    
+  # set up space grid
+  h <- (b-a)/N
+  x <- a + h*(0:N)
+  
+  # set up time grid
+  tau <- T/M
+  t <- tau*(0:M)
+  
+  # Set up evolution matrix 
+  gamma <- (tau/h)^2
+  A <- diag(1-gamma, N+1)
+  
+  for (k in 1:N) {
+    A[k,k+1] <- gamma/2
+    A[k+1,k] <- gamma/2
+  }
+  A[1,2] <- gamma
+  A[N+1,N] <- gamma
+  
+  u <- matrix(0, N+1, M+1)  # Matrix to hold the solution
+  F <- function(u) sin(u)
+  
+  # Initial conditions
+  u[, 1] <- f(x)  # Initial value
+  u[, 2] <- A %*% u[, 1] + tau*g(x) - tau^2/2*F(u[, 1])  # eq.(4.14)
+  
+  B <- 2*A
+  
+  # Loop over time steps
+  for (j in 2:M) {
+    
+    u[, j+1] <- B %*% u[, j] - u[, j-1] - tau^2 * F(u[, j])
+  }
+  
+  
+  return(list(x=x, t=t, u=u))
+}
+
+```
+Arbitrarily choosing $v=0.2$, $a=-10$, $b+10$, $N=1000$, $T=10$ and $M=1500$ we generate the following plots:
+
+```{r}
+sol <- explicitWave(N=1000, T=10, M=1500)
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$u,
+        xlab="x", ylab="t", zlab="u",
+        ticktype="detailed", nticks=4)
+```
+,
+```{r}
+
+sol <- explicitWave(f=function(x) 4*atan(exp(-x/sqrt(1-v^2))), N=1000, T=10, M=1500)
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$u,
+        xlab="x", ylab="t", zlab="u",
+        ticktype="detailed", nticks=4)
+```
+.
+
+Which is exactly what [1] tells us it should look like when using 1-soliton solutions and no-flux boundary conditions.
+
+This particular numerical scheme was fairly simple to create, however there are some quite major shortcomings. The explicit method is unstable if $h<\tau$, limiting out choices for $M,N$ and $T$. Also the error in this method is calculated as $O(\tau^2+h^2)$, which can be improved upon e,g, $O(\tau^4+h^4)$ can be achieved. For a standard computer to run the code above took on average 5-10 minutes, for smaller time steps this would take exponentially longer, so if one wished for greater accuracy this method would not be recommended.
+
+As a conclusion, now we have shown using mathematical logic and evidence via comparison that the R code above is indeed correct, we will generate one last plot with what is know as the breather soliton solution for $(*)$,
+$$
+\varphi_{B}(x,t)=4\arctan\bigg(\frac{\sqrt{1-\omega^2}\sin(\omega t)}{\omega\cosh(\sqrt{1-\omega^2}x)}\bigg).
+$$
+Note that $\omega$ is the frequency of the oscillation, this gives us the following initial conditions,
+$$
+f(x)=0,\ g(x)=4(\sqrt{1-\omega^2})\text{sech}(x\sqrt{1-\omega^2}).
+$$
+Setting $\omega=0.4$ we get,
+```{r}
+w=0.4
+sol <- explicitWave(f=function(x) 0*x, g=function(x) 4*sqrt(1-w^2)*(1/cosh(sqrt(1-w^2)*x)), N=80, T=30, M=500)
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$u,
+        xlab="x", ylab="t", zlab="u",
+        ticktype="detailed", nticks=4)
+```
+.
+
+Now setting $\omega=0.8$,
+```{r}
+w=0.8
+sol <- explicitWave(f=function(x) 0*x, g=function(x) 4*sqrt(1-w^2)*(1/cosh(sqrt(1-w^2)*x)), N=80, T=30, M=500)
+library("plot3Drgl") 
+persp3D(sol$x, sol$t, sol$u,
+        xlab="x", ylab="t", zlab="u",
+        ticktype="detailed", nticks=4)
+```
+.
+
+As required the code has generated the plots we wanted above, as a last note, the larger our $\omega$ the greater the frequency of the periodic spikes in the plot as expected.
+
+$\textbf{References}$:
+
+[1] S. V. Gurevich. (2008). Numerical Methods for Complex Systems. Available: http://pauli.uni-muenster.de/tp/fileadmin/lehre/NumMethoden/PDE2.pdf. Last accessed 22nd Mar 2017
+
+[2] Vladimir G. Ivancevic, Tijana T. Ivancevic. (2013). Sine-Gordon Solitons, Kinks and Breathers as Physical Models of Nonlinear Excitations in Living Cellular Structures. Available: https://arxiv.org/pdf/1305.0613.pdf. Last accessed 22nd Mar 2017.
+
+[3] David Gablinger. (2007). Notes on The Sine Gordon Equation. Available: http://www.mathematik.uni-dortmund.de/~tdohnal/SOLIT_WAVES/SGEhandout4.pdf. Last accessed 22nd Mar 2017.

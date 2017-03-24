@@ -1,0 +1,208 @@
+
+---
+title: 'Numerical Methods for PDEs: Computer mini-project II'
+author: "Ian Maweu"
+output:
+  html_notebook: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r results='hide', warning=FALSE, error=FALSE}
+library(plot3Drgl)
+library(animation)
+```
+
+In this project we shall be looking at the following system of partial differential equations stated by Barkley (2),
+
+$$
+\frac{\partial u}{\partial t}=\epsilon^{-1}u(1-u)(u-u_{th}(v))+K \left(\frac{\partial^2 u}{\partial x^2}
++\frac{\partial^2 u}{\partial y^2}\right), \qquad (1)
+$$
+$$
+\frac{\partial v}{\partial t}=u-v. \qquad (2)
+$$
+where the domain is a square, $0<x<L, \quad 0<y<L and 0<t<T.$ We will also be employing the following Dirichlet boundary conditions,
+$$
+\frac{\partial u(0,y,t)}{\partial x}=\frac{\partial u(L,y,t)}{\partial x}=
+\frac{\partial u(x,0,t)}{\partial y}=\frac{\partial u(x,L,t)}{\partial y}=0.
+$$
+The initial conditions are
+$$
+u(x,y,0)=u_0(x,y)=\begin{cases}
+                  1, & \text{if } y<5 \\
+                  0,   & \text{otherwise}
+\end{cases}, v(x,y,0)=v_0(x,y)=0.
+$$
+This system of equations is part of a larger class of equations called reaction-diffusion equations. Such equations are used to model the dynamics of reactants in chemical reactions or simulate predator-prey dynamics. Barkley (2) states that although the model does not represent a specific excitable system it expresses general characteristics and model dynamics which would be found in an excitable system. One of the characteristics of such a model are the development of spiral waves which we shall show being formed below. 
+
+Barkley (2) develops a numerical scheme that approximates the proposed model. Barkley claims that the developed scheme is able to provide both low (space and time) resolution approximations, which can be used to to possibly investigate the parameters of the model and high resolution approximations, which may be used to verify the accuracy of the low resolution approximations. 
+
+In this report we shall used the a forward difference scheme to approximate the proposed system of equations. We shall also explain how Dirichlet boundary conditions have been incorporated into the numerical scheme. Since we shall be using a forward difference scheme we note that such explicit schemes can be very slow to run compared to implicit schemes and this report also serves as an illustration of this disadvantage.
+
+First we begin by discretizing the domain. For simplicity we use the same spatial step size $h$ for the x direction and the y-direction. Therefore, we let $x_i=ih$ and $y_j=jh$ where $h=\frac{L}{N}$; $N$ represents the number of steps in the domain.
+We approximate $(1)$ by the following forward difference scheme,
+$$
+\frac{w_{k,j}^{n+1}-w_{k,j}^{n}}{\tau}=\epsilon^{-1}u_{k,j}^n(1-u_{k,j}^n)(u_{k,j}^n-u_{th}(v_{k,j}^n))
+-K \bigg(\frac{w_{k+1,j}^{n}-2w_{k,j}^{n}+w_{k-1,j}^{n}}{h_1^2} 
++\frac{w_{k,j+1}^{n}-2w_{k,j}^{n}+w_{k,j-1}^{n}}{h_2^2}\bigg). \qquad (3)
+$$
+
+We can rearrange the following equation as follows,
+
+$$
+w_{k,j}^{n+1}=\tau\epsilon^{-1}u_{k,j}^n(1-u_{k,j}^n)(u_{k,j}^n-u_{th}(v_{k,j}^n))+
+\gamma_1(w_{k+1,j}^{n}-2w_{k,j}^{n}+w_{k-1,j}^{n})+
+\gamma_2(w_{k,j+1}^{n}-2w_{k,j}^{n}+w_{k,j-1}^{n})+w_{k,j}^n, \qquad (3)
+$$
+where $\gamma_1=\frac{K\tau}{h_1}$ and $\gamma_2=\frac{K\tau}{h_2}$.
+Equation $(2)$ can also be approximated using the forward difference scheme,
+$$
+v^{n+1}_{k,j}=v^n_{k,j}+\tau \left(u_{k,j}^n-v_{k,j}^n\right).
+$$
+Next we deal with the Dirichlet boundary conditions in line with Ilin [1,p:23]. We introduce ghost points, $x_{-1}=x_0-h$, $y_{-1}=y_0-h$, $y_{N+1}=y_N+h$ and $x_{N+1}=x_N+h$. Using the ghost points we can approximate the derivatives at the boundaries of the domain using the central difference formula,
+$$
+\frac{w_{k+1,j}^n-w_{k-1,j}^n}{2h}=0, \qquad \frac{w_{k,j+1}^n-w_{k,j-1}^n}{2h}=0.
+$$
+From these equations we find that
+$$
+w^n_{-1,j}=w^n_{1,j}, \quad w^n_{k,-1}=w^n_{k,1}, \quad, w^n_{N+1,j}=w^n_{N-1,j} \quad \& \quad
+w^n_{k,N+1}=w^n_{k,N-1}. \qquad (4)
+$$
+
+Now we construct the function denoted `fwdDiff()' which will approximate the solution to the systems of equations. The function uses pieces of code from Delius and Southwell (3),(4) and (5)
+```{r}
+fwdDiff <- function(L1=1, L2=1, N1=50, N2=50,
+                    T=1, M=10000, M1=1,
+                    u0 =function(x,y) ifelse(y<5, x*y*0+1, 0*x*y)){
+  # Constant parameters
+  a <- 0.3
+  b <- 0.01
+  epsilon <- 0.002
+  delta <- 0.0001
+  K <- 1
+  
+  #Space grid
+  h1 <- L1/N1
+  h2 <- L2/N2
+  x <- (0:N1)*h1
+  y <- (0:N2)*h2
+  
+  #Time Grid
+  M2 <- round(M/M1) # Sets the number of points in time the solution will be recorded
+  tau <- T/M
+  t <- (0:M2)*M1*tau  # The times at which the solution will be recorded
+  
+  gamma1 <- K*tau/h1^2
+  gamma2 <- K*tau/h2^2
+  
+  wu <- array(0, dim=c(N1+1, N2+1, M2+1))  # Array to hold the solution to u
+  wv <- array(0, dim=c(N1+1, N2+1, M2+1))  # Array to hold the solution to v
+  
+  u0xy <- outer(x,y,u0)    # Generates the initial condition
+  
+  #Instead of breaking symmetry within the for loop we can comment out the if statement
+  # u00 <- u0xy*0
+  # j<- round((N1+1)*0.05)
+  # uu <- u0xy[1:j,]
+  # u0xy <- rbind(uu,u00[(j+1):(N1+1),])
+  
+  wu[,,1] <- un <- wu[,,1] + u0xy  #Assigns initial condition for u to the solution matrix
+  wv[,,1] <- vn <- wv[,,1]         #Assigns initial condition for v to the solution matrix
+  
+  for (n in 1:M2) {
+    for (n2 in 1:M1) {
+      
+      u <- un
+      v <- vn
+      
+      #Checks if any of the values of u are negative
+      checkU <- u>0
+      checkV <- v>0
+      
+      #If true sets the value at those points equal to zero
+      u <- checkU*u
+      v <- checkV*v
+      
+      #Replaces rows and columns according to equations (4)
+      ukplus1 <- rbind(u[(2:(N1+1)),], u[N1,])
+      ukminus1 <- rbind(u[2,],u[(1:(N1)),])
+      ujplus1 <- cbind(u[,(2:(N2+1))],u[,N2])
+      ujminus1 <- cbind(u[,2],u[,(1:(N2))])
+      
+      FF <- (1/epsilon)*(u*(1-u)*(u-(v+b)/a))  # nonlinear term in equaiton (1)
+      
+      # Computes solutions to v and u at time n2+1
+      un <-  u + gamma1*(ukminus1-2*u+ukplus1)+ gamma2*(ujminus1-2*u+ujplus1)+tau*FF 
+      vn <- tau*(u-v) + v
+    }
+    
+    # Breaks the symmetry of the solution by setting a certain percentage of the x domain equal to zero
+    # after 600 time steps.
+     if(n*n2==600){
+       u00 <- un*0
+       j<- round((N1+1)*0.3)
+       uu <- un[1:j,]
+       un <- rbind(uu,u00[(j+1):(N1+1),])
+    }
+    
+    #Every M1 steps in time the solutions to u and v are recorded
+    wu[,,n+1] <- un
+    wv[,,n+1] <- vn
+    
+  }
+  return (list(x=x, y=y, t=t, wu=wu, wv=wv))
+}
+
+```
+**GWD: I see you are hiding in the code that you actually need a different initial condition, which breaks the symmetry also in the x direction, in order to generate spiral waves. That is very interesting and I learned a lot from your project. Many thanks.**
+
+**GWD: You may have seen me use `0*x` in my code and you generalised this to `0*x*y`. I used `0*x` as an easy way to generate a vector of the same length as `x`. However in your code you do not need that. So you can drop the `0*x*y` (also, it does not create a matrix, as you may have thought, but a vector).**
+
+
+The function `s()` tells us the minimum number of steps in time we should use given the conditions.
+```{r}
+s <- function(N1= 250, N2=250, L1=20, L2= 20, K=1, T=20)
+{
+  return(2*T*K*(((N1/L1)^2)+((N2/L2)^2)))
+}
+s()
+```
+
+
+Here we simulate the solution using a 20-by-20 square domain for time $T=10$. The initial condition for $u$ is a surface that is 1 for all points $(x,y)$ such that $y<0.2$ and zero else where.
+```{r}
+sol3 <- fwdDiff(L1=20, L2=20, N1=250, N2=250,
+                T=10, M=12500, M1=20,
+                u0 =function(x,y) ifelse (y<0.2 , x*y*0+1, x*y*0))
+```
+
+
+This function generates an animation to show the solution evolving in time. The function actually generates another webpage denoted index which contains the animation.
+```{r, cache=TRUE}
+saveHTML({
+  for(i in 1:150){
+    persp3D(sol3$x, sol3$y, sol3$wu[, , i*2],
+            xlab="x", ylab="y", zlab="u", zlim=c(-1.5, 1.5), clim=c(-1, 1.3),
+            ticktype="detailed", nticks=4, phi=65, theta=45)
+  }
+},ani.width = 600, ani.height=600, ani.interval = 0.05)
+```
+**GWD: Very nice!**
+
+The following code shows a plot of variable u at approximately $T=205*20=4100$
+```{r}
+    persp3D(sol3$x, sol3$y, sol3$wu[, , 205],
+        xlab="x", ylab="y", zlab="u", zlim=c(-1, 1), clim=c(-1, 1.3),
+        ticktype="detailed", nticks=4, phi=55, theta=45)
+```
+When approximating the system of equations using the forward difference method we have found that runtime are long due to the small step sizes. These small step sizes are necessary in order for our method to be stable and therefore are unavoidable.
+
+#References
+1.  Ilin K. Numerical Methods for PDEs [unpublished lecture notes]. University of York; provided 2017 January 16.
+2. Barkley D. A model for fast computer simulation of waves in excitable media. Physica D: Nonlinear Phenomena. 1991 Apr 1;49(1-2):61-70.
+3.  Southwell R, Delius G. Numerical Methods for PDEs (Spring 2017) Lab 9 [unpublished worksheet]. University of York;  provided 2017 February 20.
+4.  Southwell R, Delius G. Numerical Methods for PDEs (Spring 2017) Lab 10 [unpublished worksheet]. University of York;  provided 2017 February 20.
+5.  Southwell R, Delius G. Numerical Methods for PDEs (Spring 2017) Lab 11 [unpublished worksheet]. University of York; provided 2017 February 27.

@@ -1,0 +1,231 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This second Miniproject is based on the paper "Numerical simulation of spartio-temporal model: case of SIR epidemic model", published by Imane El Berrai, Jamal Bouyaghroumni and Abdelouahed Namir.
+
+The SIR model describes the spread of an infectious disease. Therefore the population is devided into three groups - susceptibles (S), infective(I), recoverd (R), which are (in the used paper) described by the coupled system of equations
+$$ \frac{\partial S}{\partial t} = \frac{\partial^2 S}{\partial x^2}+\frac{\partial^2 S}{\partial y^2}+rS(1-\frac{S}{k})-\frac{\alpha SI}{1+aI} \\
+\frac{\partial I}{\partial t} = \frac{\partial^2 I}{\partial x^2}+\frac{\partial^2 I}{\partial y^2}+\frac{\alpha SI}{1+aI} -\delta I$$
+
+Here, $r$ is the growth rate of susceptibles and $k$ their carrying capacity in the absence of infective. $\alpha$ is the rate in which susceptibles get infected due to cantact with infectives, $a$ is a half saturation constant, and $\delta$ is the recover rate from an infection.
+With the second derivative terms we take the spartial dispersion of individuals into account. 
+
+[ The equation for the recovered population is not given in the paper, but for the SIR model we make the assumptions that individuals can just leave the susceptible group by getting infected and, respectivley, individuals can just leave the infective group by recovering from the disease.  Once recovered a person stays immune. Hence, the rocovered population could be modeled by 
+$$\frac{\partial R}{\partial t} = \frac{\partial^2 R}{\partial x^2}+\frac{\partial^2 R}{\partial y^2} + \delta I$$ ] 
+
+To find a numerical solution for this system of parablic PDEs, we  discretize the system by introducing grid points $(x_k,y_j,t_n) = (kh,jh,n\tau)$, where $h$ is the step length in $x$- and $y-$ direction, $\tau$ the size of timesteps.
+
+To approximate the time derivatives at the gridpoints, we will use the forward-difference method
+$$ \frac{\partial S}{\partial t} (x_k,y_j,t_n) = \frac{ S_{kj}^{n+1}-S_{kj}^n}{\tau}+O(\tau)$$
+
+The linear second-order derivatives are approximated by the standard three point- central-difference formula:
+$$\frac{\partial^2 S}{\partial x^2} = \frac{S_{k+1j}^n-2S_{kj}^n+S_{k-1j}^n}{h^2} +O(h^2)\\
+\frac{\partial^2 S}{\partial y^2} = \frac{S_{kj+1}^n-2S_{kj}^n+S_{kj-1}^n}{h^2}+O(h^2)$$
+Respectively for the derivatives of $I_{kj}^n$.
+
+Putting all together, we obtain the explicit method
+$$ S_{kj}^{n+1} = S_{kj}^n+ \frac{\tau}{h^2}(-4S_{kj}^n+S_{k+1j}^n+S_{k-1j}^n+S_{kj+1}^n+S_{kj-1}^n) + \tau(rS_{kj}^n(1-\frac{S_{kj}^n}{k})-\frac{\alpha S_{kj}^nI_{kj}^n}{1+aI_{kj}^n})\\
+I_{kj}^{n+1} = I_{kj}^n+ \frac{\tau}{h^2}(-4I_{kj}^n+I_{k+1j}^n+I_{k-1j}^n+I_{kj+1}^n+I_{kj-1}^n) + \tau(\frac{\alpha I_{kj}^nI_{kj}^n}{1+aI_{kj}^n}-\delta I_{kj}^n)$$
+
+We impose Dirichlet boundary conditions. Note, that the paper does't provide any boundary conditions.
+$$\frac{\partial S}{\partial x}(0,y,t)=\frac{\partial S}{\partial x}(L,y,t) =0 \\
+\frac{\partial S}{\partial y}(x,0,t)=\frac{\partial S}{\partial y}(x,L,t) =0\\ \ \\
+\frac{\partial I}{\partial x}(0,y,t)=\frac{\partial I}{\partial x}(L,y,t)=0 \\
+\frac{\partial I}{\partial y}(x,0,t)=\frac{\partial I}{\partial y}(x,L,t)=0 $$
+
+To approximate the boundary values we use the scheme from chapter 2.6 and introduce points $x_{-1}, x_{N+1}, y_{-1}, y_{N+1}$, where 
+$$S_{-1j}^n=S_{1j}^n,\enspace S_{N+1j}^n=S_{N-1j}^n \\
+S_{k-1}^n=S_{k1}^n,\enspace S_{kN+1}^n=S_{kN-1}^n $$ 
+And for $I$ respectively.
+
+To make the code more efficient, we will work with matrices at each timestep, that hold all values  for a time:
+$$S_n=\left[\begin{array}{cccccc}
+S_{00}^n &S_{01}^n        &\dots &S_{0N}^n \\
+S_{10}^n &S_{11}^n &     &\vdots \\
+\vdots      &  &\ddots & \\
+
+
+S_{N0}^n     &\dots  &\dots  &S_{NN}^n    
+\end{array}\right], \quad 
+S_n^{x+}=\left[\begin{array}{cccccc}
+S_{10}^n &S_{11}^n        &\dots &S_{1N}^n \\
+S_{20}^n &S_{21}^n &     &\vdots \\
+\vdots      &  &\ddots & \\
+S_{N,0}^n     &\dots  &\dots  &S_{NN}^n \\
+
+S_{N-1,0}^n     &\dots  &\dots  &S_{N-1,N}^n    
+\end{array}\right], \quad 
+S_n^{x-}=\left[\begin{array}{cccccc}
+S_{10}^n &S_{11}^n        &\dots &S_{1N}^n \\
+S_{00}^n &S_{01}^n        &\dots &S_{0N}^n\\
+S_{20}^n &S_{21}^n &     &\vdots \\
+\vdots      &  &\ddots & \\
+S_{N-1,0}^n     &\dots  &\dots  &S_{N-1,N}^n \\
+\end{array}\right]
+\\
+
+S_n^{y+}=\left[\begin{array}{cccccc}
+S_{01}^n &S_{02}^n        &\dots &S_{0N}^n &S_{0N-1}^n\\
+S_{11}^n &S_{12}^n &    & &\vdots \\
+\vdots      &  &\ddots & \\
+S_{N,1}^n     &\dots &&S_{NN}^n  &S_{NN-1}^n \\
+
+
+\end{array}\right], \quad 
+S_n^{y-}=\left[\begin{array}{cccccc}
+S_{01}^n &S_{00}^n        &\dots & &S_{0N-1}^n\\
+S_{11}^n &S_{10}^n &    & &\vdots \\
+\vdots      &  &\ddots & \\
+S_{N,1}^n&S_{N0}^n     &\dots &  &S_{NN-1}^n \\
+
+
+\end{array}\right]
+
+ $$
+ 
+We load the packages matrixcalc to allow simple matrix shifts and plot3Drgl.
+  
+  
+```{r}
+library(matrixcalc)
+library(plot3Drgl)
+```
+
+Now we introduce the meshgrid. Therefore we use the same stepsize, and the same amount of steps in $x-$ and $y-$ direction.
+```{r}
+h<-0.1
+N<-200
+x<-h*(0:N)
+y<-h*(0:N)
+```
+
+For the timegrid, the stability condition for the forward-difference method has to be taken into account: $$\frac{\tau}{h^2}\leq 1/4$$
+However, to make the code more efficient, we will save results just for a subset of all the results.
+```{r}
+tau<-h^2/6
+M<-1000
+M1<-50
+M2<-M/M1
+t<-tau*(0:M1)*M2
+
+gamma<-tau/h^2
+```
+
+Now we initialise two arrays to hold the approximations for $I$ and $S$ at each time step:
+```{r}
+ws<-array(0, dim = c(N+1,N+1,M1+1))
+wi<-array(0, dim = c(N+1,N+1,M1+1))
+```
+
+We define the parameter values provided by the paper:
+```{r}
+a<-2.3
+alpha<-1.49
+delta<-0.611
+k<-100
+r<-2.5
+```
+
+Beside the trivial solution $I=0, S=0$ the system has a second steady-state solution, that we copmpute by setting all derivates equal 0.
+```{r}
+I0<- uniroot(function(I) r*(1-(delta*(1+a*I)/(alpha*k)))-alpha*I/(1+a*I), interval = c(10,110))$root
+
+S0<- delta*(1+a*I0)/alpha
+I0
+S0
+```
+
+We take this steady-state solution as constant initial condition, except from one area, where we introduvce a peak of infectives.
+```{r}
+Sn <-  outer(x,y,function(x,y) S0+0*x*y-50*exp(-(10*(x-10)^2+10*(y-10)^2)) )
+In <- I0 + outer(x,y,function(x,y) 50*exp(-(10*(x-10)^2+10*(y-10)^2)))
+ws[ , ,1] <- Sn
+wi[ , ,1] <- In
+```
+
+We can plot this for the infectives: 
+```{r}
+persp3D(x,y,wi[ , ,1], xlab="x", ylab="y", zlab="infected", ticktype="detailed")
+```
+And for the susceptible: 
+```{r}
+persp3D(x,y,ws[ , ,1],xlab="x", ylab="y", zlab='susceptible', ticktype="detailed")
+```
+
+With this, we can start stepping through all timesteps:
+ 
+ 
+```{r}
+for (n in 1:M1) {
+  for (n2 in 1:M2) {
+    
+  S<-Sn
+  Sxp<- shift.up(S,1)
+  Sxp[N+1, ] <- S[N,] 
+  Sxm<- shift.down(S,1)
+  Sxm[1,] <- S[2,]
+  Syp<- shift.left(S,1)
+  Syp[ ,N+1]<-S[,N]
+  Sym<- shift.right(S,1)
+  Sym[ ,1]<-S[,2]
+  
+  I<-In
+  Ixp<- shift.up(I,1)
+  Ixp[N+1, ] <- I[N,]
+  Ixm<- shift.down(I,1)
+  Ixm[1,] <- I[2,]
+  Iyp<- shift.left(I,1)
+  Iyp[ ,N+1]<-I[ ,N]
+  Iym<- shift.right(I,1)
+  Iym[ ,1]<-I[ ,2]
+  
+  Sn <- S + gamma * (-4*S+Sxp+Sxm+Syp+Sym) +
+            tau*(r*S*(1-S/k)-alpha*S*I/(1+a*I))
+  In <- I + gamma * (-4*I+Ixp+Ixm+Iyp+Iym) +
+            tau*(alpha*S*I/(1+a*I)-delta*I)
+  }
+  
+  ws[, ,n+1]<- Sn
+  wi[, ,n+1]<- In
+}
+```
+ We now plot solutions for several timesteps.
+ 
+```{r}
+persp3D(x, y, wi[, ,5], xlab="x", ylab="y", zlab="infectives", ticktype="detailed")
+
+```
+
+
+```{r}
+persp3D(x, y, wi[, ,10], xlab="x", ylab="y", zlab="infectives", ticktype="detailed")
+```
+
+```{r}
+persp3D(x, y, wi[, ,25], xlab="x", ylab="y", zlab="infectives", ticktype="detailed")
+```
+```{r}
+persp3D(x, y, wi[, ,50], xlab="x", ylab="y", zlab="infectives", ticktype="detailed")
+```
+
+One can observe that the number of infected decreases very fast until they reach the steady-state level. However, the peak will remain (even though its high goes to zero) and doesn't spread a lot over the plane, which is different than the results shown in the paper. Here, after the peak decreases, it moves like a wave over the plane towards the boundaries. 
+
+If we consider the evolution of the susceptible group, we get a similar result:
+```{r}
+persp3D(x,y,ws[ , ,10],xlab="x", ylab="y", zlab='susceptible', ticktype="detailed")
+```
+```{r}
+persp3D(x,y,ws[ , ,25],xlab="x", ylab="y", zlab='susceptible', ticktype="detailed")
+```
+
+```{r}
+persp3D(x,y,ws[ , ,50],xlab="x", ylab="y", zlab='susceptible', ticktype="detailed")
+```
+
+Some Remarks:
+- The paper itself uses exactly the same numerical scheme, as we do here, the forward-difference method.     This is an easy and straight-forward way to get a solution with truncation error of order $O(\tau +h^2)$.   Nevertheless there is a stability condition for the size of the timesteps, that has to be satisfied. A     small timestep can become expensive for the code efficiency. 
+  Alternative methods would be implicit methods, like the Backwards-Difference scheme, or Crank-Nicolson     method, but here the problem of a non-linear system of equation occurs, that needs further methods to be    soleved.
+  
+- As already mentioned the solutionplots provided in the paper differ from  the ones obtained in this        project. It has to be said, that the paper does not provide a lot of information, e.g. no boundary or      initial conditions are given and how parameter and initial values are chosen. However, chosing different   parameter values would not make a great difference in the solution, rather the same behaviour will still   occur. 
