@@ -57,6 +57,7 @@ Subbing equation $(5)$ into equation $(4)$ we calculate the second time row as,
 $$
 (6):u^i_{1}=\tau g(x_{i})+(1+\gamma^2)f(x_{i})+\frac{1}{2}\gamma^2(f(x_{i-1})+f(x_{i+1}))-\frac{\tau^2}{2}\sin(f(x_{i})).
 $$
+**GWD: I think the $(1+\gamma^2)$ should be a $(1-\gamma^2)$.**
 
 Now to interpret our no-flux boundary condition. Using again equation (2) to rewrite the following expression we find,
 $$
@@ -110,11 +111,13 @@ and $v$ velocity.
 
 Solving 1-soliton solutions for our initial conditions yields the following results,
 $$
-f(x)=4\arctan(\exp\bigg(\frac{\pm x}{\sqrt{1-v^2}}\bigg)),
+f(x)=4\arctan(\exp\bigg(\frac{\pm x}{\sqrt{1-v^2}}\bigg),
 $$
 $$
 g(x)=-2\frac{v}{\sqrt{1-v^2}}\text{sech}\bigg(\frac{x}{\sqrt{1-v^2}}\bigg).
 $$
+**GWD: Did you make a mistake when calculating the derivative? For $v=0$ your derivative vanishes, which can not be correct.**
+
 Now we have our first set of initial conditions, along with our matrix representations of our time rows, $(+)$ and $(++)$, we can successfully produce the following code to numerically solve the Sine-Gordon wave equation explicitly:
 ```{r}
 v=0.2
@@ -159,7 +162,7 @@ explicitWave <- function(f=function(x) 4*atan(exp(x/sqrt(1-v^2))), g=function(x)
 }
 
 ```
-Arbitrarily choosing $v=0.2$, $a=-10$, $b+10$, $N=1000$, $T=10$ and $M=1500$ we generate the following plots:
+Arbitrarily choosing $v=0.2$, $a=-10$, $b=10$, $N=1000$, $T=10$ and $M=1500$ we generate the following plots:
 
 ```{r}
 sol <- explicitWave(N=1000, T=10, M=1500)
@@ -177,11 +180,9 @@ persp3D(sol$x, sol$t, sol$u,
         xlab="x", ylab="t", zlab="u",
         ticktype="detailed", nticks=4)
 ```
-.
+This is exactly what [1] tells us it should look like when using 1-soliton solutions and no-flux boundary conditions.
 
-Which is exactly what [1] tells us it should look like when using 1-soliton solutions and no-flux boundary conditions.
-
-This particular numerical scheme was fairly simple to create, however there are some quite major shortcomings. The explicit method is unstable if $h<\tau$, limiting out choices for $M,N$ and $T$. Also the error in this method is calculated as $O(\tau^2+h^2)$, which can be improved upon e,g, $O(\tau^4+h^4)$ can be achieved. For a standard computer to run the code above took on average 5-10 minutes, for smaller time steps this would take exponentially longer, so if one wished for greater accuracy this method would not be recommended.
+This particular numerical scheme was fairly simple to create, however there are some quite major shortcomings. The explicit method is unstable if $h<\tau$, limiting our choices for $M,N$ and $T$. Also, the error in this method is calculated as $O(\tau^2+h^2)$, which can be improved upon e,g, $O(\tau^4+h^4)$ can be achieved (**GWD: any order can be achieved, but how practical?**). For a standard computer to run the code above took on average 5-10 minutes (**GWD: took only a few seconds on my standard computer**), for smaller time steps this would take exponentially longer (**GWD: quadratically longer**), so if one wished for greater accuracy this method would not be recommended.
 
 As a conclusion, now we have shown using mathematical logic and evidence via comparison that the R code above is indeed correct, we will generate one last plot with what is know as the breather soliton solution for $(*)$,
 $$
@@ -213,7 +214,7 @@ persp3D(sol$x, sol$t, sol$u,
 ```
 .
 
-As required the code has generated the plots we wanted above, as a last note, the larger our $\omega$ the greater the frequency of the periodic spikes in the plot as expected.
+As required, the code has generated the plots we wanted above. As a last note: the larger our $\omega$ the greater the frequency of the periodic spikes in the plot, as expected.
 
 $\textbf{References}$:
 

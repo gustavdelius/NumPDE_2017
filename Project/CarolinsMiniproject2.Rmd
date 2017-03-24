@@ -9,8 +9,8 @@ The SIR model describes the spread of an infectious disease. Therefore the popul
 $$ \frac{\partial S}{\partial t} = \frac{\partial^2 S}{\partial x^2}+\frac{\partial^2 S}{\partial y^2}+rS(1-\frac{S}{k})-\frac{\alpha SI}{1+aI} \\
 \frac{\partial I}{\partial t} = \frac{\partial^2 I}{\partial x^2}+\frac{\partial^2 I}{\partial y^2}+\frac{\alpha SI}{1+aI} -\delta I$$
 
-Here, $r$ is the growth rate of susceptibles and $k$ their carrying capacity in the absence of infective. $\alpha$ is the rate in which susceptibles get infected due to cantact with infectives, $a$ is a half saturation constant, and $\delta$ is the recover rate from an infection.
-With the second derivative terms we take the spartial dispersion of individuals into account. 
+Here, $r$ is the growth rate of susceptibles and $k$ their carrying capacity in the absence of infectives. $\alpha$ is the rate at which susceptibles get infected due to contact with infectives, $a$ is a half saturation constant, and $\delta$ is the recovery rate from an infection.
+With the second derivative terms we take the spatial dispersion of individuals into account. 
 
 [ The equation for the recovered population is not given in the paper, but for the SIR model we make the assumptions that individuals can just leave the susceptible group by getting infected and, respectivley, individuals can just leave the infective group by recovering from the disease.  Once recovered a person stays immune. Hence, the rocovered population could be modeled by 
 $$\frac{\partial R}{\partial t} = \frac{\partial^2 R}{\partial x^2}+\frac{\partial^2 R}{\partial y^2} + \delta I$$ ] 
@@ -45,8 +45,6 @@ $$S_n=\left[\begin{array}{cccccc}
 S_{00}^n &S_{01}^n        &\dots &S_{0N}^n \\
 S_{10}^n &S_{11}^n &     &\vdots \\
 \vdots      &  &\ddots & \\
-
-
 S_{N0}^n     &\dots  &\dots  &S_{NN}^n    
 \end{array}\right], \quad 
 S_n^{x+}=\left[\begin{array}{cccccc}
@@ -54,7 +52,6 @@ S_{10}^n &S_{11}^n        &\dots &S_{1N}^n \\
 S_{20}^n &S_{21}^n &     &\vdots \\
 \vdots      &  &\ddots & \\
 S_{N,0}^n     &\dots  &\dots  &S_{NN}^n \\
-
 S_{N-1,0}^n     &\dots  &\dots  &S_{N-1,N}^n    
 \end{array}\right], \quad 
 S_n^{x-}=\left[\begin{array}{cccccc}
@@ -65,24 +62,18 @@ S_{20}^n &S_{21}^n &     &\vdots \\
 S_{N-1,0}^n     &\dots  &\dots  &S_{N-1,N}^n \\
 \end{array}\right]
 \\
-
 S_n^{y+}=\left[\begin{array}{cccccc}
 S_{01}^n &S_{02}^n        &\dots &S_{0N}^n &S_{0N-1}^n\\
 S_{11}^n &S_{12}^n &    & &\vdots \\
 \vdots      &  &\ddots & \\
 S_{N,1}^n     &\dots &&S_{NN}^n  &S_{NN-1}^n \\
-
-
 \end{array}\right], \quad 
 S_n^{y-}=\left[\begin{array}{cccccc}
 S_{01}^n &S_{00}^n        &\dots & &S_{0N-1}^n\\
 S_{11}^n &S_{10}^n &    & &\vdots \\
 \vdots      &  &\ddots & \\
 S_{N,1}^n&S_{N0}^n     &\dots &  &S_{NN-1}^n \\
-
-
 \end{array}\right]
-
  $$
  
 We load the packages matrixcalc to allow simple matrix shifts and plot3Drgl.
@@ -93,7 +84,7 @@ library(matrixcalc)
 library(plot3Drgl)
 ```
 
-Now we introduce the meshgrid. Therefore we use the same stepsize, and the same amount of steps in $x-$ and $y-$ direction.
+Now we introduce the meshgrid. We use the same stepsize, and the same amount of steps in $x-$ and $y-$ direction.
 ```{r}
 h<-0.1
 N<-200
@@ -102,7 +93,7 @@ y<-h*(0:N)
 ```
 
 For the timegrid, the stability condition for the forward-difference method has to be taken into account: $$\frac{\tau}{h^2}\leq 1/4$$
-However, to make the code more efficient, we will save results just for a subset of all the results.
+To make the code more efficient, we will save results just for a subset of all the results.
 ```{r}
 tau<-h^2/6
 M<-1000
@@ -128,7 +119,7 @@ k<-100
 r<-2.5
 ```
 
-Beside the trivial solution $I=0, S=0$ the system has a second steady-state solution, that we copmpute by setting all derivates equal 0.
+Beside the trivial solution $I=0, S=0$ the system has a second steady-state solution, that we compute by setting all derivates equal 0.
 ```{r}
 I0<- uniroot(function(I) r*(1-(delta*(1+a*I)/(alpha*k)))-alpha*I/(1+a*I), interval = c(10,110))$root
 
@@ -137,7 +128,7 @@ I0
 S0
 ```
 
-We take this steady-state solution as constant initial condition, except from one area, where we introduvce a peak of infectives.
+We take this steady-state solution as constant initial condition, except from one area, where we introduce a peak of infectives.
 ```{r}
 Sn <-  outer(x,y,function(x,y) S0+0*x*y-50*exp(-(10*(x-10)^2+10*(y-10)^2)) )
 In <- I0 + outer(x,y,function(x,y) 50*exp(-(10*(x-10)^2+10*(y-10)^2)))
@@ -210,7 +201,7 @@ persp3D(x, y, wi[, ,25], xlab="x", ylab="y", zlab="infectives", ticktype="detail
 persp3D(x, y, wi[, ,50], xlab="x", ylab="y", zlab="infectives", ticktype="detailed")
 ```
 
-One can observe that the number of infected decreases very fast until they reach the steady-state level. However, the peak will remain (even though its high goes to zero) and doesn't spread a lot over the plane, which is different than the results shown in the paper. Here, after the peak decreases, it moves like a wave over the plane towards the boundaries. 
+One can observe that the number of infected decreases very fast until they reach the steady-state level. However, the peak will remain (even though its heigh tgoes to zero) and doesn't spread a lot over the plane, which is different than the results shown in the paper. Here, after the peak decreases, it moves like a wave over the plane towards the boundaries. 
 
 If we consider the evolution of the susceptible group, we get a similar result:
 ```{r}
@@ -225,6 +216,7 @@ persp3D(x,y,ws[ , ,50],xlab="x", ylab="y", zlab='susceptible', ticktype="detaile
 ```
 
 Some Remarks:
+
 - The paper itself uses exactly the same numerical scheme, as we do here, the forward-difference method.     This is an easy and straight-forward way to get a solution with truncation error of order $O(\tau +h^2)$.   Nevertheless there is a stability condition for the size of the timesteps, that has to be satisfied. A     small timestep can become expensive for the code efficiency. 
   Alternative methods would be implicit methods, like the Backwards-Difference scheme, or Crank-Nicolson     method, but here the problem of a non-linear system of equation occurs, that needs further methods to be    soleved.
   

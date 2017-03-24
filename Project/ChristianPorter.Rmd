@@ -6,15 +6,16 @@ output: html_notebook
 The KdV equation is an important nonlinear PDE that has many applications and variations used to describe physical systems. The equation primarily takes the form
 
 $$\frac{\partial u}{\partial t} + \frac{\partial^3 u}{\partial x^3} + u\frac{\partial u}{\partial x} = 0, \qquad (\dagger)$$
-which is the KdV equation's simplified, nondimensional form that can be used to describe wave shapes in shallow waters. One of the interesting properties of the KdV equation is its solutions take the form of \textit{Soliton waves}, solitary waves that propagate at a constant velocity and retain their waveform and velocity after colliding with other soliton waves. Their name is a conglomeration of two of the waves' properties - "solit-" as these waves travel alone, "-on" to associate these waves with particles e.g. bosons, fermions etc. \\
-It is worth noting that the KdV equation is a classical example of an \textit{integrable system}. This means that the equation exhibits regular motion as opposed to random, chaotic motion apparent in other physical systems - in other words, exact solutions can be obtained from the KdV equation through analytical means. The simplest known solution to the equation describes a singular soliton wave propagating with a constant velocity $c$ starting at the point $x=0$ and travelling towards positive $x$ space. Such a wave is described by the following equation:
+which is the KdV equation's simplified, nondimensional form that can be used to describe wave shapes in shallow waters. One of the interesting properties of the KdV equation is that its solutions take the form of *Soliton waves*, solitary waves that propagate at a constant velocity and retain their waveform and velocity after colliding with other soliton waves. Their name is a conglomeration of two of the waves' properties - "solit-" as these waves travel alone, "-on" to associate these waves with particles e.g. bosons, fermions etc. 
+
+It is worth noting that the KdV equation is a classical example of an **integrable system**. This means that the equation exhibits regular motion as opposed to random, chaotic motion apparent in other physical systems - in other words, exact solutions can be obtained from the KdV equation through analytical means. **GWD: This is not a good characterisation of integrable equations. Also non-integrable equations can have non-chaotic solutions and some of them can be determined analytically.** The simplest known solution to the equation describes a singular soliton wave propagating with a constant velocity $c$ starting at the point $x=0$ and travelling towards positive $x$ space. Such a wave is described by the following equation:
 
 $$u(x,t) = \frac{c}{2} \frac{1}{\cosh^2{\frac{\sqrt{c}}{2}(x-ct)}}. \qquad(\ddagger)$$
 To begin looking for numerical solutions to the KdV equation we must first construct a finite difference scheme for $(\dagger)$. Applying the forward difference scheme to the time derivative term, we can easily find
 
 $$\frac{\partial{u}}{\partial{t}}(x_k,t_j) = \frac{u(x_k,t_{j+1})-u(x_k,t_j)}{\tau} + \mathcal{O}(\tau) = \frac{w_{k,j+1}-w_{k,j}}{\tau},$$
-
-where $x_{k} = kh$, $t_{j} = j\tau$ are the $k$'th, $j$'th space and time steps respectively after discretizing the equation and $w_{kj}$ is the numerical approximation to $u(x_k,t_j)$. Now we apply the central difference scheme to the space steps:
+**GWD: The second equality above is not correct. The $w_{k,j}$ are only approximations to $u(x_k,t_j)$ and the difference quotient is not equal to the derivative of $u$. The same applies to the next equation.**
+where $x_{k} = kh$, $t_{j} = j\tau$ are the $k$-th, $j$-th space and time steps respectively after discretizing the equation and $w_{kj}$ is the numerical approximation to $u(x_k,t_j)$. Now we apply the central difference scheme to the space steps:
 
 $$u(x_k,t_j)\frac{\partial u}{\partial x}(x_k,t_j) = u(x_k,t_j)\Big(\frac{u(x_{k+1},t_j)-u(x_{k-1},t_j)}{2h}\Big) + \mathcal{O}(h^2) = \frac{w_{k,j}(w_{k+1,j}-w_{k-1,j})}{2h}.$$
 
@@ -27,7 +28,7 @@ Once again applying the central difference scheme, we find:
 $$
 \frac{\partial f}{\partial x}(x_k,t_j) = \frac{f(x_{k+1},t_j)-f(x_{k-1},t_j)}{2h} + \mathcal{O}(h^2) = \frac{u(x_{k+2},t_j) - 2u(x_{k+1},t_j) + 2u(x_{k-1},t_j) - u(x_{k-2},t_j))}{2h^3} + \mathcal{O}(h^3).
 $$
-
+**GWD: the error is still $O(h^2)$.**
 Now substituting back into $(\dagger)$:
 
 $$
@@ -36,11 +37,10 @@ $$
 which has error$\mathcal{O}(\tau + h^2)$. Rearraging for $w_{k,j+1}$,
 
 $$w_{k,j+1} = w_{k,j}\Big(1-\frac{\tau}{2h}(w_{k+1,j}-w_{k-1,j})\Big) + w_{k+1,j}\Big(\frac{\tau}{h^3}\Big) - w_{k-1,j}\Big(\frac{\tau}{h^3}\Big) - w_{k+2,j}\Big(\frac{\tau}{2h^3}\Big) + w_{k-2,j}\Big(\frac{\tau}{2h^3}\Big).$$
-This equation can be condensed by building a (N+1)x(N+1) matrix
+This equation can be condensed by building an (N+1)x(N+1) matrix
 
-$$A = 
-
-\begin{bmatrix}
+$$
+A = \begin{bmatrix}
 a_1 & b_1 & c_1 & 0 & \dots & \dots & \dots & \dots & 0 \\
 -b_2 & a_2 & b_2 & c_2 & 0 & \dots & \dots & \dots& \vdots \\
 -c_3 & -b_3 & a_3 & b_3 & c_3 & 0 & \dots & \dots & \vdots \\
@@ -50,7 +50,10 @@ a_1 & b_1 & c_1 & 0 & \dots & \dots & \dots & \dots & 0 \\
 \end{bmatrix}
 $$
 
-where $a_k = \Big(1-\frac{\tau}{2h}(w_{k+1,j}-w_{k-1,j})\Big)$, $b_k = \Big(\frac{\tau}{h^3}\Big)$ and $c_k = -\Big(\frac{\tau}{2h^3}\Big)$. By the definition of the KdV equation we also have that $u(x,t)$ tends to zero for $x=\pm \infty$ so we set boundary conditions $u(x,0)=u(x,L)=0$. Taking equation $(\ddagger)$ at $t=0$ and letting $c=4$, we have the inital vector required to set up the finite difference problem. Begin by setting up the parameters for space, time and the initial equation:
+where $a_k = \Big(1-\frac{\tau}{2h}(w_{k+1,j}-w_{k-1,j})\Big)$, $b_k = \Big(\frac{\tau}{h^3}\Big)$ and $c_k = -\Big(\frac{\tau}{2h^3}\Big)$. 
+**GWD: It seems that you did not notice that this matrix depends on $w$ at time step $j$ and thus changes at every time step. Your code below uses the matrix as it is at the initial time. This is the reason you get wrong results. Please re-read the section on the non-linear heat equation.**
+
+By the definition of the KdV equation we also have that $u(x,t)$ tends to zero for $x=\pm \infty$ so we set boundary conditions $u(x,0)=u(x,L)=0$. Taking equation $(\ddagger)$ at $t=0$ and letting $c=4$, we have the inital vector required to set up the finite difference problem. Begin by setting up the parameters for space, time and the initial equation:
 
 ```{r}
 sech<-function(x){1/cosh(x)} #defining sech function for R
@@ -58,11 +61,14 @@ h <- 0.1 #setting up space grid
 N <- 100
 x <- (0:N)*h
 tau <- 0.00001 #setting up time grid
-M <- 10000
-t <- (0:M)*tau
-u0 <- c(2*sech(x)^2) #setting the initial equation
+M <- 100000
+M1 <- 100  # Save the solution only at 100 time steps
+M2 <- M/M1
+t <- (0:M1)*M2*tau
+u0 <- c(2*sech(x-5)^2) #setting the initial equation
 u <- u0
 ```
+
 Now setting up the matrix $A$:
 
 ```{r}
@@ -74,16 +80,20 @@ for(k in 2:(N-1)){
   A[k+2,k] <- (tau/2*h^3)
 }
 ```
+**GWD: Your code resets the matrix `A` to a diagonal matrix at every iteration of the loop. Take a look at the result of your code to convince yourself that that is not what you wanted.**
 We have enough information to develop a matrix that holds the solutions for $w_{k,j}$
 
 ```{r}
-U<- matrix(0, N+1, M+1) # Matrix to hold the solution
+U <- matrix(0, N+1, M1+1) # Matrix to hold the solution
 U[ , 1] <- u
-for (j in 0:M) {
-  u <- A %*% u
-  U[ , j+1] <- u
+for (j in 0:M1) {
+  for (j2 in 1:M2) {
+    u <- A %*% u
+    U[ , j+1] <- u
+  }
 }
 ```
+**GWD: It is really not a good idea to store the solution at all 10,000 time steps because that will make plotting very slow. I modified your code so that it only saves the solution at 100 times which is enough to make a smooth plot.**
 Plotting these solutions on a 3D graph
 
 ```{r}
@@ -92,9 +102,9 @@ persp3D(x, t, U,
         xlab="x", ylab="t", zlab="U", # Provides axis labels
         ticktype="detailed", nticks=4) # Provides axis ticks
 ```
-![](C:/users/cjdp501/Figures/Rplot.png)
 
-The soliton peak occurs at $x=0$ as expected. However, it is not easy to determine if the soliton propagates in space with time - if the number of timesteps is increased R crashes and if the timestep size decreases the errors grow too large. It becomes apparent that a brute force finite difference method for finding solutions to the KdV equation is too unstable to observe the propagation of soliton waves over large periods of time. \\
+The soliton peak occurs at $x=0$ as expected. However, it is not easy to determine if the soliton propagates in space with time - if the number of timesteps is increased R crashes and if the timestep size decreases the errors grow too large. It becomes apparent that a brute force finite difference method for finding solutions to the KdV equation is too unstable to observe the propagation of soliton waves over large periods of time. 
+
 The first instance of an attempt to obtain numerical solutions to the KdV equation was done by Zabusky and Kruskal in 1965. They developed the finite difference method:
 
 $$
@@ -106,11 +116,7 @@ $$\mathbf{w}^{(j+1)} = \mathbf{w}^{(j-1)} + B\mathbf{w}^j.$$
 Matrix $B$ is defined
 
 $$
-B
-
-= 
-
-\begin{bmatrix}
+B = \begin{bmatrix}
 d_1 & e_1 & f_1 & 0 & \dots & \dots & \dots & \dots & 0 \\
 i_2 & d_2 & e_2 & f_2 & 0 & \dots & \dots & \dots& \vdots \\
 h_3 & i_3 & d_3 & e_3 & f_3 & 0 & \dots & \dots & \vdots \\
@@ -136,7 +142,7 @@ u <- u0
 and similarly set up the new quintdiagonal matrix
 
 ```{r}
-for(k in 2:(N-1)){
+for(k in 2:(N-1)) {
   A<-diag(-(1/3)*(tau/h)*(u[k+1]-u[k-1]),N+1)
   A[k,k+1] <- -(1/3)*(tau/h)*(u[k+1]-u[k-1])-2*(tau/h^3)
   A[k+1,k] <- -(1/3)*(tau/h)*(u[k+1]-u[k-1])+2*(tau/h^3)
@@ -155,27 +161,30 @@ U[ , 1] <- u
 for (j in 0:M-1) {
   u2<- A%*%u2 + u1
   u1<-u2
-  Temperature[ , j+2] <- u2
+  U[ , j+2] <- u2
 }
 ```
+**GWD: Your code assigned to an undefined array called 'Temperature'. The code gave you the error messaget that 'Temperature' was not found. I am surprised that that error message did not enable you to find and fix the error. I have fixed it above..**
 and plotting the solutions
 ```{r}
 persp3D(x, t, U,
         xlab="x", ylab="t", zlab="U", # Provides axis labels
         ticktype="detailed", nticks=4) # Provides axis ticks
 ```
-![](C:/users/cjdp501/Figures/Rplot02.png)
-This plot is identical to the plot developed using the former finite difference scheme except the time interval has been doubled in this instance. However, it is still too difficult to interpret whether the wave is propagating with time. By taking two dimensional intersections at $t=0,0.2$ we can see if the wave is indeed propagating:
+
+This plot is identical to the plot developed using the former finite difference scheme except the time interval has been doubled in this instance. 
+**GWD: when I run the notebook I find that at your chosen timestep (which is much larger than twice the previous choice), the method is unstable and the graph therefore looks very different.**
+However, it is still too difficult to interpret whether the wave is propagating with time. By taking two dimensional intersections at $t=0,0.2$ we can see if the wave is indeed propagating:
 
 ```{r}
 plot(x, U[,1],type="l", xlab="x", ylab="U")
 lines(x, U[,10000], col="red")#line for u(x,0.2)
 ```
-![](C:/users/cjdp501/Figures/Rplot03.png)
+
 
 ##Conclusion
 
-Though we have developed two finite difference schemes with which to code solutions to the KdV equation and the graphs produced show the correct waveform, the wave does not appear to propagate with time for either finite difference methods. It is unclear whether this is an error in the coding, a problem with the resolution or the effectiveness of the finite difference method in coding the KdV equation. Further work must be done in order to investigate how to improve methods for finding numerical solutions to the KdV equation.
+Though we have developed two finite difference schemes with which to code solutions to the KdV equation and the graphs produced show the correct waveform, the wave does not appear to propagate with time for either finite difference methods. It is unclear whether this is an error in the coding, a problem with the resolution or the effectiveness of the finite difference method in coding the KdV equation. Further work must be done in order to investigate how to improve the methods for finding numerical solutions to the KdV equation.
 
 ##References
 

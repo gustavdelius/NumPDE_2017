@@ -13,7 +13,7 @@ output:
 
 ### One-Dimensional Time-Dependent Schrödinger Equation
 
-In this project we will numerically approximate the one-dimensional reflection and transmission phenomena described by the time dependent Schrödinger equation with the conditions stated below. To achieve this we will follow Abraham Goldberg, Harry M. Shey, and Judah L. Schwartz's 1967 paper “Computer-Generated Motion Pictures of One-Dimensional Quantum-Mechanical Transmission and Reflection Phenomena, American Journal of Physics 35, no. 3 (March 1, 1967): 177–86". We formulate a problem in terms of a localized wave packet that is moving towards a square well potential or barrier. We will approximate and plot the probability density against space at different time intervals. Using this model we will be able visualise the phenomena known as quantum tunneling. In quantum tunneling particles can move through a classically forbidden region with some probability.
+In this project we will numerically approximate the one-dimensional reflection and transmission phenomena described by the time dependent Schrödinger equation with the conditions stated below. To achieve this we will follow Abraham Goldberg, Harry M. Shey, and Judah L. Schwartz's 1967 paper “Computer-Generated Motion Pictures of One-Dimensional Quantum-Mechanical Transmission and Reflection Phenomena, American Journal of Physics 35, no. 3 (March 1, 1967): 177–86". We formulate a problem in terms of a localized wave packet that is moving towards a square well potential or barrier. We will approximate and plot the probability density against space at different time intervals. Using this model we will be able to visualise the phenomena known as quantum tunneling. In quantum tunneling, particles can move through a classically forbidden region with some probability.
 
 
 
@@ -25,7 +25,7 @@ $$
 \psi(0,t)=0, \quad \psi(L,t)=0, \quad \psi(x,0)=e^{ik_0x
 }e^{-(x-x_0)^2/2\sigma_0^2}.
 $$
-The time-dependent Schrödinger equation describes the evolution of a quantum system where  $\psi(x,t)$ is the wave function and can be written $H\psi(x,t)=i\hbar \frac{\partial}{\partial t} \psi(x,t)$, where $H$ is the Hamiltonian operator which corresponds to the total energy of the system. The initial condition $\psi(x,0)$, is a Gaussian wave packet. $x_0$ must be set to centre the packet far enough from the boundaries and before the potential. $k_0$ is the wave number and $\sigma_0$ can be changed to govern the spread of the wave, a visual representation of this can be found in the latter sections when we write an R function for the wave packet. 
+The time-dependent Schrödinger equation describes the evolution of a quantum system where  $\psi(x,t)$ is the wave function and can be written $H\psi(x,t)=i\hbar \frac{\partial}{\partial t} \psi(x,t)$, where $H$ is the Hamiltonian operator which corresponds to the total energy of the system. The initial condition $\psi(x,0)$ is a Gaussian wave packet. $x_0$ must be set to centre the packet far enough from the boundaries and before the potential. $k_0$ is the wave number and $\sigma_0$ can be changed to govern the spread of the wave, a visual representation of this can be found in the latter sections when we write an R function for the wave packet. 
 
 The boundary conditions $\psi(0,t)=0$ and $\psi(L,t)=0$ are necessary to find starting values for the recursions in our method. These conditions can be thought of as the system being in a (one-dimensional) "box", and we require that the wave-function must vanish on the walls, or in our case the end points of this box. In our model $V(x)$ will be a square well potential or square barrier potential.  Lastly, $\hbar$ is the reduced Planck's constant, i.e $\hbar = h / 2\pi$, where $h$ is Planck's constant. From here we will use $h$ as defined in the lecture notes.
 
@@ -44,7 +44,7 @@ $$\frac{\partial^2 }{\partial x^2} \psi_{k,j} = \frac{1}{h^2}(\psi_{k+1,j} -2\ps
 which we will use to approximate $\frac{\partial^2 }{\partial x^2} \psi_{k,j}$.
 
 
-We can write $\psi_{k,j+1}= e^{- i \tau H} \psi_{k,j}$ and it would seem like a good idea to approximate this to first order using the Taylor series $\psi_{k,j+1} = ( \mathcal{I} - i \tau H ) \psi_{k,j}$, where $\mathcal{I}$ is the identity operator and hence  $\psi_{k,j+1} = \psi_{k,j} - i \tau H \psi_{k,j}$. The authors of the paper note that using this approximation "mutilates" the time-development operators $e^{\pm i \tau H}$, Cayley form is used instead to provide a simple unitary approximation to $e^{- i \tau H}$. Using Cayley form  $$e^{-i \tau H} \approx \frac{ \mathcal{I} - \frac{1}{2} i \tau H}{ \mathcal{I} + \frac{1}{2} i \tau H} $$ and
+We can write $\psi_{k,j+1}= e^{- i \tau H} \psi_{k,j}$ and it would seem like a good idea to approximate this to first order using the Taylor series $\psi_{k,j+1} = ( \mathcal{I} - i \tau H ) \psi_{k,j}$, where $\mathcal{I}$ is the identity operator and hence  $\psi_{k,j+1} = \psi_{k,j} - i \tau H \psi_{k,j}$. The authors of the paper note that using this approximation "mutilates" the time-development operators $e^{\pm i \tau H}$. Cayley form is used instead to provide a simple unitary approximation to $e^{- i \tau H}$. Using Cayley form  $$e^{-i \tau H} \approx \frac{ \mathcal{I} - \frac{1}{2} i \tau H}{ \mathcal{I} + \frac{1}{2} i \tau H} $$ and
 $$ 
 \psi_{k,j+1} = \frac{ \mathcal{I} - \frac{1}{2} i \tau H}{ \mathcal{I} + \frac{1}{2} i \tau H} \psi_{k,j}, \quad ( \mathcal{I} + \frac{1}{2} i \tau H)  \psi_{k,j+1} = ( \mathcal{I} - \frac{1}{2} i \tau H)\psi_{k,j}.
 $$
@@ -53,10 +53,10 @@ We can evaluate $H \psi_{k,j}$ and $H \psi_{k,j+1}$, as follows
 
 $$ H \psi_{k,j} = - \left( \frac{\partial^2 }{\partial x^2} - V(x_k)\right) \psi_{k,j} =  -\frac{1}{h^2}(\psi_{k+1,j} -2\psi_{k,j} + \psi_{k-1,j} ) + V(x_k) \psi_{k,j}. $$
 
-Which yields
+This yields
 
 $$\psi_{k+1,j+1} + (i \lambda - h^2 V_k - 2)\psi_{k,j+1} + \psi_{k-1,j+1} = -\psi_{k+1,j} + (i \lambda + h^2 V_{k,j} + 2)\psi_{k,j} - \psi_{k-1,j}, \quad \lambda = 2h^2/\tau.$$ 
-The authors note  this is stable and implicit abd go on to explain a complex method of solving this recursion relation, we can see that this is of the form $$A w^{j+1} = B w^{j}$$ and use the Crank Nicolson method with the double-sweep algorithm.
+The authors note that this scheme is stable and implicit and go on to explain a complex method of solving this recursion relation,. We can see that this is of the form $$A w^{j+1} = B w^{j}$$ and use the Crank Nicolson method with the double-sweep algorithm.
 
 By comparing the equation $A w^{j+1} = B w^{j}$ with the difference equation we can write $A$ and $B$ as follows. Note that the diagonal elements are dependent on the potential.
 $$
@@ -105,13 +105,22 @@ potential <- function(x,s,start,end) { # evaluates elements of vector x
   return(V_k)
 }
 ```
+**GWD: I see that you have learned to program in other, more loop-oriented languages. Just in case you are interested: an R native would write this function as follows:**
+```{r}
+potential <- function(x,s,start,end) { 
+  # the potential is equal to s for all x such that start < x < end and 0 elsewhere
+  V_k <- 0*x  # easy way of creating a vector of zeros with the same length as x
+  V_k[start < x & x < end] <- s  # R likes logical indexing
+  return(V_k)
+}
+```
 
 ### Example Potential
 Consider the square well potential 
 \begin{equation}
 V(x) = \begin{cases}
     -5,& \text{if } 0.4 \leq x \leq 0.6 \\
-    0,              & \text{otherwise}.
+    0,              & \text{otherwise},
 \end{cases}
 \end{equation}
 which we will approximate using our potential function. Notice that for a smaller step size or equivalently more steps for a given fixed interval our square potential function becomes more accurate. We will be working with spatial step sizes of $10^{-3}$ or smaller.
@@ -141,6 +150,8 @@ Recall from the diagonal elements of $A$ and $B$ that we will need to define an 
 ```{r}
 i <- complex(real = 0, imaginary = 1)
 ```
+**GWD: This can also be achieved with `i <- 1i`.**
+
 We will now create the functions to evaluate the diagonal elements of the matrices $A$ and $B$. The A_diag_k and B_diag_k functions create vectors holding the diagonal values. These vectors will be used to populate the $A$ and $B$ matrices in a for loop within the CrankNicolson function.
 
 ```{r}
@@ -159,7 +170,7 @@ B_diag_k <- function(k,lambda,h,pot) {
 
 ### Double-sweep Algorithm
 
-Below is the familiar double-sweep method from previous R Lab exercises which will use in the Crank Nicolson method. First, recall that the recursive formulas are
+Below is the familiar double-sweep method from previous R Lab exercises, which we will use in the Crank Nicolson method. First, recall that the recursive formulas are
 $$
 \alpha_{i+1}=\frac{B_i}{C_i-\alpha_iA_i}, \quad \beta_{i+1}=\frac{B_i}{C_i-\alpha_iA_i}, \quad \text{for } i=1,...N-1
 $$
@@ -167,7 +178,7 @@ and that
 $$
 v_{i-1}=\alpha_{i}v_{i} + \beta_i, \quad \text{for } i=1,2,...N.
 $$
-We can set  $\alpha_{1}$ and $\beta_{1}$ to satisfy the boundary conditions $v_0=a$ and $v_N=b$. For example $\alpha_1 = 0, \beta_{_1}=A$. The boundary condition $v_N=B$ is automatically satisfied by the recursive formula. However, in our case we are working with the boundary conditions $\psi(0,t)=0$ and $\psi(L,t)=0$ or $v_0=0$ and $v_N=0$ which in the input of our double-sweep function is the same as $a=b=0$.
+We can set  $\alpha_{1}$ and $\beta_{1}$ to satisfy the boundary conditions $v_0=a$ and $v_N=b$. For example $\alpha_1 = 0, \beta_{_1}=A$. The boundary condition $v_N=B$ is automatically satisfied by the recursive formula. However, in our case we are working with the boundary conditions $\psi(0,t)=0$ and $\psi(L,t)=0$ or $v_0=0$ and $v_N=0$, which in the input of our double-sweep function is the same as $a=b=0$.
 
 ```{r}
 doublesweep <- function(A, B, C, F, a, b) {
@@ -249,8 +260,10 @@ CrankNicolson <- function(L=1, N=1000, T=2000, M=998, k_0=pi/20, x_0=1/4, sigma_
     # Create A_vec which has dependence on pot[k] for use in the doublesweep script
     A_vec <- rep(0,N-1)
     for (k in 1:(N-1)) {
-    A_vec[k] <- A_diag_k(k,lambda,h,pot)
+        A_vec[k] <- A_diag_k(k,lambda,h,pot)
     }
+    # GWD: An R native would have written
+    # A_vec <- i*lambda-h^2*pot-2
     
     # Crank-Nicolson needs a matrix B. 
     # Note diagonals are generated individually using the B_diag_k function.
@@ -310,7 +323,7 @@ weaknessexample2 <- CrankNicolson(L=1, N=1000, T=2000, M=200, k_0=50*pi, x_0=0.0
 
 
 #### 5.0 Comparing with the Reference Paper
-In this section we will be plotting the density probability ($|\psi(x,t)|^2$) against $x$, the time $t$ in arbitrary units will be indicated in the title. We are also plotting a potential for visual purposes only so that we can see when the wave packet interacts with the potential, note that the potential is not to scale and of different units. Similar to the original paper we have not normalised the wave function and therefore the y axis is not scaled correctly.
+In this section we will be plotting the probability density ($|\psi(x,t)|^2$) against $x$, the time $t$ in arbitrary units will be indicated in the title. We are also plotting a potential for visual purposes only so that we can see when the wave packet interacts with the potential, note that the potential is not to scale and of different units. Similar to the original paper we have not normalised the wave function and therefore the y axis is not scaled correctly.
 
 #### Figure 1
 
@@ -330,7 +343,7 @@ for (i in 1:9) {
   lines(sol$x, potential(sol$x,-0.3,0.468,0.532), type = "l", col="red") 
 }
 ```
-<center>![Figure 2](Figures/Figure 1.jpg)</center>
+
 
 #### Figure 2
 
@@ -344,7 +357,7 @@ for (i in 1:9) {
   lines(sol$x, potential(sol$x,-0.3,0.468,0.532), type = "l", col="red")
 }
 ```
-<center>![Figure 2](Figures/Figure 2.jpg)</center>
+
 
 #### Figure 3
 
@@ -359,7 +372,7 @@ for (i in 1:9) {
   lines(sol$x, potential(sol$x,-0.5,0.468,0.532), type = "l", col="red")
 }
 ```
-<center>![Figure 3](Figures/Figure 3.jpg)</center>
+
 
 #### Figure 4
 
@@ -374,7 +387,6 @@ for (i in 1:9) {
 }
 ```
 
-<center>![Figure 4](Figures/Figure 4.jpg)</center>
 
 
 #### Figure 5
@@ -389,7 +401,7 @@ for (i in 1:9) {
   lines(sol$x, potential(sol$x,1,0.468,0.532), type = "l", col="red")
 }
 ```
-<center>![Figure 5](Figures/Figure 5.jpg)</center>
+
 
 #### Figure 6
 
@@ -404,7 +416,7 @@ for (i in 1:9) {
 }
 ```
 
-<center>![Figure 6](Figures/Figure 6.jpg)</center>
+
 
 From these comparisons we can see that we have successfully reproduced the method described by Abraham Goldberg, Harry M. Shey, and Judah L. Schwartz's 1967 paper.
 
