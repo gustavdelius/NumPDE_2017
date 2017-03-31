@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this Mini-Project, we present the following equation and conditions, as well as attempt to recreate the figures shown in the original paper "Boltzmann and Fokker-Planck equations modelling opinion formation in the presence of strong leaders" by Bertram Düring, Peter Markowich, Jan-Frederik Pietschmann, and Marie-Therese Wolfram. We focus specifically on Figure 3.
 
-![Figure 3 from "Boltzmann and Fokker-Planck equations modelling opinion formation in the presence of strong leaders". In order, a) is the distribution of opinion followers, b) is the distribution of opinion leaders, c) and d) are the steady state distributions of the same. The shaded regions arose due in Monte-Carlo Simulation.](F3.large.jpg)
+![Figure 3 from "Boltzmann and Fokker-Planck equations modelling opinion formation in the presence of strong leaders". In order, a) is the distribution of opinion followers, b) is the distribution of opinion leaders, c) and d) are the steady state distributions of the same. The shaded regions arose due in Monte-Carlo Simulation.](BrennenFig.jpg)
 
 ## The Equation
 
@@ -24,19 +24,19 @@ $$
 w \in [-1,1]
 $$
 $$
-\partial_{\tau} g_{1}= \partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t)) + (\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}) \partial^2_{ww} (D^2_1 (w) g_1 (w,\tau) )
+\partial_{\tau} g_{1}(w,\tau)= \partial_{w}\left(\left(\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau)\right)g_1(w,\tau)\right) + \left(\frac{\lambda_{1,1} M_1}{2 \tau_{1,1}} + \frac{\lambda_{1,2} M_2}{4 \tau_{1,2}}\right) \partial^2_{ww} \left(D^2_1 (w) g_1 (w,\tau) \right)
 $$
 
 $$
-\partial_{\tau} g_{2}= \partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t)) + \frac{\lambda_{2,2} M_2}{2 \tau_{2,2}} \partial^2_{ww} (D^2_2 (w) g_2 (w,\tau) )
+\partial_{\tau} g_{2}(w,\tau)= \partial_{w}\left(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,\tau)\right) + \frac{\lambda_{2,2} M_2}{2 \tau_{2,2}} \partial^2_{ww} \left(D^2_2 (w) g_2 (w,\tau) \right)
 $$
 
-where $M_i = \int g_i dv$. This system is a Fokker-Planck system in which there are two simultaneously interacting populations. The first population, described by $g_1$, represents opinion followers, whose interactions influence each other. The second population, described by $g_2$, represents opinion leaders, whose interactions influence both each other and the followers. The above system uses the distribution functions $g_1, g_2$ over the space of possible opinions $w$ to track the evolution of the distributions of followers and leaders near the steady-state. Time is described by the variable $\tau$. The interactions between the populations are described by the functions $\mathcal{K}, D_1,$ and $D_2$. The first of these is the drift operator caused by interactions between the differing opinions of the population and is a function of the ability to reach compromise, itself described as the function $P$ below.
+where $M_i = \int g_i dv$. This system is a Fokker-Planck system in which there are two simultaneously interacting populations. The first population, described by $g_1$, represents opinion followers, whose interactions influence each other. The second population, described by $g_2$, represents opinion leaders, whose interactions influence both each other and the followers. The above system uses the distribution functions $g_1, g_2$ over the space of possible opinions $w$ to track the evolution of the distributions of followers and leaders near the steady-state. Time is described by the variable $\tau$. The interactions between the populations are described by the functions $\mathcal{K}_i, D_1,$ and $D_2$. The first of these is the drift operator caused by interactions between the differing opinions of the population and is a function of the ability to reach compromise, itself described as the functions $P_i$ below.
 $$
-\mathcal{K}_i = \int_\mathcal{I}P_i(|w-v|)(w-v)g_i(v,\tau)dv \text{ for } i = 1,2
+\mathcal{K}_i(w,\tau) = \int_\mathcal{I}P_i(|w-v|)(w-v)g_i(v,\tau)dv \text{ for } i = 1,2
 $$
 $$
-\mathcal{K}_3 = \int_\mathcal{I}P_3(|w-v|)(w-v)g_2(v,\tau)dv.
+\mathcal{K}_3(w,\tau) = \int_\mathcal{I}P_3(|w-v|)(w-v)g_2(v,\tau)dv.
 $$
 The latter two are the diffusion functions, representing the self interactions within the population.
 
@@ -54,6 +54,7 @@ $$
 
 These boundary conditions are derived originally by integration by parts and are chosen so as to allow no flux. As such, note that $w = \pm 1 \implies \partial_\tau g_1 = 0 = \partial_\tau g_2$ by the first two boundary conditions.
 
+**GWD: I do not see why the time derivative would be zero at the boundary. I think quite to the contrary, the requirement that now probability flows outside the interval means that the boundary values of the density have to be allowed to be time-dependent. Now probably in your application it does not make much difference because the probability density will be close to zero at the boundary anyway.**
 
 ## Preparing for the problem
 
@@ -146,6 +147,9 @@ g2_w_0 <- function(w,qs,sigmas, mus){
 ```
 
 Notice that we choose, for example, $g_1(w,0) = \frac{1}{\sqrt{2\pi}\sigma_1}\text{e}^{-(w-w_1)^2/(2\sigma_1)}$. We suspect that the original paper has an error at this point. This is easily shown by the distributions of mass of the suggested curve versus the curves we have implemented.
+
+**GWD: I am pleased you noticed their mistake. However your formula for the Gaussian is also not correct. In the exponent you should be dividing by the square of the standard deviation.**
+
 ```{r}
 seq(-1,1, by = .01) -> x
 plot(x, g1_w_0(x), xlab = "Opinion", ylab = "Mass of Followers", col = 1)
@@ -187,7 +191,7 @@ $$
 \partial_t g_i(x_k, t_j) \approx \frac{g_i(x_k, t_j+\iota)-g_i(x_k, t_j)}{\iota} \implies \frac{\gamma_{i,k,j+1}-\gamma_{i,k,j}}{\iota} 
 $$
 
-Next, we shall handle the term $\partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t))$. Then we will extend the treatment given here to cover the term $\partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t))$. Given that $\tau_{1,1}$ is constant, we need only consider the functions.
+Next, we shall handle the term $\partial_{w}(\frac{1}{\tau_{2,2}} \mathcal{K}_2 (w,\tau) g_2(w,t))$. Then we will extend the treatment given here to cover the term $\partial_{w}((\frac{1}{\tau_{1,1}} \mathcal{K}_1 (w,\tau) + \frac{1}{2 \tau_{1,2}} \mathcal{K}_3(w,\tau))g_1(w,t))$. Given that $\tau_{2,2}$ is constant, we need only consider the functions.
 
 $$
 \begin{align}
@@ -197,6 +201,11 @@ $$
 &=\frac{1}{\omega \tau_{2,2}}( \mathcal{K}_2(x_k+\omega,t_j)\gamma_{2,k,j}+ \mathcal{K}_2(x_k,t_j)\gamma_{2,k+1,j} - 2 \mathcal{K}_2(x_k,t_j)\gamma_{2,k,j})
 \end{align}
 $$
+**GWD: I am surprised that you are using this rather complicated scheme with truncation error of $O(\omega)$. Why not simply use the central difference formula
+$$
+\partial_{w}( \mathcal{K}_2 (w,\tau) g_2(w,t))=\frac{\mathcal{K}_2(x_k+\omega,t_j)\gamma_{2,k+1,j}-\mathcal{K}_2(x_k-\omega,t_j)\gamma_{2,k-1,j}}{2\omega}
+$$
+which has truncation error of $O(\omega^2)$?**
 
 Our extension behaves similarly.
 
@@ -219,6 +228,7 @@ $$
 \implies& (1-x_k^2)^2 (8(-1+7x_k^2) \gamma_{i,k,j} - 16x_k(1-x_k^2)\frac{\gamma_{i,k+1,j}-\gamma_{i,k,j}}{\omega}+(1-x_k^2)^2\frac{\gamma_{i,k+1,j}-2\gamma_{i,k,j}+\gamma_{i,k-1,j}}{\omega^2})
 \end{align}
 $$
+**Again, why so complicated? Why not simply use central difference?**
 
 ## Bringing the pieces together
 
@@ -346,6 +356,107 @@ Opinions <- function(gamma_1_x_0 = function(x) 0*x,
   return(list(x=x, t=t, g1 = gamma_1, g2 = gamma_2))
 }
 ```
+**GWD: It seems you are using D instead of D^2 in the above code.**
+
+**GWD: One important remark about your code: when using a vector-oriented language (like for example R, python with numpy, matlab), you should do calculations with entire vectors rather than looping through the components of the vector and doing the calculation separately for each component. That is both more concise and much faster. Below is an example of code for the forward-difference method that looks much simpler and runs much faster and produces results similar to those in the paper. I simply adapted the code from Lab 11 a bit. I also use a clever way to evaluate the convolution integrals using Fourier transforms (look up "convolution theorem" in wikipedia).**
+
+```{r}
+K <- function(x, g, r) {
+    Re(fft(fft(P(x, 0, r)*x)*fft(g), inverse = TRUE))*2/length(x)
+}
+
+w_1 <- -0.5
+w_2 <- 0.5
+sigma_1 <- sigma_2 <- 0.05
+q_1 <- q_2 <- 0.5
+
+g1_0 <- function(x) {
+    exp(-(x/0.4)^2/2)/(sqrt(2*pi)*0.4)
+}
+g2_0 <- function(x) {
+    q_1*exp(-((x-w_1)/sigma_1)^2/2)/(sqrt(2*pi)*sigma_1)+
+         q_2* exp(-((x-w_2)/sigma_2)^2/2)/(sqrt(2*pi)*sigma_2)
+}
+
+alpha <-2
+
+explicit <- function(g1_0=function(x) 0*x, g2_0=function(x) 0*x, 
+                     N=400, T=10, M=10000, 
+                     r1 = 0.5, r2 = 0.5, r3 = 0.5) {
+    h <- 2/N
+    x <- -1+(0:N)*h
+    
+    tau <- T/M
+    M1 <- 100
+    M2 <- round(M/M1)
+    t <- (0:M1)*M2*tau
+    
+    d1 <- D1(x, alpha)^2
+    d2 <- D2(x, alpha)^2
+    
+    w1 <- matrix(0, nrow=N+1, ncol=M1+1)
+    w2 <- matrix(0, nrow=N+1, ncol=M1+1)
+    
+    gn1 <- g1_0(x)
+    gn2 <- g2_0(x)
+    w1[, 1] <- gn1
+    w2[, 1] <- gn2
+    
+    for (j in 1:M1) {
+        for (j2 in 1:M2) {
+            
+            g1 <- gn1
+            g2 <- gn2
+            
+            a11 <- (K(x, g1, r1)/tau_1_1+K(x, g2, r3)/(2*tau_1_2))*g1
+            a11p <- c(a11[2:(N+1)], a11[N])
+            a11m <- c(a11[2], a11[1:N])
+            a12 <- (lambda_1_1*M_1/(2*tau_1_1)+lambda_1_2*M_2/(4*tau_1_2))*d1*g1
+            a12p <- c(a12[2:(N+1)], a12[N])
+            a12m <- c(a12[2], a12[1:N])
+            
+            a21 <- K(x, g2, r2)/tau_2_2*g2
+            a21p <- c(a21[2:(N+1)], a21[N])
+            a21m <- c(a21[2], a21[1:N])
+            a22 <- lambda_2_2*M_2/(2*tau_2_2)*d2*g2
+            a22p <- c(a22[2:(N+1)], a22[N])
+            a22m <- c(a22[2], a22[1:N])
+            
+            gn1 <- g1 + tau * (
+                1/(2*h) * (a11p - a11m) + 1/h^2 * (a12p - 2*a12 + a12m)
+            )
+            
+            gn2 <- g2 + tau * (
+                1/(2*h) * (a21p - a21m) + 1/h^2 * (a22p - 2*a22 + a22m)
+            )
+        }
+        w1[, j+1] <- gn1
+        w2[, j+1] <- gn2
+    }
+    list(x=x, t=t, g1=w1, g2=w2)
+}
+
+sol <- explicit(g1_0, g2_0, N=200, T=0.02, M=1000)
+
+persp3D(sol$x, sol$t, sol$g1,
+        xlab="x", ylab="t", zlab="g1",
+        ticktype="detailed", nticks=4)
+```
+
+```{r}
+persp3D(sol$x, sol$t, sol$g2,
+        xlab="x", ylab="t", zlab="g2",
+        ticktype="detailed", nticks=4)
+```
+
+```{r}
+plot(sol$x, sol$g2[, 101], type="l", lty="dotted", xlab="x", ylab="")
+lines(sol$x, sol$g1[, 101], lty="solid")
+legend("topleft", legend=c("g1", "g2"), lty=c("solid", "dotted"))
+```
+It is clear that there is scope for improvement in precision but it is a good first shot.
+
+
 
 ## Numerical Simulations
 
