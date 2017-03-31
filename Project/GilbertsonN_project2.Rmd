@@ -15,6 +15,8 @@ Mountain pine beetles are a species of bark beetle native to western North Ameri
 
 In this project, I will explore the model used by White and Powell (1996) using the method of lines to reduce the system of PDEs to a system of ODEs, with a central difference method approximating the space derivatives. The goal is to observe the mountain pine beetle population moving in a wave from the center of the forest, as shown in the original paper, along with the dynamics of the chemicals produced by the beetles and trees. For simplification, I examine these dynamics in only one spatial direction, $x$, and in only one direction of x (e.g. moving from the center of the forest to the right in the x-direction rather than to both the left and the right).
 
+**GWD: the proper way to reduce a two-dimensional problem to a one-dimensional problem when one is only interested in radially symmetric solutions is described in Example 2.3 in the notes. Note the appearance of an extra drift term. However for this project I had asked you to simply use the one-dimensional version of the equations, as you are doing.**
+
 ## Anticipated problems and potential solutions
 
 The system examined here is stiff and highly complex, with six linked equations. As a result, using a method such as the explicit forward difference method for the time derivatives would require very small time steps in order to obtain a viable solution, but the small time step would result in significant noise elsewhere in the system due to stiffness. Instead, I will use the method of lines, which allows a discretization in the $x$ direction - the space component - but treats $t$, the time component, as continuous. By using continuous time, the system can be reduced to one of ODEs, which can be easily solved by R using the deSolve package. 
@@ -60,6 +62,8 @@ Holes $H$ have a source based on their creation by newly-converted nesting beetl
 
 Finally, resin is produced to some natural reservoir capacity $R_0$, which may be reduced to zero, at which point production of resin is impossible. Resin is lost due to outflow through the attack holes. 
 
+**GWD: This is amazingly well written. Very clear and a pleasure to read.**
+
 ## Boundary and Initial Conditions
 
 While White and Powell (1996) used negative-flux boundary conditions for $P$, $C$, and $A$, and did not specify any boundary conditions for $Q$, $R$, and $H$, I made a simplification and assumed no-flux boundary conditions (Neumann conditions) for all variables, as in lab 11 for this module. This lacks some biological realism in assuming chemicals and beetles will not move beyond a forest boundary, but as I am primarily interested in behavior inside the forest and not at the boundaries, it is a reasonable simplification. 
@@ -101,6 +105,8 @@ H(x,0) &= 0,\\
 R(x,0) &= -0.5 e^{-x^2} + 1.
 \end{split}
 $$
+**GWD: I am very pleased with how you made sure that the initial conditions satisfy the boundary conditions at $x=0$. I also assume that you choose $L$ large enough so that the boundary conditions are sufficiently close to being satisfied at $x=L$.**
+
 
 ## Methods
 In order to numerically implement and approximate this complex system of equations, I first attempted to use a forward difference method for the time derivatives and a central difference method for the space derivatives. 
@@ -134,6 +140,13 @@ $$
 $$
 
 This preserves the truncation error of $O(h^2)$ of the central difference method, so that the truncation error of the entire approximation is $O(h^2)$.
+
+**GWD: Note that you are not using the scheme from the notes, which involved
+$$
+(AP)_{k+1/2,j}=\frac{A_{k+1,j}P_{k+1,j}+A_{k,j} P_{k,j}}{2}
+=\frac{(A_{k+1,j}+A_{k,j})(P_{k+1}+P_{k,j})}{4}+O(h)
+$$
+Thus your choice differs from the choice in the notes by a factor of $2$ and a term of $O(h)$. Even correcting for the factor of 2, I am not convinced that your scheme has a truncation error of $O(h^2)$.**
 
 ## Implementation
 
@@ -363,7 +376,7 @@ Finally, resin capacity decreases over time, which makes sense as the trees die 
 
 To more clearly observe the patterns in the populations and chemical concentrations, plot the spatial distribution at varying time steps. For comparison, here is a sample solution obtained by White and Powell (1996) of the airborne beetle population $P$ and the pheromone concentration $A$ (solid line) and kairomone concentration $C$ (dotted line) at time $t = 0.1$. 
 
-![White and Powell (1996) sample solution - Figure 5](/Users/reidgilbertson/Desktop/Numerical Methods for PDEs/fig5project2.png)
+![White and Powell (1996) sample solution - Figure 5](NoraFig.png)
 
 Now extract and plot the solutions from the scheme used here:
 
@@ -441,6 +454,8 @@ Ultimately, using the central difference method to approximate the spatial deriv
 While there were issues in adapting the system from the paper - namely in boundary conditions and parameter values - the results shown here prove that a reasonable solution to a highly complex system of PDEs may be obtained with relatively simple methods. Better methods may, of course, be implemented to get faster or more accurate solutions, but this simplified approach does manage to reproduce the expected dynamics and avoid the main problem of stiffness in solving the system. The primary issues and drawbacks resulted in the simplification or invention of boundary conditions and the reassignment of parameter values. Implementing the negative-flux boundary conditions used in the paper and finding parameter values that were closer to what the non-linearized system requires could reduce some of the solution discrepancies observed between these results and White and Powell's results.
 
 Attempting to use a method such as the Crank-Nicolson method or Newton method could also resolve some of the inaccuracies of the solutions obtained here compared to White and Powell's original results. This could also eliminate the need to use the method of lines, though it would remain to be seen if these methods could handle the stiffness of the problem encountered here; it may be that they run into the same problems as my initial approach. Thus, while this simple approach worked to reproduce the general trends, other methods and approximations may be better equipped to handle the stiffness of the system and more precisely reproduce the results of White and Powell.
+
+**GWD: I have some issues with the above discussion. It is not a question of using Crank-Nicolson OR Newton. If you use any implicit method, like for example Crank-Nicolson, then you have to solve a nonlinear equation at each time step, and that is where Newton's method comes im. Using an unconditionally stable implicit method will solve the stability problems arising from the stiffness of the system. **
 
 ## References
 White P., Powell J. 1998. $\textit{Spatial invasion of pine beetles into lodgepole forests: a numerical approach}$. SIAM J. Sci. Comput. 20, 164-184.
