@@ -29,6 +29,7 @@ $$
 \frac{\partial f}{\partial x}(x_k,t_j) = \frac{f(x_{k+1},t_j)-f(x_{k-1},t_j)}{2h} + \mathcal{O}(h^2) = \frac{u(x_{k+2},t_j) - 2u(x_{k+1},t_j) + 2u(x_{k-1},t_j) - u(x_{k-2},t_j))}{2h^3} + \mathcal{O}(h^3).
 $$
 **GWD: the error is still $O(h^2)$.**
+
 Now substituting back into $(\dagger)$:
 
 $$
@@ -51,6 +52,7 @@ a_1 & b_1 & c_1 & 0 & \dots & \dots & \dots & \dots & 0 \\
 $$
 
 where $a_k = \Big(1-\frac{\tau}{2h}(w_{k+1,j}-w_{k-1,j})\Big)$, $b_k = \Big(\frac{\tau}{h^3}\Big)$ and $c_k = -\Big(\frac{\tau}{2h^3}\Big)$. 
+
 **GWD: It seems that you did not notice that this matrix depends on $w$ at time step $j$ and thus changes at every time step. Your code below uses the matrix as it is at the initial time. This is the reason you get wrong results. Please re-read the section on the non-linear heat equation.**
 
 By the definition of the KdV equation we also have that $u(x,t)$ tends to zero for $x=\pm \infty$ so we set boundary conditions $u(x,0)=u(x,L)=0$. Taking equation $(\ddagger)$ at $t=0$ and letting $c=4$, we have the inital vector required to set up the finite difference problem. Begin by setting up the parameters for space, time and the initial equation:
@@ -81,6 +83,7 @@ for(k in 2:(N-1)){
 }
 ```
 **GWD: Your code resets the matrix `A` to a diagonal matrix at every iteration of the loop. Take a look at the result of your code to convince yourself that that is not what you wanted.**
+
 We have enough information to develop a matrix that holds the solutions for $w_{k,j}$
 
 ```{r}
@@ -94,6 +97,7 @@ for (j in 0:M1) {
 }
 ```
 **GWD: It is really not a good idea to store the solution at all 10,000 time steps because that will make plotting very slow. I modified your code so that it only saves the solution at 100 times which is enough to make a smooth plot.**
+
 Plotting these solutions on a 3D graph
 
 ```{r}
