@@ -208,7 +208,7 @@ doublesweep <- function(A, B, C, F, a, b) {
     
     #sweep down to find v's
     for (i in (N-1):2) {
-        v[i-1] <- alpha[i]*v[i] + beta[i]    
+        v[i-1] <- alpha[i]*v[i] + beta[i]
     }
     
     return(v)
