@@ -5,12 +5,8 @@ author:
 - Paper by Andrea Beaghton, Pantelis John Beaghton & Austin Burt
 date: ''
 output:
-  html_document:
-    toc: yes
   html_notebook: default
-  toc: yes
-  word_document:
-    toc: yes
+  html_document: default
 subtitle: 'Brief mathematical analysis of: Gene drive through a landscape: Reaction-diffusion
   model of population suppression and elimination by a sex ratio distorter'
 ---
@@ -22,19 +18,19 @@ Note: all references made to equation and section numbers follows the equations 
 
 ## Section 1 - Biological Summary
 
-The paper looks at the driving-Y chromosome which is a sex ratio distorter, such that it transmits to more than 90% of progeny. This in theory, leads to the majority of its offspring being male. However, this is rarely reported in nature due to the presence of resistant alleles, further research has found that Y drive occurs due to the disruption of the development of X-bearing sperm during male meiosis.
+The paper looks at the driving-Y chromosome which is a sex ratio distorter, such that it transmits to more than 90% of progeny. This, in theory, leads to the majority of its offspring being male. However, this is rarely reported in nature due to the presence of resistant alleles. Further research has found that Y drive occurs due to the disruption of the development of X-bearing sperm during male meiosis.
 
 Beaghton et al. (2016) uses the example of _Anopheles gambiae_ mosquito populations where there is a synthetic gene constructed to 'break' the X chromosome during male meiosis. So with this synthetic gene there is a 95% chance of transmitting the Y chromosome to its progeny implying a synthetic driving-Y.
 
 ## Section 2 - Introduction to Model System
 
-This system I am considering describes the introduction of driving-Y males into a one life stage system of wild-type males and females to model the spatial spread of the invasive species through the region. In the model, each birth is immediately preceeded by a female mating with a driving-Y or wild-type male chosen at random according to the local (in time and space) proportion of each in the total male population:
+The system I am considering describes the introduction of driving-Y males into a one life stage system of wild-type males and females to model the spatial spread of the invasive species through the region. In the model, each birth is immediately preceeded by a female mating with a driving-Y or wild-type male chosen at random according to the local (in time and space) proportion of each in the total male population:
 $$
-\frac{\partial{H}}{\partial{t}} = D_{H}\frac{\partial^2{H}}{\partial{x^2}} + 2\lambda F\left[\frac{mH}{M+H}\right] - (\mu + \gamma N)H \\
-\frac{\partial{F}}{\partial{t}} = D_{F}\frac{\partial^2{F}}{\partial{x^2}} + 2\lambda F\left[\frac{M}{2(M+H)} + \frac{(1-m)H}{M+H}\right] - (\mu + \gamma N)F \\
-\frac{\partial{M}}{\partial{t}} = D_{M}\frac{\partial^2{M}}{\partial{x^2}} + 2\lambda F \left[\frac{M}{2(M+H)}\right] - (\mu + \gamma N)M
+\frac{\partial{H}}{\partial{t}} = D_{H}\frac{\partial^2{H}}{\partial{x^2}} + 2\lambda F\left[\frac{mH}{M+H}\right] - (\mu + \gamma N)H, \\
+\frac{\partial{F}}{\partial{t}} = D_{F}\frac{\partial^2{F}}{\partial{x^2}} + 2\lambda F\left[\frac{M}{2(M+H)} + \frac{(1-m)H}{M+H}\right] - (\mu + \gamma N)F, \\
+\frac{\partial{M}}{\partial{t}} = D_{M}\frac{\partial^2{M}}{\partial{x^2}} + 2\lambda F \left[\frac{M}{2(M+H)}\right] - (\mu + \gamma N)M,
 $$
-where the variables are $H(x,t)$, $F(x,t)$, and $M(x,t)$ are population densities of driving-Y males, females, and males at position $x$ at time $t$, respectively. Also $N(x,t) = H(x,t) + F(x,t) + M(x,t)$ which is the total population at position $x$ at time $t$. 
+where the variables $H(x,t)$, $F(x,t)$, and $M(x,t)$ are population densities of driving-Y males, females, and males at position $x$ at time $t$, respectively. Also, $N(x,t) = H(x,t) + F(x,t) + M(x,t)$, which is the total population at position $x$ at time $t$. 
 
 The constant parameters considered in the paper for _An. gambiae_ are as follows:
 
@@ -55,10 +51,10 @@ $$
 H(x,0) = 
 \begin{cases}
 \rho,& \text{if } -a \leq x \leq a \\
-0,& \text{if } x > |a|.
-\end{cases} \\ \\
-F(x,0)=M(x,0)=\frac{N_0}{2} \\
-\text{where } N_0 = \frac{\lambda - \mu}{\gamma}
+0,& \text{if } x > |a|
+\end{cases}, \\ \\
+F(x,0)=M(x,0)=\frac{N_0}{2}, \\
+\text{where } N_0 = \frac{\lambda - \mu}{\gamma}.
 $$
 
 ## Section 3 - Method
@@ -83,15 +79,15 @@ $$
 H_{k,j+1} = H_{k,j} + \tau \Bigg(
 &\frac{D}{h^2}\left(H_{k+1,j}-2H_{k,j}+H_{k-1,j}\right) \\
 &+ 2\lambda F_{k,j} \left[\frac{mH_{k,j}}{M_{k,j} + H_{k,j}}\right] - \left(\mu + \gamma N_{k,j}\right)H_{k,j}
-\Bigg) \\
+\Bigg), \\
 F_{k,j+1} = F_{k,j} + \tau \Bigg(
 &\frac{D}{h^2}\left(F_{k+1,j}-2F_{k,j}+F_{k-1,j}\right) \\
 &+ 2\lambda F_{k,j} \left[\frac{M_{k,j}}{2\left(M_{k,j} + H_{k,j}\right)} + \frac{(1-m)H_{k,j}}{M_{k,j} + H_{k,j}}\right] - \left(\mu + \gamma N_{k,j}\right)F_{k,j}
-\Bigg) \\ 
+\Bigg), \\ 
 M_{k,j+1} = M_{k,j} +\tau \Bigg(
 &\frac{D}{h^2}\left(M_{k+1,j}-2M_{k,j}+M_{k-1,j}\right) \\
 &+ 2\lambda F_{k,j} \left[\frac{M_{k,j}}{2\left(M_{k,j} + H_{k,j}\right)}\right] - \left(\mu + \gamma N_{k,j}\right)M_{k,j}
-\Bigg)
+\Bigg).
 \end{split}
 $$
 This method has a truncation error of $\mathcal{O}(\tau + h^2)$.
@@ -99,7 +95,9 @@ This method has a truncation error of $\mathcal{O}(\tau + h^2)$.
 
 ## Section 4 - Boundary Conditions
 
-The paper did not define specific boundary conditions hence I choose to impose Neumann boundary conditions. The paper implies that $H$ is confined to an area $-a \leq x \leq a$ however $F$ and $M$ are not constrained by $a$ so I set the plot size in one direction to $\frac{Q}{2}$ where $h\frac{Q}{2} > a$ and $h$ is the length size of the grid points, so I define the boundary conditions as:
+The paper did not define specific boundary conditions hence I choose to impose Neumann boundary conditions. The paper implies that $H$ is confined to an area $-a \leq x \leq a$ however $F$ and $M$ are not constrained by $a$ so I set the plot size in one direction to $\frac{Q}{2}$ where $h\frac{Q}{2} > a$ and $h$ is the length size of the grid points. 
+**GWD: I have difficulties to understand the previous sentence. Also it seems you have misunderstood something in the paper. The paper is not confining $H$ to the interval $[-a,a]$. Only the initial value for $H$ at time $t=0$ is chosen to be zero outside this interval, but at later times $H$ can be nonzero outside this interval.**
+So I define the boundary conditions as:
 $$
 \begin{align}
 \frac{\partial{H}}{\partial{x}}(-a,t) &= \frac{\partial{H}}{\partial{x}}(a,t) = 0 \\ \\ \frac{\partial{F}}{\partial{x}}\left(\frac{-Q}{2},t\right) = \frac{\partial{F}}{\partial{x}}\left(\frac{Q}{2},t\right) &= \frac{\partial{M}}{\partial{x}}\left(\frac{-Q}{2},t\right) = \frac{\partial{M}}{\partial{x}}\left(\frac{Q}{2},t\right) = 0
@@ -114,10 +112,12 @@ F_{\frac{Q}{2}+1,j} &= F_{\frac{Q}{2}-1,j},&~~~  F_{-\frac{Q}{2}-1,j} &= F_{-\fr
 M_{\frac{Q}{2}+1,j} &= M_{\frac{Q}{2}-1,j},&~~~  M_{-\frac{Q}{2}-1,j} &= M_{-\frac{Q}{2}+1,j}.
 \end{align}
 $$
+**GWD: At this point I am fully confused. Is $Q/2$ a value for $x$ or is it an index of a grid point? It seems to be playing different roles in the different equations above.**
 The boundary conditions for $H$ are different since it is bound by $a$ which gives us the points:
 $$
 H_{a+1,j} = H_{a-1,j},~~~~~~~~~~~~~ H_{-a-1,j} = H_{-a+1,j}
 $$
+**GWD: Again, earlier $a$ was a value for $x$, now it is used as an index for a grid point.**
 Since the grid of points are referenced as ranges from $0$ to $Q$ where $-\frac{Q}{2} \implies [0,~]$ and $\frac{Q}{2} \implies [Q,~]$ which gives us a result analogous to that shown in Lab 11 for $F$ and $M$:
 $$
 \begin{align}
@@ -148,11 +148,12 @@ $$
 \begin{pmatrix} H_{1,j} \\ H_{2,j} \\ \vdots \\  H_{\frac{Q}{2}-a+1,j} \\ H_{\frac{Q}{2}-a,j} \\ \vdots \\ H_{\frac{Q}{2}+a,j} \\ H_{\frac{Q}{2}+a+1,j} \\ \vdots \\ H_{Q-2,j} \\ H_{Q-1,j} \end{pmatrix}.
 $$
 The issue I find here is how to convert this into coherent and useful code in `R`.
+**GWD: What you are trying to do here does not make much sense. You really need boundary conditions at the actual boundary of your interval, not somewhere inside. It is good that you do make it clear in this report that you realise yourself that this is probably not right.**
 
 ## Section 5 - Coding the Method
 
 First, I define the system parameters:
-```{r, Specifying the System Parameters}
+```{r}
 D <- 0.1
 m <- 0.95
 lambda <- 0.72
@@ -164,7 +165,7 @@ rho <- 0.01*N0
 
 The model in the paper uses positive and negative space to show spread of the gene from the origin of a confined area with boudnary $a$. To show this I want my grid points to reflect all points outward from the origin. I use `rev()` to get the vertical mirror image of the vector of positive grid points resulting in the negative grid points. 
 I specify the grid points for $x_k = kh$ for $k = 0, ..., Q$
-```{r, Specifying the Grid Points}
+```{r}
 Q <- 300   # Number of points after the initial state
 a <- 2.5*round(sqrt(lambda/D))   # The absolute value of the maximum length of the confining area
 h <- 0.1   # Length size of grid points
@@ -176,7 +177,7 @@ X <- (Q/2)+1   # Midpoint of xLong (where 0 lies)
 ```
 
 and the time steps for the grid points $t_j = \tau j$ for $j = 0, ..., P$ where $\tau$ is the step size
-```{r, Specifying the Time Steps}
+```{r}
 P <- 500   # Number of time points after the initial state
 T <- 10   # Final time
 tau <- T/P  
@@ -184,14 +185,14 @@ t <- tau*(0:P)   # Vector of time steps
 ```
 
 I create three matrices to hold the solutions:
-```{r, Solution Matrices}
+```{r}
 wH <- matrix(0, nrow = Q+1, ncol = P+1)
 wF <- matrix(0, nrow = Q+1, ncol = P+1)
 wM <- matrix(0, nrow = Q+1, ncol = P+1)
 ```
 
 I implement the initial conditions given by the paper, as defined above:
-```{r, Setting the Initial Conditions}
+```{r}
 Hnt <- ifelse(xflip>=-a, rho, 0)
 Hnb <- ifelse(x<=abs(a), rho, 0)
 Hn <- c(Hnt, rho, Hnb)
@@ -203,7 +204,7 @@ wM[ ,1] <- Mn
 ```
 
 Now I can run a `for` loop to apply the forward-difference formulae for the system above:
-```{r, Forward-difference System}
+```{r}
 for (j in 1:P) {
     
     H <- Hn
@@ -236,7 +237,7 @@ for (j in 1:P) {
 ```
 
 To explore the parameter space, I shall encapsulate the code we used above in a function.
-```{r, Creating a Function}
+```{r}
 genedrive <- function(deltaH=function(x) 0*x, deltaF=function(x) 0*x, deltaM=function(x) 0*x, 
                       D=0.1, mu=0.07, lambda=1, gamma=0.01, m=0.95, N0=(lambda - mu), rho=0.01*N0, a=2.5*round(sqrt(lambda/D)), 
                       L=30, Q=300, T=10, P=500) {
@@ -301,44 +302,42 @@ genedrive <- function(deltaH=function(x) 0*x, deltaF=function(x) 0*x, deltaM=fun
 ## Section 6 - Plotting the Figures
 
 To plot the results I need to load the package `plot3Drgl`.
-```{r, Load Plot Packages, echo = FALSE}
+```{r, echo = FALSE}
 library("plot3Drgl")
 ```
 
 ### Plotting the individual populations
 
 I shall now plot the results. Here is the population density of the driving-Y population:
-```{r, Plotting the Driving-Y Population}
+```{r}
 persp3D(xLong/a, t, wH/N0,
         xlab = "x", ylab = "t", zlab = "H/N0",
         ticktype = "detailed", nticks = 4,
         main = "Population Density of the Driving-Y Population across the Vector Space")
-plotrgl(lighting = TRUE, smooth = TRUE)
 ```
+**GWD: You should avoid using spaces in the names of your R chunks. In your case the spaces had the effect that the figures did not display in the notebook's html.**
 
 Here is the population density of the female population:
-```{r, Plotting the Female Population}
+```{r}
 persp3D(xLong/a, t, wF/N0,
         xlab = "x", ylab = "t", zlab = "F/N0",
         ticktype = "detailed", nticks = 4,
         main = "Population Density of the Female Population across the Vector Space")
-plotrgl(lighting = TRUE, smooth = TRUE)
 ```
 
 Here is the population density of the male population:
-```{r, Plotting the Male Population}
+```{r}
 persp3D(xLong/a, t, wM/N0,
         xlab = "x", ylab = "t", zlab = "M/N0",
         ticktype = "detailed", nticks = 4,
         main = "Population Density of the Male Population across the Vector Space")
-plotrgl(lighting = TRUE, smooth = TRUE)
 ```
 
 
 ### Reproducing graphs from the paper
 
 Below I attempt to reproduce Figure 1 from the paper.
-```{r, Reproducing Figure 1}
+```{r}
 plot(xLong, (wF[, 501])/N0, type="l", xlab="Dimensionless distance from origin", ylab="Population density", col="red",
      main = "Population densities of the driving-Y, Females and Males")
 lines(xLong, (wM[, 501])/N0, type="l", col="black")
@@ -349,7 +348,7 @@ There are some differences between the above plot and Figure 1 in the paper howe
 
 Next, I will try to reproduce Figure 2 from the paper showing the affect of changing $m$ on population density of $H$. I will do this by utilising the function `genedrive` that I created in Section 5.
 
-```{r, Reproducing Figure 2}
+```{r}
 m75 <- genedrive(m=0.75)
 m85 <- genedrive(m=0.85)
 m95 <- genedrive(m=0.95)
