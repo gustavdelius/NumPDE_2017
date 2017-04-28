@@ -1,0 +1,248 @@
+---
+title: 'Assessment2: Burger''s equation'
+output:
+  html_document: default
+  html_notebook: default
+---
+
+The motivation for this project was a series of papers on Bioreactors ([1],[2]). One of the primary considerations in Bioreactor models is understanding the fluid flow and nutrient transport behaviour. As the equations presented in most recent papers are complex and present difficulties possibly outside the scope of the course, but have in common this problem of fluid flow, it was suggested that a useful problem would be the solution of Burgers equation. 
+
+1. Introduction
+
+The primary refernce for Burger's equation can be found [here.](https://en.wikipedia.org/wiki/Burgers'_equation) The equation was originally proposed as a simplified model of the Navier-Stokes equations. For a Newtonian incompressible fluid, these equations say
+
+$$ 
+\rho \left( \frac{\partial u}{\partial t} + u \cdot \bigtriangledown u  \right)= - \bigtriangledown p + \mu \bigtriangledown ^2 u +F
+$$
+Where $\rho$ is the density, $u$ is the velocity vector field, $p$ is the pressure, $\mu$ is the viscosity, and $F$ is an external force. 
+
+If we now simply by ignoring the pressure term and setting $F = 0$ we obtain
+$$ 
+\rho \left( \frac{\partial u}{\partial t} + u \cdot \bigtriangledown u  \right)=  \mu \bigtriangledown ^2 u
+$$
+If we then further divide both sides by $\rho$ and define $\frac{\mu}{\rho} = \nu$ to be the kinematic viscosity, we have 
+
+$$ 
+ \frac{\partial u}{\partial t} + u \cdot \bigtriangledown u  =  \nu \bigtriangledown ^2 u
+$$
+This is now commonly referred to as the viscid burger's equation, and in one dimension looks like e.g.
+
+$$ 
+\frac{\partial u}{\partial t} + u \frac{\partial u }{\partial x}= \nu \frac{\partial^2 u}{\partial x^2}, \hspace {0.5in} 0<x<L
+$$
+Which is the equation we will attempt to solve. Before we describe the problem in detail we should make two more remarks about the form of the equation. Firstly, if we set the viscosity of the fluid to zero so the diffusion term vanishes, we obtain the inviscid burger's equation
+
+$$ 
+\frac{\partial u}{\partial t} + u \frac{\partial u }{\partial x}= 0
+$$
+While this looks simpler, the solution to the inviscid Burger's equation is problematic because of the formation of shackwaves in the solution - this is demonstrated in a short animated graphic on the wikipedia page. As the motivation for this problem was application in bioreactors, and as the problem becomes quite difficult in this case, it was not considered. 
+
+The second remark concerns the possibility of adding stochastic noise $\eta (x,t)$ to the problem; if this is done, we obtain
+
+$$ 
+\frac{\partial u}{\partial t} + u \frac{\partial u }{\partial x}= \nu \frac{\partial^2 u}{\partial x^2} - \lambda \frac{\partial \eta}{\partial x}
+$$
+Which according to Wikipedia is equivalent to the Kardar-Parisi-Zhang equation. I did not check this claim, but I did survey the literature on Kardar-Parisi-Zhang and observed again that this problem has proved extremely difficult to solve. It was therefore not attempted.  
+
+2. The basic problem
+
+We will attempt tosolve the one dimensional viscid Burger's equation: 
+
+$$ 
+\frac{\partial u}{\partial t} + u \frac{\partial u }{\partial x}= \nu \frac{\partial^2 u}{\partial x^2}, \hspace {0.5in} 0<x<L
+$$
+With one dimensional, homogeneous, Dirichlet boundary conditions
+$$
+u(x,0) = u_{0}, u(0,t) = u(1,t) = 0 \hspace{0.5in} t>0
+$$
+
+Where $u(x,t)$ is the velocity profile (in our case of some nutrient fluid) and $\nu$ is the kinematic viscosity. This equation is also sometimes called an advection-diffusion equation, the second term $u \frac{\partial u }{\partial x}$ being the part that describes the advection and the $\nu \frac{\partial^2 u}{\partial x^2} $ term being the diffusion part. 
+
+The equation can also be rearranged into a conservation form:
+$$ 
+\frac{\partial u}{\partial t} = \frac{\partial}{\partial x} \left( \nu \frac{\partial u}{\partial x} - \frac{u^2}{2}  \right), \hspace {0.5in} 0<x<L
+$$
+
+3. Defining a numerical scheme to solve Burger's equation
+
+There are several ways we might attempt to solve Burger's equation numerically, including:
+
+<li> Explicit forward difference method
+<li> Implicit backward difference scheme
+<li> Crank Nicholson Scheme
+<li> Write the advection term in conservation form $ \frac{1}{2} \frac{\partial}{\partial x } (u^{2})$ and then set up an implicit scheme
+<li> Move everything except the time derivative to the right hand side, rewrite the entire right hand side in conservation form, and then use a semi-implicit scheme along the lines of lab 8
+<li> solve the diffusion equation and then take advantage of the [Cole-hopf transformation](http://www.bcamath.org/documentos_public/archivos/actividades/Cole-Hopf_transformation.pdf) to convert the solution back to a solution of Burger's equation. This last method would involve performing an integral numerically, possibly using the trapezium method. 
+The last method involves a numerical integration, which while simple in practice is something we haven't really covered in the course and which seemed too complicated. This one is the easiest to dismiss.
+
+Because of the difficulty of coding the nonlinear term in simple explicit and implicit schemes, I made a serious attempt writing part or all of the equation in conservative form and then attempting a semi-implicit method. Of the two methods that involve rewriting terms in this way, I decided to try and use the form from the end of the previous section
+
+$$ 
+\frac{\partial u}{\partial t} = \frac{\partial}{\partial x} \left( \nu \frac{\partial u}{\partial x} - \frac{u^2}{2}  \right), \hspace {0.5in} 0<x<L
+$$
+and implement this as a scheme using the code from lab 8. 
+
+$\frac{\partial u}{\partial t}$ is approximated in the usual way by a reverse difference scheme:
+
+$$
+\frac{\partial u}{\partial t} \approx \frac{w_{k,j}-w_{k,j-1}}{\tau}+O(\tau)
+$$
+Here I ran into diffuculty once again setting up the right hand side of the equation in a way that would reflect the lab and the notes. 
+
+Wani and Thakar [3] implement a Crank Nicholson scheme in their paper which, along with the code from lab 6, I attempted to use for my second attempt at solving. I ran into a problem, which was the same problem I had for the explicit forward difference and implicit backward difference schemes; coding the nonlinear term in such a way that it will fit into the scheme. 
+It is for this reason that the explicit scheme, which would normally be considered easier but unstable, is no better an option than the implicit or Crank Nicholson Schemes; if we can code the nonlinear term, then we can solve implicitly as easily as we can solve explicitly, which defeats any argument for using an explicit method since it is inherently unstable when $\tau$ is not sufficiently small. 
+
+Having exhausted all other options, then, let us return again to the backward difference scheme. If we approximate all derivatives except the nonlinear term with a backward difference and $\frac{\partial u}{\partial x}$ with a forward difference then we have 
+
+$$
+\frac{w_{k,j}-w_{k,j-1}}{\tau} = w_{k,j} \left( \frac{w_{k+1,j}-w_{k,j}}{h} \right) 
++ \nu \left( \frac{w_{k+1,j}-2w_{k,j} +w_{k-1,j}}{h^{2} } \right)
+$$
+cross multiply, set $\gamma = \frac{\tau \nu}{h^{2}}$ and $\lambda = \frac{\tau}{h}$ and we have
+
+$$
+(1+2 \gamma + \lambda (w_{k+1,j} - w_{k,j}))w_{k,j} - \gamma w_{k+1,j} - \gamma w_{k-1,j} = w_{k,j-1}
+$$
+If we now define matrix $ \textbf A$ in the usual way and a new matrix
+$$
+\textbf B = \textbf A + \eta \textbf I, \hspace {0.5in} \eta = \lambda (w_{k+1,j} - w_{k-1,j})  
+$$
+Then we can return to the familiar backward difference method, where
+$$
+\textbf B w^{j} = w^{j-1}
+$$
+The difference between this scheme and our previous backward difference scheme is that where we only had to calculate $ \textbf A^{-1}$ once before, $\textbf B$ depends on the $w_{k}$ values and will have to be recalculated at every iteration. While this is computationaly expensive, it does not cause any problems with stability or consistency and we have the values we need because the $w_{j}$ vector is populated at the end of the previous iteration.
+
+
+4. Code and solutions
+
+The following R code will, when executed, produce a solution to Burger's equation:
+```{r}
+
+# Assessment 2 part 1: 
+# Inviscid Burger's equation
+# new plan: rewrite B = A+nI, n = w(k+1)-w(k)
+
+
+# Set up:
+# We're making 3D plots so load those libraries
+library(plot3Drgl)
+
+
+# Initialize various grid points and parameters
+
+N <- 500  # Number of grid points, was 500
+L <- 1  # Final x
+h <- L/N
+x <- h*(1:(N-1))  # Vector of non-boundary grid points
+w <- 0.2*exp(-50*(x-0.3)^2) # Initial condition chosen to show shockwave
+# w <- sin(pi*x) #initial condition from Wani and Thakar
+M <- 800  # Number of time points after initial state, originally 300
+T <- 4.8  # Final time, was 0.3
+tau <- T/M  # Time step size
+# f <- tau*33*(x)*(x)*(1-x) # forcing function not needed either
+# g <- 1.6*x - 0.5 # correction function - don't need this
+t <- tau*(0:M)  # Vector of time steps
+K <- 0.001  # nu = kinematic viscosity very low to demonstrate shockwave
+
+# The code for the Matrix
+gamma <- K*tau/(h^2)
+lambda <- tau/h # new constant for nonlinear advection term, use later
+A <- diag(1 + 2*gamma, N-1)
+for (k in 1:(N-2)){
+  A[k,k+1] <- -gamma
+  A[k+1,k] <- -gamma
+}
+
+# In the original code, the matrix inverse was calculated here:
+# This will no longer work, since we need to recalculate 
+# both the matrix and its inverse at every timestep
+# Ainv <- solve(A)
+
+
+
+# This is the new iterative loop. Notive the use of lambda.
+
+FlowRate <- matrix(0, N-1, M+1) # Matrix to hold the solution
+FlowRate[ , 1] <- w
+# Loop over time steps
+
+for (j in 0:M) {
+  C <- diag(1,N-1)
+  for (k in 1:(N-2)) {
+    C[k,k] <- lambda*w[k+1]- lambda*w[k]
+  }
+  C[N-1,N-1] <- (-1)*lambda*w[k] # awkward compromise b/c no w[k+1]
+  B <- A+C
+  Binv <- solve(B)
+  w <- Binv %*% w              # + Ainv %*% f still works if you wanted a forcing function
+  FlowRate[ , j+1] <- w     # + g # add boundary g(x) here optional, still works.
+}
+
+```
+
+The code will take some time to execute, as discussed. I increased the number of time steps dramatically to show that even though computational speed is lost, for small problems the code is still workable. I decreased the kinematic velocity term dramatically so that diffusion would play a smaller role and the equation would be closer to Burger's inviscid equation; by also changing $u(x,0)$ to an appropriate function we can then see the shockwave behaviour. Surface plots:
+
+```{r}
+# Time to plot results:
+persp3D(x, t, FlowRate,
+        xlab="x", ylab="t", zlab="Flow Rate",
+        ticktype="detailed", nticks=4)
+```
+
+or, better still, 
+```{r}
+plotrgl(smooth=TRUE, lighting = TRUE)
+```
+
+If you rotate this last plot you can see the shockwave-like behaviour from above and from the "back", i.e looking along the T axis from the final state to the initial condition.
+
+Evolution of the shockwave can also be seen very clearly in a set of line plots (evolving from red to green to blue to purple):
+
+```{r}
+# line plots
+P1 <- FlowRate[ ,1]
+P2 <- FlowRate[ ,201]
+P3 <- FlowRate[ ,401]
+P4 <- FlowRate[ ,601]
+
+plot (x, P1, xlab = "x", ylab = "u(x,t)", type = "l", col="red")
+lines (x,P2, col="green")
+lines (x,P3, col="blue")
+lines (x,P4, col="purple")
+
+```
+
+
+5. Comparison to anaytical solutions and references
+
+The exact solution to the basic problem is given by Wani and Thakar [] as 
+
+$$
+u(x,t) = 2 \pi k \frac{\sum\limits_{n=1}^\infty a_n e^{-n^2 \pi^2 k t} n sin(n \pi x)}  {a_0 + \sum\limits_{n=1}^\infty a_n e^{-n^2 \pi^2 k t} cos(n \pi x) }
+$$
+Where the fourier coefficients $a_n$ are obtained from the initial conditions. For the first initial condition suggested by Wani and Thakar
+$$
+u(x,0) = u_{0} = sin \pi x
+$$
+We would have
+$$
+a_{0} = \int_{0}^{1} exp [-(2 \pi k)^{-1}(1-cos \pi x)] dx
+$$
+
+and 
+$$
+a_{n} = 2 \int_{0}^{1} exp [-(2 \pi k)^{-1}(1-cos \pi x)] cos n \pi x dx
+$$
+Which could be used for comparison. I have not done this, as my project has already run over time.  
+
+
+References:
+
+[1] Godongwana et.al: A finite difference solution of solute transport through a membrane Bioreactor, Math.problems in Engineering Volume 2015 Article ID 810843
+
+[2] Guyot et.al: A three dimensional Computational Fluid Dynamics model of shear stress distribution during neotissue growth in a perfusion bioreactor, Biotechnol.Bioeng 2015;112; 2591-2600
+
+[3] Wani, Sachin.S, and Thakar, Sarita H: Crank-Nicholson Type Method for Burger's Equation, International Journal of Applied Physics and Mathematics Vol.3, No.5,September 2013
+
+[4] https://en.wikipedia.org/wiki/Burgers'_equation
