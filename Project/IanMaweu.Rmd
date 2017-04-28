@@ -15,7 +15,7 @@ library(plot3Drgl)
 library(animation)
 ```
 
-In this project we shall be looking at the following system of partial differential equations stated by Barkley (2),
+In this project we shall be looking at the following system of partial differential equations stated by Barkley [2],
 
 $$
 \frac{\partial u}{\partial t}=\epsilon^{-1}u(1-u)(u-u_{th}(v))+K \left(\frac{\partial^2 u}{\partial x^2}
@@ -24,7 +24,7 @@ $$
 $$
 \frac{\partial v}{\partial t}=u-v. \qquad (2)
 $$
-where the domain is a square, $0<x<L, \quad 0<y<L and 0<t<T.$ We will also be employing the following Dirichlet boundary conditions,
+where the domain is a square, $0<x<L, \quad 0<y<L$ and $0<t<T.$ We will also be employing the Dirichlet boundary conditions
 $$
 \frac{\partial u(0,y,t)}{\partial x}=\frac{\partial u(L,y,t)}{\partial x}=
 \frac{\partial u(x,0,t)}{\partial y}=\frac{\partial u(x,L,t)}{\partial y}=0.
@@ -38,16 +38,16 @@ u(x,y,0)=u_0(x,y)=\begin{cases}
 $$
 This system of equations is part of a larger class of equations called reaction-diffusion equations. Such equations are used to model the dynamics of reactants in chemical reactions or simulate predator-prey dynamics. Barkley (2) states that although the model does not represent a specific excitable system it expresses general characteristics and model dynamics which would be found in an excitable system. One of the characteristics of such a model are the development of spiral waves which we shall show being formed below. 
 
-Barkley (2) develops a numerical scheme that approximates the proposed model. Barkley claims that the developed scheme is able to provide both low (space and time) resolution approximations, which can be used to to possibly investigate the parameters of the model and high resolution approximations, which may be used to verify the accuracy of the low resolution approximations. 
+Barkley [2] develops a numerical scheme that approximates the proposed model. Barkley claims that the developed scheme is able to provide both low (space and time) resolution approximations, which can be used to to possibly investigate the parameters of the model and high resolution approximations, which may be used to verify the accuracy of the low resolution approximations. 
 
-In this report we shall used the a forward difference scheme to approximate the proposed system of equations. We shall also explain how Dirichlet boundary conditions have been incorporated into the numerical scheme. Since we shall be using a forward difference scheme we note that such explicit schemes can be very slow to run compared to implicit schemes and this report also serves as an illustration of this disadvantage.
+In this report we shall use the forward difference scheme to approximate the proposed system of equations. We shall also explain how Dirichlet boundary conditions have been incorporated into the numerical scheme. Since we shall be using a forward difference scheme we note that such explicit schemes can be very slow to run compared to implicit schemes and this report also serves as an illustration of this disadvantage.
 
-First we begin by discretizing the domain. For simplicity we use the same spatial step size $h$ for the x direction and the y-direction. Therefore, we let $x_i=ih$ and $y_j=jh$ where $h=\frac{L}{N}$; $N$ represents the number of steps in the domain.
-We approximate $(1)$ by the following forward difference scheme,
+First we begin by discretizing the domain. For simplicity we use the same spatial step size $h$ for the $x$ direction and the $y$-direction. Therefore, we let $x_i=ih$ and $y_j=jh$ where $h=\frac{L}{N}$; $N$ represents the number of steps in the domain.
+We approximate $(1)$ by the forward difference scheme
 $$
 \frac{w_{k,j}^{n+1}-w_{k,j}^{n}}{\tau}=\epsilon^{-1}u_{k,j}^n(1-u_{k,j}^n)(u_{k,j}^n-u_{th}(v_{k,j}^n))
 -K \bigg(\frac{w_{k+1,j}^{n}-2w_{k,j}^{n}+w_{k-1,j}^{n}}{h_1^2} 
-+\frac{w_{k,j+1}^{n}-2w_{k,j}^{n}+w_{k,j-1}^{n}}{h_2^2}\bigg). \qquad (3)
++\frac{w_{k,j+1}^{n}-2w_{k,j}^{n}+w_{k,j-1}^{n}}{h_2^2}\bigg).
 $$
 
 We can rearrange the following equation as follows,
@@ -72,7 +72,7 @@ w^n_{-1,j}=w^n_{1,j}, \quad w^n_{k,-1}=w^n_{k,1}, \quad, w^n_{N+1,j}=w^n_{N-1,j}
 w^n_{k,N+1}=w^n_{k,N-1}. \qquad (4)
 $$
 
-Now we construct the function denoted `fwdDiff()' which will approximate the solution to the systems of equations. The function uses pieces of code from Delius and Southwell (3),(4) and (5)
+Now we construct the function denoted `fwdDiff()' which will approximate the solution to the systems of equations. The function uses pieces of code from Delius and Southwell [3],[4] and [5].
 ```{r}
 fwdDiff <- function(L1=1, L2=1, N1=50, N2=50,
                     T=1, M=10000, M1=1,
